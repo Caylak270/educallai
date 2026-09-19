@@ -1,0 +1,38 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>probe</title></head>
+<body>
+<script>
+  const p = new URLSearchParams(location.search);
+  const target = p.get("target") || "/";
+  const w = p.get("w") || "1440";
+  const f = document.createElement("iframe");
+  f.style.width = w + "px";
+  f.style.height = "1000px";
+  f.style.border = "0";
+  f.src = target;
+  f.onload = () => {
+    try {
+      const d = f.contentDocument;
+      const h = Math.max(d.body.scrollHeight, d.documentElement.scrollHeight);
+      const sw = Math.max(d.body.scrollWidth, d.documentElement.scrollWidth);
+      const offenders = [];
+      const vw = f.contentWindow.innerWidth;
+      d.querySelectorAll("*").forEach((el) => {
+        const r = el.getBoundingClientRect();
+        if (r.right > vw + 2 && el.children.length < 6) {
+          const cls = (el.className && String(el.className).slice(0, 90)) || "";
+          offenders.push(el.tagName + "." + cls);
+        }
+      });
+      document.body.textContent =
+        "WIDTH=" + sw + " HEIGHT=" + h + " OFFENDERS=" + offenders.slice(0, 8).join(" || ");
+      document.title = "H" + h;
+    } catch (e) {
+      document.body.textContent = "HEIGHT=ERR:" + e.message;
+    }
+  };
+  document.body.appendChild(f);
+</script>
+</body>
+</html>

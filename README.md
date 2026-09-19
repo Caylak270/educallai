@@ -1,36 +1,65 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# educallai — VeliPilot AI (kod adı: DershaneAI)
 
-## Getting Started
+Dershaneler için **7/24 çok kanallı AI sesli + yazılı asistan platformu**: veli arama
+(outbound/inbound), tahsilat takibi, deneme sınavı analizi ve WhatsApp otomasyonu — tek panelden.
 
-First, run the development server:
+- **Hedef pazar:** Türkiye (önce Esenyurt / Beylikdüzü dershaneleri)
+- **Dil / para birimi:** Türkçe / TRY
+- **Kaynak şartname:** `educallai.docx` (Master DNA Brief & Teknik Şartname v1.0) — özet `PLAN.md`'de
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Depo Yapısı
+
+```
+educallai/
+├── src/                    Next.js 16 (App Router, TS, Tailwind v4) dashboard
+│   ├── app/(app)/          Sayfalar: /, /veliler, /gorusmeler/[id], /tahsilat,
+│   │                       /deneme-analizi, /kampanyalar, /randevular, /raporlar, /ayarlar
+│   ├── components/
+│   │   ├── shell/          Kabuk: sidebar (lg+), mobil header + alt tab bar, logo
+│   │   └── pages/          Sayfa bileşenleri (tasarım Stitch'ten port edilmiş)
+│   └── lib/
+│       ├── mock/           Demo veri (Supabase bağlanana dek)
+│       └── types/db.ts     Veritabanı satır tipleri (migration'larla birebir)
+├── agent/                  Python voice agent (LiveKit Cascade Pipeline)
+│   ├── agent/              Pattern 1-8 + Batch Dialer + Tahsilat SM + Deneme motoru
+│   └── tests/              134 test (harici servis gerektirmez)
+├── supabase/               SQL migration'lar (12 tablo + RLS) + demo seed
+├── design/screens/         Stitch tasarım referansları (7 ekran HTML)
+├── docs/raporlar/          İlerleme raporları
+├── docs/render/            Sayfa render PNG'leri (tam sayfa)
+└── scripts/render-pages.mjs  Playwright tabanlı tam sayfa render aracı
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Çalıştırma
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm install
+npm run dev        # http://localhost:3000
+npm run build      # üretim derlemesi
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+# Voice agent testleri (harici anahtar gerekmez)
+agent/.venv/Scripts/python -m pytest agent/tests -q
+```
 
-## Learn More
+## Teknoloji Yığını
 
-To learn more about Next.js, take a look at the following resources:
+| Katman | Teknoloji |
+|---|---|
+| Sunum | Next.js 16 + React 19 + Tailwind v4 (M3 token seti) + Vercel |
+| Veri | Supabase (PostgreSQL 15+, pgvector, RLS) |
+| Ses | LiveKit Cloud + Netgsm SIP · Deepgram Nova-3 (tr) · Claude Haiku 4.5 · Cartesia Sonic 3.6 |
+| Mesajlaşma | Meta WhatsApp Business API, Netgsm SMS, Zernio |
+| Kuyruk | Redis / BullMQ (Outbound Batch Dialer) |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Tasarım Sistemi
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+`src/app/globals.css` içinde Tailwind v4 `@theme` ile Stitch'in Material Design 3 tokenları
+birebir tanımlı (renkler `bg-primary-container` gibi, tipografi `text-headline-md` +
+`font-headline-md`, spacing `p-space-md`, `px-gutter`). Yeni ekranlar bu tokenlarla yazılır;
+referans HTML'ler `design/screens/` altındadır.
 
-## Deploy on Vercel
+## Durum ve Yol Haritası
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Faz 0-2 tamamlandı (UI + veri şeması + agent iskeleti). Sıradaki adımlar `PLAN.md` Faz 4'te:
+canlı sağlayıcı anahtarları, eksik ekranlar (randevular/raporlar/görüşme listesi — Stitch'te
+bekliyor), Batch Dialer worker'ı, Outcome Telemetry cron'u.

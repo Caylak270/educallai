@@ -1,0 +1,26 @@
+# ============================================================================
+# VeliPilot AI — Voice Agent bağımlılıkları
+# Kurulum: agent/.venv/Scripts/pip install -r agent/requirements.txt
+# NOT: Kuyruk (batch dialer / tahsilat kampanyaları) Node/BullMQ tarafında
+# çalışır; Python yalnızca LiveKit agent oturumunu çalıştırır. Bu yüzden
+# redis/rq benzeri kuyruk bağımlılığı YOKTUR.
+# ============================================================================
+
+# --- Canlı çalışma zamanı (LiveKit Cloud oturumu) ---
+livekit-agents>=1.0,<2.0
+livekit-plugins-deepgram>=1.0,<2.0     # Deepgram Nova-3 STT (lang=tr, keyterms)
+livekit-plugins-silero>=1.0,<2.0       # Silero VAD (Türkçe kalibrasyon)
+livekit-plugins-cartesia>=1.0,<2.0     # Cartesia Sonic 3.6 TTS
+livekit-plugins-openai>=1.0,<2.0       # GPT-4o mini fallback
+livekit-plugins-anthropic>=1.0,<2.0    # Claude Haiku 4.5 birincil LLM
+
+# --- Sağlayıcı SDK'ları (fallback adapter doğrudan istemci de kullanabilir) ---
+anthropic>=0.40
+openai>=1.50
+
+# --- Ortak ---
+pydantic>=2.7          # signals modeli ve tool şeması üretimi
+python-dotenv>=1.0     # .env yükleme (config.from_env)
+
+# --- Dev / test ---
+pytest>=8.0            # agent/tests paketi

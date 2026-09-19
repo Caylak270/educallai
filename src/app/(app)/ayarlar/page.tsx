@@ -1,7 +1,7 @@
-import { PageStub } from "@/components/shell/page-stub";
+import { AyarlarView } from "@/components/pages/ayarlar/ayarlar-view";
 
 export const metadata = { title: "Ayarlar" };
 
 export default function Page() {
-  return <PageStub title="Ayarlar" icon="settings" designFile="design/screens/07-ayarlar.web.html" />;
+  return <AyarlarView />;
 }
