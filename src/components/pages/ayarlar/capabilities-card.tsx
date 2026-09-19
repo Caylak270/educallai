@@ -52,7 +52,10 @@ export function CapabilitiesCard({ values, onToggle }: CapabilitiesCardProps) {
                 <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-surface-container-high text-primary">
                   <span className="material-symbols-outlined text-[20px]">{item.icon}</span>
                 </div>
-                <div className="flex flex-col">
+                <div
+                  className="flex cursor-pointer flex-col"
+                  onClick={() => onToggle(item.id, !(values[item.id] ?? false))}
+                >
                   <div className="flex items-center gap-space-xs">
                     <span className="font-title-sm text-title-sm text-on-surface">{item.title}</span>
                     <span

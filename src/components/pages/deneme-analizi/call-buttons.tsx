@@ -36,15 +36,22 @@ export function AiCallToastButton({
     }
     if (busy) return;
     setBusy(true);
+    // Maskeli mock numaraları geçerli E.164'e çevir (412 ** ** → demo numara)
+    const digits = (phone.match(/\d/g) ?? []).join("");
+    const clean = digits.length >= 10 ? `+${digits.slice(-12)}` : "+905321234567";
     let note = "";
     try {
       const res = await fetch("/api/calls", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone, name, leadId }),
+        body: JSON.stringify({ phone: clean, name, leadId }),
       });
       const data = await res.json();
-      note = data.mode === "live" ? "LiveKit ile çevriliyor" : "Demo kaydı oluşturuldu";
+      if (!res.ok || !data.ok) {
+        note = data.error ?? "Arama başlatılamadı";
+      } else {
+        note = data.mode === "live" ? "LiveKit ile çevriliyor" : "Demo kaydı oluşturuldu";
+      }
     } catch {
       note = "Sunucuya ulaşılamadı";
     }

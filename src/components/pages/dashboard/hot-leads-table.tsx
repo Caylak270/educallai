@@ -157,7 +157,11 @@ export function HotLeadsTable() {
                   <div className="flex items-center justify-end gap-1">
                     <CallButton
                       name={lead.parent}
-                      phone={lead.detail.match(/\+90 \([\d ]+\)[\d *]*/)?.[0] ?? "+90"}
+                      phone={(() => {
+                        // Mock veride maskeli numaralar var (412 ** **) — geçerli E.164 üret
+                        const digits = (lead.detail.match(/\d/g) ?? []).join("");
+                        return digits.length >= 10 ? `+${digits.slice(-12)}` : "+905321234567";
+                      })()}
                       leadId={lead.id}
                       context={lead.classTag}
                     />
