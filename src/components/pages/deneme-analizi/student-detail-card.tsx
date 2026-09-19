@@ -173,6 +173,8 @@ function AiVoicePlanBox() {
       <div className="flex shrink-0 flex-col gap-2 sm:flex-row sm:items-center">
         <AiCallToastButton
           className="flex h-11 items-center justify-center gap-2 rounded-xl bg-primary-container px-4 font-label-md text-label-md font-semibold text-on-primary transition-all hover:bg-primary active:scale-[0.99]"
+          name={aiVoicePlan.callButton.parent}
+          phone={aiVoicePlan.callButton.phone}
           message={{
             title: `${aiVoicePlan.callButton.student} • Veli Aranıyor`,
             description: `${aiVoicePlan.callButton.parent} aranarak deneme analizi aktarılıyor...`,

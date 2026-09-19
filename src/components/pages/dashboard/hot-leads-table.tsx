@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { clsx } from "@/lib/clsx";
+import { CallButton } from "@/components/ui/call-button";
 import { hotLeadClassFilters, hotLeads } from "@/lib/mock/kpis";
 
 /**
@@ -154,14 +155,12 @@ export function HotLeadsTable() {
                 </td>
                 <td className="px-5 py-3.5 text-right">
                   <div className="flex items-center justify-end gap-1">
-                    <button
-                      className="flex h-8 items-center gap-1 rounded-lg bg-secondary-container px-3 font-label-sm text-label-sm font-semibold text-on-secondary-container transition-colors hover:bg-secondary hover:text-on-secondary"
-                      onClick={() => console.log(`Arama başlatılıyor: ${lead.parent}`)}
-                      type="button"
-                    >
-                      <span className="material-symbols-outlined text-[16px]">call</span>
-                      <span>Ara</span>
-                    </button>
+                    <CallButton
+                      name={lead.parent}
+                      phone={lead.detail.match(/\+90 \([\d ]+\)[\d *]*/)?.[0] ?? "+90"}
+                      leadId={lead.id}
+                      context={lead.classTag}
+                    />
                     <button
                       aria-label={`${lead.parent} için WhatsApp mesajı aç`}
                       className="flex h-8 w-8 items-center justify-center rounded-lg text-on-surface-variant transition-colors hover:bg-surface-container"

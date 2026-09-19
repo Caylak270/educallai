@@ -39,6 +39,8 @@ export type LeadDrawer = {
 export type Lead = {
   id: string;
   focus?: boolean;
+  /** CRM aşaması: yeni | iletisim | ilgilendi | randevu | ziyaret | kayit | kaybedildi */
+  stage?: string;
   initials: string;
   avatarClass: string;
   badgeIcon: string;
@@ -68,6 +70,7 @@ export type Lead = {
 export const leads: Lead[] = [
   {
     id: "zeynep-kaya",
+    stage: "ilgilendi",
     focus: true,
     initials: "ZK",
     avatarClass: "bg-primary-fixed text-primary",
@@ -157,6 +160,7 @@ export const leads: Lead[] = [
   },
   {
     id: "murat-demirtas",
+    stage: "ilgilendi",
     initials: "MD",
     avatarClass: "bg-secondary-fixed-dim/40 text-on-secondary-fixed",
     badgeIcon: "chat",
@@ -246,6 +250,7 @@ export const leads: Lead[] = [
   },
   {
     id: "aylin-celik",
+    stage: "ilgilendi",
     initials: "AÇ",
     avatarClass: "bg-tertiary-fixed text-on-tertiary-fixed",
     badgeIcon: "sms",

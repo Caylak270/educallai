@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { clsx } from "@/lib/clsx";
+import { CallButton } from "@/components/ui/call-button";
 import type { Lead } from "@/lib/mock/leads";
 
 /* Tasarımdaki dokunsal waveform barları (19 çubuk) */
@@ -239,16 +240,18 @@ export function ParentDetailDrawer({ lead, onClose }: { lead: Lead | null; onClo
 
       {/* Drawer alt aksiyon çubuğu */}
       <div className="flex flex-col gap-2 border-t border-outline-variant/50 bg-surface-container-lowest p-gutter-mobile pb-safe">
-        <button
-          className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-primary font-headline-md text-title-sm text-on-primary transition-colors hover:bg-primary-container"
-          onClick={() =>
-            data && console.log(`Danışman araması başlatılıyor: ${data.name} (${data.drawer.phone})`)
-          }
-          type="button"
-        >
-          <span className="material-symbols-outlined text-[20px]">phone</span>
-          <span>Şimdi Ara (Danışman Olarak)</span>
-        </button>
+        {data ? (
+          <CallButton
+            variant="primary"
+            size="md"
+            className="h-12 rounded-xl font-title-sm"
+            label="Şimdi Ara (AI Asistan)"
+            name={data.name}
+            phone={data.drawer.phone}
+            leadId={data.id}
+            context={`Aşama: ${data.stage ?? "ilgilendi"} · Skor: ${data.score}`}
+          />
+        ) : null}
         <div className="grid grid-cols-2 gap-2">
           <button
             className="flex h-11 items-center justify-center gap-1.5 rounded-xl bg-secondary-container font-label-md text-label-md font-semibold text-on-secondary-container transition-colors hover:bg-secondary"

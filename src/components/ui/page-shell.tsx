@@ -2,9 +2,10 @@ import { clsx } from "@/lib/clsx";
 import type { ReactNode } from "react";
 
 /**
- * Sayfa kabuğu (v2):
+ * Sayfa kabuğu (v2.1):
  * - Mobilde tam genişlik + 16px gutler
- * - PC'de (lg+) ortalanmış max 1280px
+ * - PC'de (lg+) akışkan genişlik; aşırı geniş ekranlarda (2xl+) 1720px üst sınır
+ *   (dar ortalanmış sütun sorunu yok)
  */
 export function PageShell({
   children,
@@ -14,7 +15,7 @@ export function PageShell({
   className?: string;
 }) {
   return (
-    <div className={clsx("mx-auto w-full max-w-7xl px-4 py-6 lg:px-gutter lg:py-8", className)}>
+    <div className={clsx("w-full px-4 py-6 lg:px-6 lg:py-8 2xl:mx-auto 2xl:max-w-[1720px]", className)}>
       {children}
     </div>
   );
