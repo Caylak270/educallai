@@ -15,7 +15,7 @@ export function WizardCard() {
     setCheckedDays((prev) => ({ ...prev, [id]: !prev[id] }));
 
   return (
-    <div className="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest">
+    <div className="rounded-xl border border-outline-variant/60 bg-surface-container-lowest">
       {/* Adım göstergesi */}
       <div className="flex items-center gap-3 border-b border-outline-variant/50 px-5 py-4">
         {wizard.steps.map((step, index) => (
@@ -257,7 +257,7 @@ export function WizardCard() {
         {/* Aksiyon footer */}
         <div className="flex items-center justify-between gap-3 border-t border-outline-variant/50 pt-4">
           <button
-            className="rounded-xl border border-outline-variant px-5 py-2.5 font-label-md text-label-md font-medium text-on-surface-variant transition-colors hover:bg-surface-container-low"
+            className="rounded-xl border border-outline-variant/60 bg-surface-container-lowest px-5 py-2.5 font-label-md text-label-md font-medium text-on-surface-variant transition-colors hover:bg-surface-container-low"
             type="button"
             onClick={() => {
               setName(wizard.defaultName);
@@ -269,7 +269,7 @@ export function WizardCard() {
             {wizard.actions.cancelLabel}
           </button>
           <button
-            className="flex items-center gap-1.5 rounded-xl bg-primary-container px-6 py-2.5 font-label-md text-label-md font-semibold text-on-primary shadow-sm transition-all hover:bg-primary active:scale-[0.98]"
+            className="flex items-center gap-1.5 rounded-xl bg-primary-container px-6 py-2.5 font-label-md text-label-md font-semibold text-on-primary transition-all hover:bg-primary active:scale-[0.98]"
             type="button"
           >
             <span>{wizard.actions.nextLabel}</span>

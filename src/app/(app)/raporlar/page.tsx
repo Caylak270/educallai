@@ -18,12 +18,12 @@ function WeeklyCallChart() {
             </span>
             <div className="flex w-full max-w-10 flex-1 flex-col justify-end overflow-hidden rounded-lg bg-surface-container-low">
               <div
-                className="w-full rounded-t-lg bg-tertiary-fixed-dim/70"
+                className="anim-bar w-full rounded-t-lg bg-tertiary-fixed-dim/70"
                 style={{ height: `${missedH}%` }}
                 title={`Cevapsız: ${d.missed}`}
               />
               <div
-                className="w-full bg-primary-container"
+                className="anim-bar w-full bg-primary-container"
                 style={{ height: `${answeredH}%` }}
                 title={`Cevaplanan: ${d.answered}`}
               />
@@ -51,7 +51,7 @@ function ChannelBars() {
           </div>
           <div className="h-2 w-full overflow-hidden rounded-full bg-surface-container-low">
             <div
-              className={`h-full rounded-full ${c.color}`}
+              className={`anim-bar h-full rounded-full ${c.color}`}
               style={{ width: `${Math.round((c.value / total) * 100)}%` }}
             />
           </div>
@@ -65,12 +65,11 @@ export default function Page() {
   return (
     <PageShell>
       <PageHeader
-        eyebrow="Analitik"
         title="Raporlar"
         description="Outcome Telemetry özetleri ve dönemsel performans raporları."
         actions={
           <button
-            className="flex h-10 items-center gap-1.5 rounded-xl border border-outline-variant px-4 font-label-md text-label-md font-medium text-on-surface-variant transition-colors hover:bg-surface-container-low"
+            className="flex h-10 items-center gap-1.5 rounded-xl border border-outline-variant/60 px-4 font-label-md text-label-md font-medium text-on-surface-variant transition-colors hover:bg-surface-container-low"
             type="button"
           >
             <span className="material-symbols-outlined text-[18px]">download</span>
@@ -81,14 +80,14 @@ export default function Page() {
 
       <div className="flex flex-col gap-6">
         {/* Telemetri KPI'ları */}
-        <section className="grid grid-cols-2 divide-y divide-outline-variant/50 rounded-2xl border border-outline-variant/60 bg-surface-container-lowest sm:grid-cols-4 sm:divide-x sm:divide-y-0">
+        <section className="grid grid-cols-2 divide-y divide-outline-variant/50 rounded-xl border border-outline-variant/60 bg-surface-container-lowest sm:grid-cols-4 sm:divide-x sm:divide-y-0">
           {reportKpis.map((kpi) => (
             <div key={kpi.label} className="p-5">
               <Stat
                 label={kpi.label}
                 value={kpi.value}
                 hint={kpi.hint}
-                accent={kpi.deltaTone === "negative" ? "error" : undefined}
+                valueTone={kpi.deltaTone === "negative" ? "error" : "default"}
               />
               <p
                 className={
@@ -148,7 +147,7 @@ export default function Page() {
               </div>
               <button
                 aria-label={`${file.name} indir`}
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-outline-variant text-on-surface-variant transition-colors hover:bg-surface-container-low"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-on-surface-variant transition-colors hover:bg-surface-container"
                 type="button"
               >
                 <span className="material-symbols-outlined text-[18px]">download</span>

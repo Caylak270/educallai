@@ -10,7 +10,6 @@ export default function Page() {
   return (
     <PageShell>
       <PageHeader
-        eyebrow="Tahsilat Yönetimi"
         title="Tahsilat"
         description="Taksit takibi ve kademeli AI eskalasyon akışı"
       />

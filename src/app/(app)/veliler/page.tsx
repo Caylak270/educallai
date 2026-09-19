@@ -7,7 +7,6 @@ export default function Page() {
   return (
     <PageShell>
       <PageHeader
-        eyebrow="Veli Portföyü"
         title="Veliler (CRM)"
         description="AI lead puanlama ve otomatik takip ile veli portföyünü yönet."
       />

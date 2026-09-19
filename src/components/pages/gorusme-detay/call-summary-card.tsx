@@ -6,7 +6,7 @@ import type { CallSummary } from "@/lib/mock/calls";
  */
 export function CallSummaryCard({ summary }: { summary: CallSummary }) {
   return (
-    <section className="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-5">
+    <section className="rounded-xl border border-outline-variant/60 bg-surface-container-lowest p-5">
       {/* Öğrenci & veli kimliği */}
       <div className="flex items-start gap-4">
         <div className="relative shrink-0">
@@ -52,7 +52,7 @@ export function CallSummaryCard({ summary }: { summary: CallSummary }) {
             call
           </span>
           <div className="flex min-w-0 flex-col">
-            <span className="font-label-xs text-label-xs font-semibold uppercase tracking-wider text-on-surface-variant">
+            <span className="font-label-md text-label-md text-on-surface-variant">
               {summary.phoneLabel}
             </span>
             <span className="truncate font-mono-data text-mono-data font-medium text-on-surface">
@@ -65,7 +65,7 @@ export function CallSummaryCard({ summary }: { summary: CallSummary }) {
             timer
           </span>
           <div className="flex min-w-0 flex-col">
-            <span className="font-label-xs text-label-xs font-semibold uppercase tracking-wider text-on-surface-variant">
+            <span className="font-label-md text-label-md text-on-surface-variant">
               {summary.durationLabel}
             </span>
             <span className="truncate font-mono-data text-mono-data font-medium text-on-surface">

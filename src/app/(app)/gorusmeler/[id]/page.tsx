@@ -18,7 +18,6 @@ export default async function Page({
   return (
     <PageShell>
       <PageHeader
-        eyebrow="Görüşme Kaydı"
         title={`${summary.parentName} · ${summary.studentName}`}
         description={[
           summary.classTag,

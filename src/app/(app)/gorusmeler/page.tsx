@@ -7,7 +7,6 @@ export default function Page() {
   return (
     <PageShell>
       <PageHeader
-        eyebrow="İletişim Geçmişi"
         title="Görüşmeler"
         description="Tüm AI ve danışman görüşmeleri: sesli aramalar, WhatsApp ve SMS kayıtları."
       />

@@ -34,7 +34,7 @@ function NetTrendChart() {
 
         {/* Düşüş bölgesi ortam vurgusu (8., 9. ve 10. sınav bölgesi) */}
         <div className="pointer-events-none absolute bottom-6 right-3 top-2 flex w-28 items-start justify-center rounded-lg bg-error-container/40 pt-1">
-          <span className="text-[9px] font-bold uppercase tracking-wider text-error">
+          <span className="text-[9px] font-bold text-error">
             {chart.dropZoneLabel}
           </span>
         </div>
@@ -123,7 +123,7 @@ function NetTrendChart() {
 /** Ders dağılımı özeti — tam genişlik kart, 4 ders yan yana. */
 function SubjectBreakdown() {
   return (
-    <div className="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-5">
+    <div className="rounded-xl border border-outline-variant/60 bg-surface-container-lowest p-5">
       <h3 className="font-headline-sm text-headline-sm font-bold text-on-surface">
         Son Sınav Ders Net Dağılımı
       </h3>
@@ -153,7 +153,7 @@ function SubjectBreakdown() {
 /** AI ses motoru öneri kutusu — tek bordered kutu, butonlar sağda. */
 function AiVoicePlanBox() {
   return (
-    <div className="flex flex-col gap-4 rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-5 lg:flex-row lg:items-center lg:justify-between lg:gap-8">
+    <div className="flex flex-col gap-4 rounded-xl border border-outline-variant/60 bg-surface-container-lowest p-5 lg:flex-row lg:items-center lg:justify-between lg:gap-8">
       <div className="min-w-0">
         <div className="flex items-center gap-2">
           <span className="material-symbols-outlined text-[20px] text-primary">auto_awesome</span>
@@ -211,18 +211,18 @@ export function StudentDetailCard() {
       {/* Üst blok: grafik (7 kolon) + öğrenci meta & hızlı istatistikler (5 kolon) */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
         {/* Net trend grafiği */}
-        <div className="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-5 lg:col-span-7">
+        <div className="rounded-xl border border-outline-variant/60 bg-surface-container-lowest p-5 lg:col-span-7">
           <NetTrendChart />
         </div>
 
         {/* Öğrenci meta + hızlı istatistikler */}
-        <div className="flex flex-col rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-5 lg:col-span-5">
+        <div className="flex flex-col rounded-xl border border-outline-variant/60 bg-surface-container-lowest p-5 lg:col-span-5">
           <div className="flex items-start justify-between gap-2">
             <div className="flex min-w-0 items-center gap-3">
               <div className="relative shrink-0">
                 <div
                   className={clsx(
-                    "flex h-12 w-12 items-center justify-center rounded-2xl font-label-md text-label-md font-bold",
+                    "flex h-12 w-12 items-center justify-center rounded-xl font-label-md text-label-md font-bold",
                     student.avatarClass
                   )}
                 >
@@ -259,12 +259,12 @@ export function StudentDetailCard() {
           <div className="mt-6 grid grid-cols-3 gap-4 border-t border-outline-variant/50 pt-4 lg:mt-auto">
             {student.stats.map((stat) => (
               <div key={stat.label} className="flex min-w-0 flex-col">
-                <span className="truncate font-label-xs text-label-xs font-semibold uppercase tracking-wider text-on-surface-variant">
+                <span className="truncate font-label-xs text-label-xs font-semibold text-on-surface-variant">
                   {stat.label}
                 </span>
                 <span
                   className={clsx(
-                    "mt-1 font-headline-md text-headline-md font-extrabold tracking-tight",
+                    "mt-1 font-headline-md text-headline-md font-bold tracking-tight",
                     stat.valueClass
                   )}
                 >

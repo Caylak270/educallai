@@ -32,7 +32,7 @@ export function TestCallCard({ phone, onPhoneChange }: TestCallCardProps) {
   };
 
   return (
-    <section className="flex flex-col gap-space-md rounded-xl bg-surface-container-lowest p-space-lg shadow-sm">
+    <section className="flex flex-col gap-space-md rounded-xl border border-outline-variant/60 bg-surface-container-lowest p-space-lg">
       <CardHeader
         icon="phone_in_talk"
         title="Test Çağrısı Başlat"
@@ -67,7 +67,7 @@ export function TestCallCard({ phone, onPhoneChange }: TestCallCardProps) {
           onClick={triggerCall}
           disabled={status !== "idle"}
           className={clsx(
-            "flex w-full items-center justify-center gap-space-xs rounded-lg bg-on-background px-space-md py-space-sm font-title-sm text-title-sm text-on-primary shadow transition-all hover:bg-inverse-surface active:scale-[0.99]",
+            "flex w-full items-center justify-center gap-space-xs rounded-xl bg-primary-container px-space-md py-space-sm font-title-sm text-title-sm text-on-primary transition-all hover:bg-primary active:scale-[0.99]",
             status !== "idle" && "opacity-50"
           )}
         >

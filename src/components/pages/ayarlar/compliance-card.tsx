@@ -3,7 +3,7 @@ import { complianceItems } from "@/lib/mock/settings";
 
 export function ComplianceCard() {
   return (
-    <section className="flex flex-col gap-space-md rounded-xl bg-surface-container-lowest p-space-lg shadow-sm">
+    <section className="flex flex-col gap-space-md rounded-xl border border-outline-variant/60 bg-surface-container-lowest p-space-lg">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-space-sm">
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary-container text-on-secondary-container">

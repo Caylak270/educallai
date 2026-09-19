@@ -30,7 +30,7 @@ export function ScheduleCard({
   onRuleChange,
 }: ScheduleCardProps) {
   return (
-    <section className="flex flex-col gap-space-md rounded-xl bg-surface-container-lowest p-space-lg shadow-sm">
+    <section className="flex flex-col gap-space-md rounded-xl border border-outline-variant/60 bg-surface-container-lowest p-space-lg">
       <CardHeader
         icon="schedule"
         className="pb-space-xs"

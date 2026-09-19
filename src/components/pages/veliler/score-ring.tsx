@@ -37,7 +37,7 @@ export function ScoreRing({
       </div>
       <span
         className={clsx(
-          "font-label-sm text-[9px] font-semibold uppercase tracking-wider",
+          "font-label-sm text-[9px] font-semibold",
           labelClass
         )}
       >

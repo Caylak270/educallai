@@ -12,16 +12,14 @@ export function SegmentStrip() {
         <h2 className="font-headline-md text-headline-md font-bold tracking-tight text-on-surface">
           Öğrenci Segmentleri
         </h2>
-        <span className="font-label-xs text-label-xs font-semibold uppercase tracking-wider text-on-surface-variant">
-          5 Dinamik Küme
-        </span>
+        <span className="font-label-md text-label-md text-on-surface-variant">5 Dinamik Küme</span>
       </div>
 
       <div className="no-scrollbar -mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-1 lg:-mx-gutter lg:px-gutter xl:mx-0 xl:grid xl:snap-none xl:grid-cols-5 xl:overflow-visible xl:px-0 xl:pb-0">
         {examSegments.map((segment) => (
           <article
             key={segment.id}
-            className="flex w-64 shrink-0 snap-start flex-col rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-5 transition-colors hover:border-outline-variant xl:w-auto"
+            className="flex w-64 shrink-0 snap-start flex-col rounded-xl border border-outline-variant/60 bg-surface-container-lowest p-5 transition-colors hover:border-outline-variant xl:w-auto"
           >
             <div className="flex items-start justify-between">
               <div
@@ -44,7 +42,7 @@ export function SegmentStrip() {
 
             <div className="mt-4">
               <div className="flex items-baseline gap-1.5">
-                <span className="font-headline-lg text-headline-lg font-extrabold tracking-tight text-on-surface">
+                <span className="font-headline-lg text-headline-lg font-bold tracking-tight text-on-surface">
                   {segment.count}
                 </span>
                 <span className="font-label-sm text-label-sm text-on-surface-variant">{segment.unit}</span>

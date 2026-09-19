@@ -1,58 +1,55 @@
 import { funnelSteps } from "@/lib/mock/kpis";
 
-/* Veli İletişim & Kayıt Dönüşüm Hunisi (7 kolon) */
+/**
+ * Dönüşüm hunisi (v2) — her aşama: sıra no + ad + sayı/sağda oran,
+ * altında ince animasyonlu bar. Bar içine gömülü rozet YOK.
+ */
 export function FunnelCard() {
   return (
-    <div className="flex flex-col justify-between rounded-2xl bg-surface-container-lowest p-space-lg shadow-sm lg:col-span-7">
-      <div className="mb-4 flex items-center justify-between">
+    <section className="anim-rise rounded-xl border border-outline-variant/60 bg-surface-container-lowest p-5 lg:col-span-7">
+      <header className="mb-5 flex items-start justify-between gap-3">
         <div>
           <h2 className="font-headline-md text-headline-md text-on-surface">
-            Veli İletişim &amp; Kayıt Dönüşüm Hunisi
+            Kayıt Dönüşüm Hunisi
           </h2>
-          <p className="font-body-sm text-body-sm text-on-surface-variant">
-            Çağrı merkezinden kesin kayda öğrenci yaşam döngüsü dönüşüm oranları
+          <p className="mt-0.5 font-body-sm text-body-sm text-on-surface-variant">
+            İlk aramadan kesin kayda dönüşüm oranları
           </p>
         </div>
-        <span className="rounded-lg bg-surface-container px-2.5 py-1 font-label-xs text-label-xs text-on-surface-variant">
-          Ekim Dönemi
-        </span>
-      </div>
+        <span className="shrink-0 font-body-sm text-body-sm text-on-surface-variant">Ekim</span>
+      </header>
 
-      {/* Çok aşamalı dönüşüm akışı */}
-      <div className="my-2 space-y-4">
-        {funnelSteps.map((step) => (
-          <div key={step.id} className="space-y-1.5">
-            <div className="flex items-center justify-between font-label-sm text-label-sm">
-              <span
-                className={`flex items-center gap-1.5 font-semibold ${step.nameClass}`}
-              >
-                <span className={`h-2 w-2 rounded-full ${step.dotClass}`} />
-                {step.name}
-              </span>
-              <span className={`font-bold ${step.countClass}`}>
-                {step.count} <span className={step.pctClass}>{step.pct}</span>
+      <div className="space-y-5">
+        {funnelSteps.map((step, index) => (
+          <div key={step.id}>
+            <div className="mb-1.5 flex items-baseline justify-between gap-3">
+              <div className="flex min-w-0 items-baseline gap-2.5">
+                <span className="w-4 shrink-0 text-right font-mono-data text-mono-data text-outline">
+                  {index + 1}
+                </span>
+                <span className="truncate font-label-md text-label-md font-medium text-on-surface">
+                  {step.name.replace(/^\d+\.\s*/, "")}
+                </span>
+              </div>
+              <span className="shrink-0 font-label-sm text-label-sm">
+                <span className="font-semibold text-on-surface">{step.count}</span>{" "}
+                <span className="text-on-surface-variant">{step.pct}</span>
               </span>
             </div>
-            <div className="flex h-6 w-full overflow-hidden rounded-lg bg-surface-container-low">
+            <div className="ml-6 h-1.5 overflow-hidden rounded-full bg-surface-container-low">
               <div
-                className={`flex h-full items-center pl-3 font-label-xs text-label-xs font-semibold ${step.barFillClass}`}
+                className="anim-bar h-full rounded-full bg-primary-container"
                 style={{ width: `${step.barPct}%` }}
-              >
-                {step.barLabel}
-              </div>
+              />
             </div>
           </div>
         ))}
       </div>
 
-      <div className="mt-2 flex items-center justify-between rounded-xl bg-surface-container-low/60 px-space-md py-2.5 pt-3">
-        <span className="font-body-sm text-body-sm text-on-surface">
-          Genel Funnel Verimliliği:
-        </span>
-        <span className="font-label-md text-label-md font-bold text-secondary">
-          %11,5 Uçtan Uca Satış Oranı
-        </span>
-      </div>
-    </div>
+      <p className="mt-5 flex items-center justify-between border-t border-outline-variant/50 pt-4 font-body-sm text-body-sm">
+        <span className="text-on-surface-variant">Genel huni verimliliği</span>
+        <span className="font-semibold text-secondary">%11,5 uçtan uca satış oranı</span>
+      </p>
+    </section>
   );
 }

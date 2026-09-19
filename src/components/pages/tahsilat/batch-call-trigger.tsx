@@ -32,7 +32,7 @@ export function BatchCallTrigger() {
       aria-label="Toplu İşlemler"
       className="pointer-events-none sticky bottom-4 z-30 mt-2 w-full"
     >
-      <div className="pointer-events-auto flex items-center justify-between gap-3 rounded-2xl bg-inverse-surface p-3 pl-4 text-inverse-on-surface shadow-lg">
+      <div className="pointer-events-auto flex items-center justify-between gap-3 rounded-xl bg-inverse-surface p-3 pl-4 text-inverse-on-surface shadow-lg">
         <div className="flex min-w-0 items-center gap-3">
           <span className="material-symbols-outlined shrink-0 text-[20px] text-secondary">
             record_voice_over
@@ -50,7 +50,7 @@ export function BatchCallTrigger() {
           type="button"
           onClick={startBatchCall}
           disabled={phase !== "idle"}
-          className="flex h-9 shrink-0 items-center gap-1.5 rounded-xl bg-primary px-3.5 font-label-sm text-label-sm font-bold text-on-primary transition-transform active:scale-95 disabled:opacity-80"
+          className="flex h-9 shrink-0 items-center gap-1.5 rounded-xl bg-primary-container px-3.5 font-label-sm text-label-sm font-bold text-on-primary transition hover:bg-primary active:scale-95 disabled:opacity-80"
         >
           {phase === "idle" && (
             <span className="material-symbols-outlined text-[16px]">

@@ -94,7 +94,7 @@ export function AyarlarView() {
           <button
             type="button"
             onClick={handleResetAll}
-            className="flex items-center gap-space-xs rounded-lg bg-surface-container-low px-space-md py-space-sm font-title-sm text-title-sm text-on-surface-variant shadow-sm transition-all hover:bg-surface-container hover:text-on-surface"
+            className="flex items-center gap-space-xs rounded-xl border border-outline-variant/60 bg-surface-container-lowest px-space-md py-space-sm font-title-sm text-title-sm text-on-surface-variant transition-all hover:bg-surface-container-low hover:text-on-surface"
           >
             <span className="material-symbols-outlined text-[18px]">restart_alt</span>
             <span>Tümünü Sıfırla</span>
@@ -102,7 +102,7 @@ export function AyarlarView() {
           <button
             type="button"
             onClick={handleSaveConfiguration}
-            className="flex items-center gap-space-xs rounded-lg bg-primary px-space-lg py-space-sm font-title-sm text-title-sm text-on-primary shadow-md transition-all hover:bg-primary-container hover:shadow-lg"
+            className="flex items-center gap-space-xs rounded-xl bg-primary-container px-space-lg py-space-sm font-title-sm text-title-sm text-on-primary transition-all hover:bg-primary"
           >
             <span
               className="material-symbols-outlined text-[18px]"

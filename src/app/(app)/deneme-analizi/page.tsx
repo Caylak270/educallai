@@ -13,7 +13,6 @@ export default function Page() {
   return (
     <PageShell>
       <PageHeader
-        eyebrow="Akademik Takip"
         title={examHeader.title}
         description="Segment bazlı öğrenci takibi, net trendleri ve AI veli arama aksiyonları tek ekranda."
         actions={
@@ -40,7 +39,7 @@ export default function Page() {
 
       <div className="flex flex-col gap-6">
         {/* Aktif sınav + acil alarm şeridi */}
-        <div className="flex flex-col gap-3 rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 rounded-xl border border-outline-variant/60 bg-surface-container-lowest p-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex min-w-0 items-center gap-3">
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary-fixed text-primary">
               <span className="material-symbols-outlined text-[20px]">assignment_turned_in</span>

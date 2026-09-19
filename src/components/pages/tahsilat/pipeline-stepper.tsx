@@ -27,7 +27,7 @@ export function PipelineStepper() {
             {pipelineHeader.subtitle}
           </p>
         </div>
-        <span className="shrink-0 font-label-xs text-label-xs font-semibold uppercase tracking-wider text-on-surface-variant">
+        <span className="shrink-0 font-label-sm text-label-sm font-medium text-on-surface-variant">
           {pipelineHeader.badge}
         </span>
       </div>
@@ -40,12 +40,12 @@ export function PipelineStepper() {
             <div
               key={stage.id}
               className={clsx(
-                "flex w-56 shrink-0 flex-col rounded-2xl border bg-surface-container-lowest p-4 lg:w-auto lg:shrink",
+                "flex w-56 shrink-0 flex-col rounded-xl border bg-surface-container-lowest p-4 lg:w-auto lg:shrink",
                 accent.border
               )}
             >
               <div className="flex items-center justify-between gap-2">
-                <span className="font-label-xs text-label-xs font-semibold uppercase tracking-wider text-on-surface-variant">
+                <span className="font-label-xs text-label-xs font-medium text-on-surface-variant">
                   {stage.badge}
                 </span>
                 {isAi && (

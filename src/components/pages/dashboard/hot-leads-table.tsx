@@ -4,7 +4,10 @@ import { useState } from "react";
 import { clsx } from "@/lib/clsx";
 import { hotLeadClassFilters, hotLeads } from "@/lib/mock/kpis";
 
-/* Aranmayı Bekleyen Sıcak Leadler tablosu — filtreler görsel state ile çalışır */
+/**
+ * Sıcak lead tablosu (v2) — sessiz başlıklar, havadar satırlar,
+ * tek tonal aksiyon + hayalet ikon butonlar. Satır boyama/rozet kalabalığı yok.
+ */
 export function HotLeadsTable() {
   const [classFilter, setClassFilter] = useState<string>("Tüm Sınıflar");
   const [hotOnly, setHotOnly] = useState(false);
@@ -17,30 +20,21 @@ export function HotLeadsTable() {
   );
 
   return (
-    <div className="flex flex-col rounded-2xl bg-surface-container-lowest p-space-lg shadow-sm">
+    <section className="rounded-xl border border-outline-variant/60 bg-surface-container-lowest">
       {/* Başlık & kontroller */}
-      <div className="mb-space-md flex flex-col items-start justify-between gap-space-md lg:flex-row lg:items-center">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2.5">
-            <h2 className="font-headline-md text-headline-md text-on-surface">
-              Aranmayı Bekleyen Sıcak Leadler
-            </h2>
-            <span className="rounded-full bg-error-container px-2.5 py-0.5 font-label-xs text-label-xs font-semibold text-on-error-container">
-              Müdür &amp; Danışman Müdahalesi Bekleyen 5 Veli
-            </span>
-          </div>
-          <p className="font-body-sm text-body-sm text-on-surface-variant">
-            AI görüşmesinde net ilgi ve randevu niyeti beyan eden öncelikli veliler
+      <header className="flex flex-col gap-3 border-b border-outline-variant/50 px-5 py-4 lg:flex-row lg:items-center lg:justify-between">
+        <div className="min-w-0">
+          <h2 className="font-headline-sm text-headline-sm text-on-surface">
+            Aranmayı bekleyen sıcak leadler
+          </h2>
+          <p className="mt-0.5 font-body-sm text-body-sm text-on-surface-variant">
+            5 veli müdahale bekliyor · AI randevu niyeti beyan etti
           </p>
         </div>
-        {/* Tablo filtre barı */}
-        <div className="flex w-full flex-wrap items-center gap-2 lg:w-auto">
-          <div className="relative flex-1 sm:w-48">
-            <span className="material-symbols-outlined absolute left-2.5 top-2.5 text-[18px] text-on-surface-variant">
-              filter_alt
-            </span>
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="relative">
             <select
-              className="h-9 w-full cursor-pointer appearance-none rounded-lg bg-surface pl-8 pr-6 font-label-sm text-label-sm text-on-surface focus:bg-surface-container-low focus:outline-none"
+              className="h-9 cursor-pointer appearance-none rounded-lg border border-outline-variant/60 bg-surface-container-lowest pl-3 pr-8 font-label-sm text-label-sm text-on-surface focus:outline-none"
               value={classFilter}
               onChange={(event) => setClassFilter(event.target.value)}
             >
@@ -48,16 +42,16 @@ export function HotLeadsTable() {
                 <option key={option}>{option}</option>
               ))}
             </select>
-            <span className="material-symbols-outlined pointer-events-none absolute right-2 top-2.5 text-[16px] text-on-surface-variant">
+            <span className="material-symbols-outlined pointer-events-none absolute right-2 top-2 text-[16px] text-on-surface-variant">
               expand_more
             </span>
           </div>
           <button
             className={clsx(
-              "flex h-9 items-center gap-1.5 rounded-lg px-3 font-label-sm text-label-sm transition-colors",
+              "flex h-9 items-center gap-1.5 rounded-lg border px-3 font-label-sm text-label-sm transition-colors",
               hotOnly
-                ? "bg-error-container text-on-error-container"
-                : "bg-surface text-on-surface hover:bg-surface-container"
+                ? "border-error/40 bg-error-container/50 font-medium text-on-error-container"
+                : "border-outline-variant/60 bg-surface-container-lowest text-on-surface-variant hover:bg-surface-container-low"
             )}
             onClick={() => setHotOnly((value) => !value)}
             type="button"
@@ -65,42 +59,42 @@ export function HotLeadsTable() {
             <span className="material-symbols-outlined text-[16px] text-error">
               local_fire_department
             </span>
-            <span>Sadece Çok Sıcak</span>
+            <span>Sadece çok sıcak</span>
           </button>
           <button
             className={clsx(
-              "flex h-9 items-center gap-1.5 rounded-lg px-3 font-label-sm text-label-sm transition-colors",
+              "flex h-9 items-center gap-1.5 rounded-lg border px-3 font-label-sm text-label-sm transition-colors",
               recentOnly
-                ? "bg-surface-container-high text-on-surface"
-                : "bg-surface text-on-surface-variant hover:bg-surface-container"
+                ? "border-outline-variant bg-surface-container font-medium text-on-surface"
+                : "border-outline-variant/60 bg-surface-container-lowest text-on-surface-variant hover:bg-surface-container-low"
             )}
             onClick={() => setRecentOnly((value) => !value)}
             type="button"
           >
             <span className="material-symbols-outlined text-[16px]">schedule</span>
-            <span>Son 24 Saat</span>
+            <span>Son 24 saat</span>
           </button>
         </div>
-      </div>
+      </header>
 
       {/* Tablo */}
       <div className="w-full overflow-x-auto">
         <table className="w-full border-collapse text-left">
           <thead>
-            <tr className="bg-surface-container-low font-label-xs text-label-xs uppercase tracking-wider text-on-surface-variant">
-              <th className="rounded-l-lg py-3 px-space-md">Veli / Öğrenci</th>
-              <th className="py-3 px-space-md">Sınıf &amp; Hedef</th>
-              <th className="py-3 px-space-md">Sıcaklık</th>
-              <th className="py-3 px-space-md">AI Görüşme Özeti / Veli Talebi</th>
-              <th className="py-3 px-space-md">Bekleme</th>
-              <th className="rounded-r-lg py-3 px-space-md text-right">Hızlı Aksiyon</th>
+            <tr className="border-b border-outline-variant/50 font-label-sm text-label-sm text-on-surface-variant">
+              <th className="px-5 py-3 font-medium">Veli / öğrenci</th>
+              <th className="px-3 py-3 font-medium">Sınıf &amp; hedef</th>
+              <th className="px-3 py-3 font-medium">Sıcaklık</th>
+              <th className="px-3 py-3 font-medium">AI görüşme özeti</th>
+              <th className="px-3 py-3 font-medium">Bekleme</th>
+              <th className="px-5 py-3 text-right font-medium">Aksiyon</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-surface-container-low">
+          <tbody className="divide-y divide-outline-variant/40">
             {rows.length === 0 && (
               <tr>
                 <td
-                  className="py-6 text-center font-body-md text-body-md text-on-surface-variant"
+                  className="py-8 text-center font-body-md text-body-md text-on-surface-variant"
                   colSpan={6}
                 >
                   Filtreyle eşleşen lead bulunamadı.
@@ -108,93 +102,78 @@ export function HotLeadsTable() {
               </tr>
             )}
             {rows.map((lead) => (
-              <tr
-                key={lead.id}
-                className={clsx(
-                  "transition-colors",
-                  lead.urgentRow
-                    ? "bg-tertiary-fixed/20 hover:bg-tertiary-fixed/30"
-                    : "hover:bg-surface-container-low"
-                )}
-              >
-                <td className="py-3.5 px-space-md">
+              <tr key={lead.id} className="transition-colors hover:bg-surface-container-low/60">
+                <td className="py-3.5 pl-5 pr-3">
                   <div className="flex items-center gap-3">
-                    <div
+                    <span
                       className={clsx(
-                        "flex h-9 w-9 items-center justify-center rounded-full font-semibold text-label-sm",
+                        "flex h-9 w-9 shrink-0 items-center justify-center rounded-full font-label-sm text-label-sm font-semibold",
                         lead.avatarClass
                       )}
                     >
                       {lead.initials}
-                    </div>
-                    <div>
+                    </span>
+                    <div className="min-w-0">
                       <div className="font-label-md text-label-md font-semibold text-on-surface">
                         {lead.parent}
                       </div>
-                      <div className="font-body-sm text-body-sm text-on-surface-variant">
+                      <div className="truncate font-body-sm text-body-sm text-on-surface-variant">
                         {lead.detail}
                       </div>
                     </div>
                   </div>
                 </td>
-                <td className="py-3.5 px-space-md">
-                  <span
-                    className={clsx(
-                      "inline-flex rounded-md px-2.5 py-1 font-label-xs text-label-xs font-medium",
-                      lead.classTagClass
-                    )}
-                  >
-                    {lead.classTag}
+                <td className="whitespace-nowrap px-3 py-3.5 font-body-sm text-body-sm text-on-surface-variant">
+                  {lead.classTag}
+                </td>
+                <td className="whitespace-nowrap px-3 py-3.5">
+                  <span className="inline-flex items-center gap-1.5 font-label-sm text-label-sm font-medium text-on-surface">
+                    <span
+                      className={clsx(
+                        "h-1.5 w-1.5 rounded-full",
+                        lead.heat === "hot" ? "bg-error" : "bg-tertiary-fixed-dim"
+                      )}
+                    />
+                    {lead.heat === "hot" ? "Sıcak" : "Ilık"}
                   </span>
                 </td>
-                <td className="py-3.5 px-space-md">
-                  {lead.heat === "hot" ? (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-error-container px-2.5 py-0.5 font-label-xs text-label-xs font-bold text-on-error-container shadow-sm">
-                      <span>🔥</span> Çok Sıcak
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-secondary-container px-2.5 py-0.5 font-label-xs text-label-xs font-semibold text-on-secondary-container">
-                      Ilık Lead
-                    </span>
-                  )}
-                </td>
-                <td className="max-w-sm py-3.5 px-space-md">
-                  <p className={clsx("font-body-sm text-body-sm leading-snug", lead.summaryClass)}>
+                <td className="max-w-sm px-3 py-3.5">
+                  <p className="line-clamp-2 font-body-sm text-body-sm leading-snug text-on-surface-variant">
                     {lead.summary}
                   </p>
                 </td>
-                <td className="py-3.5 px-space-md">
-                  <span className={clsx("font-label-sm text-label-sm", lead.waitClass)}>
+                <td className="whitespace-nowrap px-3 py-3.5">
+                  <span
+                    className={clsx(
+                      "font-label-sm text-label-sm font-medium",
+                      lead.urgentRow ? "text-error" : "text-on-surface-variant"
+                    )}
+                  >
                     {lead.wait}
                   </span>
                 </td>
-                <td className="py-3.5 px-space-md text-right">
-                  <div className="flex items-center justify-end gap-1.5">
+                <td className="px-5 py-3.5 text-right">
+                  <div className="flex items-center justify-end gap-1">
                     <button
-                      className={clsx(
-                        "flex h-8 items-center gap-1 rounded-md px-3 font-label-sm text-label-sm font-semibold",
-                        lead.cta === "hot"
-                          ? "bg-secondary text-on-secondary hover:opacity-90"
-                          : "bg-surface-container-highest text-on-surface hover:bg-surface-container"
-                      )}
+                      className="flex h-8 items-center gap-1 rounded-lg bg-secondary-container px-3 font-label-sm text-label-sm font-semibold text-on-secondary-container transition-colors hover:bg-secondary hover:text-on-secondary"
                       onClick={() => console.log(`Arama başlatılıyor: ${lead.parent}`)}
                       type="button"
                     >
                       <span className="material-symbols-outlined text-[16px]">call</span>
-                      <span>{lead.cta === "hot" ? "Hemen Ara" : "Ara"}</span>
+                      <span>Ara</span>
                     </button>
                     <button
-                      className="flex h-8 w-8 items-center justify-center rounded-md bg-surface-container text-secondary transition-colors hover:bg-surface-container-high"
+                      aria-label={`${lead.parent} için WhatsApp mesajı aç`}
+                      className="flex h-8 w-8 items-center justify-center rounded-lg text-on-surface-variant transition-colors hover:bg-surface-container"
                       onClick={() => console.log(`WhatsApp Mesajı Aç: ${lead.parent}`)}
-                      title="WhatsApp Mesajı Aç"
                       type="button"
                     >
                       <span className="material-symbols-outlined text-[18px]">chat</span>
                     </button>
                     <button
-                      className="flex h-8 w-8 items-center justify-center rounded-md bg-surface-container text-on-surface-variant transition-colors hover:bg-surface-container-high"
+                      aria-label={`${lead.parent} için detaylı CRM kaydı`}
+                      className="flex h-8 w-8 items-center justify-center rounded-lg text-on-surface-variant transition-colors hover:bg-surface-container"
                       onClick={() => console.log(`Detaylı CRM Kaydı: ${lead.parent}`)}
-                      title="Detaylı CRM Kaydı"
                       type="button"
                     >
                       <span className="material-symbols-outlined text-[18px]">more_vert</span>
@@ -207,19 +186,17 @@ export function HotLeadsTable() {
         </table>
       </div>
 
-      {/* Tablo alt notu */}
-      <div className="mt-2 flex flex-col items-center justify-between gap-2 border-t border-surface-container-low pt-4 sm:flex-row">
+      <div className="flex items-center justify-between border-t border-outline-variant/50 px-5 py-3">
         <span className="font-body-sm text-body-sm text-on-surface-variant">
-          Toplam 14 öncelikli arama talebi listelendi.
+          Toplam 14 öncelikli arama talebi
         </span>
         <button
-          className="flex items-center gap-1 font-label-sm text-label-sm font-semibold text-primary-container hover:underline"
+          className="font-label-sm text-label-sm font-medium text-primary transition-colors hover:text-primary-container"
           type="button"
         >
-          <span>Tüm Bekleyen Leadleri Görüntüle</span>
-          <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+          Tümünü görüntüle
         </button>
       </div>
-    </div>
+    </section>
   );
 }

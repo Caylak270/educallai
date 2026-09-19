@@ -43,12 +43,12 @@ export function ParentDetailDrawer({ lead, onClose }: { lead: Lead | null; onClo
     <div
       aria-hidden={!open}
       className={clsx(
-        "fixed inset-x-0 bottom-0 top-14 z-[60] flex flex-col rounded-t-3xl border border-b-0 border-outline-variant/60 bg-surface-container-lowest shadow-2xl transition-transform duration-300 ease-out lg:left-72",
+        "fixed inset-x-0 bottom-0 top-14 z-[60] flex flex-col rounded-t-xl border border-b-0 border-outline-variant/60 bg-surface-container-lowest transition-transform duration-300 ease-out lg:left-72",
         open ? "translate-y-0" : "translate-y-full"
       )}
     >
       {/* Drawer tutamağı & başlık çubuğu */}
-      <div className="flex flex-col items-center rounded-t-3xl border-b border-outline-variant/50 bg-surface-container-low px-gutter-mobile pb-3 pt-2.5">
+      <div className="flex flex-col items-center rounded-t-xl border-b border-outline-variant/50 bg-surface-container-low px-gutter-mobile pb-3 pt-2.5">
         <div className="mb-2 h-1.5 w-12 rounded-full bg-outline-variant" />
         <div className="flex w-full items-center justify-between">
           <div className="flex items-center gap-2">
@@ -72,7 +72,7 @@ export function ParentDetailDrawer({ lead, onClose }: { lead: Lead | null; onClo
       {data && (
         <div className="flex flex-1 flex-col gap-4 overflow-y-auto px-gutter-mobile py-4">
           {/* Lead profil kartı */}
-          <div className="flex flex-col gap-3 rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-4">
+          <div className="flex flex-col gap-3 rounded-xl border border-outline-variant/60 bg-surface-container-lowest p-4">
             <div className="flex items-start justify-between">
               <div>
                 <h2 className="font-headline-md text-headline-md font-bold text-on-surface">
@@ -84,7 +84,7 @@ export function ParentDetailDrawer({ lead, onClose }: { lead: Lead | null; onClo
                 </div>
               </div>
               <div className="text-right">
-                <span className="block font-label-sm text-label-sm uppercase text-outline">
+                <span className="block font-label-md text-label-md text-on-surface-variant">
                   Öğrenci
                 </span>
                 <span className="font-title-sm text-title-sm font-semibold text-on-surface">
@@ -108,10 +108,18 @@ export function ParentDetailDrawer({ lead, onClose }: { lead: Lead | null; onClo
               </span>
               <span
                 className={clsx(
-                  "rounded-full px-2.5 py-1 font-label-md text-label-md font-semibold",
+                  "inline-flex items-center gap-1 rounded-full px-2.5 py-1 font-label-md text-label-md font-semibold",
                   data.drawer.heatPill.className
                 )}
               >
+                <span
+                  className={clsx(
+                    "material-symbols-outlined text-[14px]",
+                    data.drawer.heatPill.iconClass
+                  )}
+                >
+                  {data.drawer.heatPill.icon}
+                </span>
                 {data.drawer.heatPill.text}
               </span>
               <span
@@ -151,7 +159,7 @@ export function ParentDetailDrawer({ lead, onClose }: { lead: Lead | null; onClo
           </div>
 
           {/* Ses çalma widget'ı */}
-          <div className="flex flex-col gap-2.5 rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-4">
+          <div className="flex flex-col gap-2.5 rounded-xl border border-outline-variant/60 bg-surface-container-lowest p-4">
             <div className="flex items-center justify-between text-on-surface">
               <div className="flex items-center gap-2">
                 <button

@@ -5,7 +5,7 @@ import { campaignKpis } from "@/lib/mock/campaigns";
 export function KpiSummary() {
   const { reached, response, appointment } = campaignKpis;
   return (
-    <section className="grid grid-cols-1 divide-y divide-outline-variant/50 rounded-2xl border border-outline-variant/60 bg-surface-container-lowest sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+    <section className="grid grid-cols-1 divide-y divide-outline-variant/50 rounded-xl border border-outline-variant/60 bg-surface-container-lowest sm:grid-cols-3 sm:divide-x sm:divide-y-0">
       <div className="p-5">
         <Stat
           label={reached.label}
@@ -21,13 +21,13 @@ export function KpiSummary() {
         />
         <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-surface-container-low">
           <div
-            className="h-full rounded-full bg-primary-container"
+            className="anim-bar h-full rounded-full bg-primary-container"
             style={{ width: `${reached.percent}%` }}
           />
         </div>
       </div>
       <div className="p-5">
-        <Stat label={response.label} value={response.value} accent="secondary" hint={response.delta} />
+        <Stat label={response.label} value={response.value} valueTone="secondary" hint={response.delta} />
       </div>
       <div className="p-5">
         <Stat
@@ -40,7 +40,7 @@ export function KpiSummary() {
               </span>
             </>
           }
-          accent="primary"
+          valueTone="primary"
           hint={appointment.note}
         />
       </div>

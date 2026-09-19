@@ -181,6 +181,60 @@ body {
   overscroll-behavior-y: none;
 }
 
+/* ── Motion (v2) ──────────────────────────────────────────────
+   Kural: TEK orkestre yükleme anı + kullanıcı-tetikli mikro geçişler.
+   Sadece transform/opacity animasyonu; reduced-motion'da tamamen kapanır. */
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes bar-grow {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.anim-rise {
+  animation: rise-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* İlerleme çubukları: mount'ta soldan büyür */
+.anim-bar {
+  transform-origin: left;
+  animation: bar-grow 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .anim-rise,
+  .anim-bar {
+    animation: none;
+  }
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
+
+/* Klavye görünürlüğü (erişilebilirlik) */
+:focus-visible {
+  outline: 2px solid var(--color-primary-container);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
 /* Stitch yardımcıları */
 .no-scrollbar::-webkit-scrollbar {
   display: none;

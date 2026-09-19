@@ -30,7 +30,7 @@ function StudentCard({ student }: { student: RosterStudent }) {
   );
 
   return (
-    <div className="flex flex-col gap-2 rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-4 transition-colors hover:border-outline-variant">
+    <div className="flex flex-col gap-2 rounded-xl border border-outline-variant/60 bg-surface-container-lowest p-4 transition-colors hover:border-outline-variant">
       <div className="flex items-center justify-between">
         <div className="flex min-w-0 items-center gap-2.5">
           <div
@@ -59,7 +59,7 @@ function StudentCard({ student }: { student: RosterStudent }) {
           </div>
         </div>
         <div className="shrink-0 text-right">
-          <span className="block font-headline-md text-headline-md font-extrabold leading-tight text-on-surface">
+          <span className="block font-headline-md text-headline-md font-bold leading-tight text-on-surface">
             {student.net}
           </span>
           <span

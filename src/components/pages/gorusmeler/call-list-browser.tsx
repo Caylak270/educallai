@@ -124,17 +124,17 @@ export function CallListBrowser() {
         </div>
       </div>
 
-      <div className="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest">
+      <div className="rounded-xl border border-outline-variant/60 bg-surface-container-lowest">
         {/* PC: tablo */}
         <table className="hidden w-full text-left lg:table">
           <thead>
-            <tr className="border-b border-outline-variant/50 font-label-xs text-label-xs uppercase tracking-wider text-on-surface-variant">
-              <th className="px-5 py-3.5 font-semibold">Veli / Öğrenci</th>
-              <th className="px-3 py-3.5 font-semibold">Kanal</th>
-              <th className="px-3 py-3.5 font-semibold">Yön</th>
-              <th className="px-3 py-3.5 font-semibold">Sonuç</th>
-              <th className="px-3 py-3.5 font-semibold">Süre</th>
-              <th className="px-3 py-3.5 font-semibold">Zaman</th>
+            <tr className="border-b border-outline-variant/50 font-label-sm text-label-sm font-medium text-on-surface-variant">
+              <th className="px-5 py-3.5">Veli / Öğrenci</th>
+              <th className="px-3 py-3.5">Kanal</th>
+              <th className="px-3 py-3.5">Yön</th>
+              <th className="px-3 py-3.5">Sonuç</th>
+              <th className="px-3 py-3.5">Süre</th>
+              <th className="px-3 py-3.5">Zaman</th>
               <th className="px-3 py-3.5" />
             </tr>
           </thead>

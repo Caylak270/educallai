@@ -25,7 +25,7 @@ export function AudioPlayer({ audio }: { audio: AudioPlayerData }) {
   const [speed, setSpeed] = useState(audio.defaultSpeed);
 
   return (
-    <div className="flex flex-col gap-4 rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-5">
+    <div className="flex flex-col gap-4 rounded-xl border border-outline-variant/60 bg-surface-container-lowest p-5">
       {/* Kanal bilgisi & indirme */}
       <div className="flex items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-2">
@@ -56,14 +56,14 @@ export function AudioPlayer({ audio }: { audio: AudioPlayerData }) {
           {audio.playedBars.map((height, index) => (
             <span
               key={`played-${index}`}
-              className={clsx("w-1 rounded-full bg-primary", barHeight[height])}
+              className={clsx("anim-bar w-1 rounded-full bg-primary", barHeight[height])}
             />
           ))}
           {/* Oynatma konumu işaretçisi */}
           <div className="relative flex items-center justify-center">
             <span
               className={clsx(
-                "w-1 rounded-full bg-primary",
+                "anim-bar w-1 rounded-full bg-primary",
                 barHeight[audio.markerBar]
               )}
             />

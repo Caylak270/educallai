@@ -155,7 +155,7 @@ export const installmentFilterPills: InstallmentFilterPill[] = [
   { id: "all", label: "Tümü (42)" },
   { id: "overdue", label: "Gecikenler (14)", dotClass: "bg-error" },
   { id: "due-today", label: "Bugün Vadesi Dolan (10)" },
-  { id: "ai-call", label: "AI Aramasında (4)", icon: "graphic_eq" },
+  { id: "ai-call", label: "AI Aramasında (4)", dotClass: "bg-secondary" },
   { id: "promised", label: "Ödeme Sözü Verenler (6)" },
 ];
 

@@ -62,16 +62,11 @@ export function InstallmentsBrowser() {
                 "flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-1.5 font-label-sm text-label-sm transition-colors",
                 isActive
                   ? "bg-primary-container font-semibold text-on-primary"
-                  : "border border-outline-variant bg-surface-container-lowest text-on-surface-variant hover:bg-surface-container-low"
+                  : "border border-outline-variant/60 bg-surface-container-lowest text-on-surface-variant hover:bg-surface-container-low"
               )}
             >
               {pill.dotClass && (
                 <span className={clsx("h-1.5 w-1.5 rounded-full", pill.dotClass)} />
-              )}
-              {pill.icon && (
-                <span className="material-symbols-outlined text-[14px]">
-                  {pill.icon}
-                </span>
               )}
               {pill.label}
             </button>
@@ -81,7 +76,7 @@ export function InstallmentsBrowser() {
 
       {/* Kayıt listesi */}
       <div className="flex items-center justify-between">
-        <h3 className="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant">
+        <h3 className="font-label-sm text-label-sm font-medium text-on-surface-variant">
           {installmentListHeader.title}
         </h3>
         <span className="font-label-sm text-label-sm font-medium text-primary">
@@ -94,7 +89,7 @@ export function InstallmentsBrowser() {
           <InstallmentCard key={record.id} record={record} />
         ))}
         {visibleRecords.length === 0 && (
-          <div className="rounded-2xl border border-dashed border-outline-variant/60 bg-surface-container-lowest p-8 text-center lg:col-span-2">
+          <div className="rounded-xl border border-dashed border-outline-variant/60 bg-surface-container-lowest p-8 text-center lg:col-span-2">
             <span className="material-symbols-outlined text-[24px] text-on-surface-variant">
               search_off
             </span>

@@ -69,7 +69,7 @@ export function CallDetailTabs({
       </div>
 
       {/* Aktif panel içeriği — tek yüzey */}
-      <div className="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-5">
+      <div className="rounded-xl border border-outline-variant/60 bg-surface-container-lowest p-5">
         {activeTab === "transcript" && (
           <TranscriptPanel segments={transcript} meta={transcriptMeta} />
         )}

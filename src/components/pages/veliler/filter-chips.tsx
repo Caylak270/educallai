@@ -29,7 +29,13 @@ export function FilterChips({
             onClick={() => onSelect(chip.id)}
             type="button"
           >
-            {chip.emoji && <span className="text-sm">{chip.emoji}</span>}
+            {chip.icon && (
+              <span
+                className={clsx("material-symbols-outlined text-[15px]", chip.iconClass)}
+              >
+                {chip.icon}
+              </span>
+            )}
             {chip.dot && (
               <span className="h-1.5 w-1.5 rounded-full bg-error" />
             )}

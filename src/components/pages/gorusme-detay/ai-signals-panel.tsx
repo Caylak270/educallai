@@ -32,7 +32,7 @@ export function AiSignalsPanel({ signals }: { signals: AiSignals }) {
         </div>
         <div className="h-2 w-full overflow-hidden rounded-full bg-surface-container">
           <div
-            className="h-full rounded-full bg-primary transition-all duration-500"
+            className="anim-bar h-full rounded-full bg-primary transition-all duration-500"
             style={{ width: `${signals.score.percent}%` }}
           />
         </div>
@@ -46,7 +46,7 @@ export function AiSignalsPanel({ signals }: { signals: AiSignals }) {
         {/* Duygu & yaklaşım */}
         <div className="flex items-start justify-between gap-3 py-4">
           <div className="min-w-0">
-            <p className="font-label-xs text-label-xs font-semibold uppercase tracking-wider text-on-surface-variant">
+            <p className="font-label-md text-label-md text-on-surface-variant">
               {signals.sentiment.title}
             </p>
             <p className="mt-0.5 font-body-sm text-body-sm text-on-surface">
@@ -60,7 +60,7 @@ export function AiSignalsPanel({ signals }: { signals: AiSignals }) {
 
         {/* Temel niyet */}
         <div className="py-4">
-          <p className="font-label-xs text-label-xs font-semibold uppercase tracking-wider text-on-surface-variant">
+          <p className="font-label-md text-label-md text-on-surface-variant">
             {signals.intent.label}
           </p>
           <p className="mt-0.5 font-title-sm text-title-sm font-semibold text-on-surface">
@@ -74,7 +74,7 @@ export function AiSignalsPanel({ signals }: { signals: AiSignals }) {
         {/* Fiyat hassasiyeti & ödeme itirazı */}
         <div className="grid grid-cols-1 gap-4 py-4 sm:grid-cols-2">
           <div>
-            <p className="font-label-xs text-label-xs font-semibold uppercase tracking-wider text-on-surface-variant">
+            <p className="font-label-md text-label-md text-on-surface-variant">
               {signals.priceSensitivity.label}
             </p>
             <p className="mt-0.5 font-title-sm text-title-sm font-semibold text-on-surface">
@@ -85,7 +85,7 @@ export function AiSignalsPanel({ signals }: { signals: AiSignals }) {
             </p>
           </div>
           <div>
-            <p className="font-label-xs text-label-xs font-semibold uppercase tracking-wider text-on-surface-variant">
+            <p className="font-label-md text-label-md text-on-surface-variant">
               {signals.objection.label}
             </p>
             <p className="mt-0.5 font-title-sm text-title-sm font-semibold text-secondary">
@@ -99,7 +99,7 @@ export function AiSignalsPanel({ signals }: { signals: AiSignals }) {
 
         {/* Hedef program */}
         <div className="py-4">
-          <p className="font-label-xs text-label-xs font-semibold uppercase tracking-wider text-on-surface-variant">
+          <p className="font-label-md text-label-md text-on-surface-variant">
             {signals.targetProgram.label}
           </p>
           <p className="mt-0.5 font-title-sm text-title-sm font-semibold text-on-surface">

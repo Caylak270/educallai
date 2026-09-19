@@ -41,7 +41,7 @@ function AppointmentRow({ item }: { item: AppointmentItem }) {
       }
     >
       <div className="flex w-20 shrink-0 items-center gap-1.5 sm:flex-col sm:items-start sm:gap-0">
-        <span className="font-headline-md text-headline-md font-bold text-on-surface">
+        <span className="font-mono-data text-mono-data font-semibold text-on-surface">
           {item.time}
         </span>
         <span className="font-body-sm text-body-sm text-outline">{item.durationMinutes} dk</span>
@@ -84,12 +84,11 @@ export default function Page() {
   return (
     <PageShell>
       <PageHeader
-        eyebrow="Takvim"
         title="Randevular"
         description="AI tarafından oluşturulan ve danışman takvimine düşen tüm veli randevuları."
         actions={
           <button
-            className="flex h-10 items-center gap-1.5 rounded-xl bg-primary-container px-4 font-label-md text-label-md font-semibold text-on-primary shadow-sm transition-all hover:bg-primary active:scale-[0.98]"
+            className="flex h-10 items-center gap-1.5 rounded-xl bg-primary-container px-4 font-label-md text-label-md font-semibold text-on-primary transition-all hover:bg-primary active:scale-[0.98]"
             type="button"
           >
             <span className="material-symbols-outlined text-[18px]">add</span>
@@ -100,15 +99,15 @@ export default function Page() {
 
       <div className="flex flex-col gap-6">
         {/* Özet şeridi */}
-        <section className="grid grid-cols-2 divide-outline-variant/50 rounded-2xl border border-outline-variant/60 bg-surface-container-lowest sm:grid-cols-4 sm:divide-x sm:divide-y-0 divide-y">
+        <section className="grid grid-cols-2 divide-outline-variant/50 rounded-xl border border-outline-variant/60 bg-surface-container-lowest sm:grid-cols-4 sm:divide-x sm:divide-y-0 divide-y">
           <div className="p-5">
-            <Stat label="Bugün" value={appointmentStats.today} accent="primary" hint="Planlı randevu" />
+            <Stat label="Bugün" value={appointmentStats.today} valueTone="primary" hint="Planlı randevu" />
           </div>
           <div className="p-5">
             <Stat label="Bu hafta" value={appointmentStats.week} hint="Toplam randevu" />
           </div>
           <div className="p-5">
-            <Stat label="Onay bekleyen" value={appointmentStats.pending} accent="error" hint="Veli dönüşü bekleniyor" />
+            <Stat label="Onay bekleyen" value={appointmentStats.pending} valueTone="error" hint="Veli dönüşü bekleniyor" />
           </div>
           <div className="p-5">
             <Stat label="Gelmedi oranı" value={appointmentStats.noShowRate} hint="Son 30 gün" />

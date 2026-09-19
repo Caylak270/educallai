@@ -25,7 +25,7 @@ export function CapabilitiesCard({ values, onToggle }: CapabilitiesCardProps) {
   const activeCount = capabilityToggles.filter((toggle) => values[toggle.id]).length;
 
   return (
-    <section className="flex flex-col gap-space-md rounded-xl bg-surface-container-lowest p-space-lg shadow-sm">
+    <section className="flex flex-col gap-space-md rounded-xl border border-outline-variant/60 bg-surface-container-lowest p-space-lg">
       <CardHeader
         icon="smart_toy"
         className="pb-space-xs"

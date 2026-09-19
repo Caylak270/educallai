@@ -37,7 +37,7 @@ export function VoiceCard({
   const speedLabel = speechSpeed === 1 ? "1.00x (Normal)" : `${speechSpeed.toFixed(2)}x`;
 
   return (
-    <section className="flex flex-col gap-space-md rounded-xl bg-surface-container-lowest p-space-lg shadow-sm">
+    <section className="flex flex-col gap-space-md rounded-xl border border-outline-variant/60 bg-surface-container-lowest p-space-lg">
       <CardHeader
         icon="record_voice_over"
         className="pb-space-xs"
@@ -49,7 +49,7 @@ export function VoiceCard({
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-space-sm">
             <div className="relative">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary font-title-sm text-title-sm font-bold text-on-primary shadow-sm">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary font-title-sm text-title-sm font-bold text-on-primary">
                 {activeVoice.initial}
               </div>
               <span className="absolute bottom-0 right-0 h-3.5 w-3.5 rounded-full bg-secondary ring-2 ring-surface-container-lowest" />
@@ -81,7 +81,7 @@ export function VoiceCard({
             type="button"
             onClick={() => setIsPlaying((playing) => !playing)}
             aria-label={isPlaying ? "Ses önizlemeyi durdur" : "Ses önizlemeyi oynat"}
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-on-primary shadow transition-transform hover:bg-primary-container active:scale-95"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-on-primary transition-transform hover:bg-primary-container active:scale-95"
           >
             <span
               className="material-symbols-outlined text-[20px]"
@@ -112,7 +112,7 @@ export function VoiceCard({
       </div>
 
       <div className="flex flex-col gap-space-xs">
-        <span className="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant">
+        <span className="font-label-md text-label-md text-on-surface-variant">
           Alternatif Ses Modelleri
         </span>
         {alternativeVoices.map((voice) => (

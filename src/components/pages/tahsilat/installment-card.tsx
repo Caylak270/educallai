@@ -21,13 +21,21 @@ const infoTone: Record<AmountTone, string> = {
   tertiary: "text-tertiary",
 };
 
-/** Tek durum pill'i — hafif konteyner zeminleri, tek ton. */
-const statusPillTone: Record<StatusPillTone, string> = {
-  ai: "bg-secondary-container text-on-secondary-container",
-  due: "bg-secondary-container text-on-secondary-container",
-  critical: "bg-error-container text-on-error-container",
-  pre: "bg-surface-container text-on-surface-variant",
-  warn: "bg-surface-container text-on-surface-variant",
+/** Tek durum satırı — nokta + metin; rozet/arka plan yok (v2). */
+const statusDotTone: Record<StatusPillTone, string> = {
+  ai: "bg-secondary",
+  due: "bg-secondary",
+  critical: "bg-error",
+  pre: "bg-outline",
+  warn: "bg-tertiary-fixed-dim",
+};
+
+const statusTextTone: Record<StatusPillTone, string> = {
+  ai: "text-secondary",
+  due: "text-secondary",
+  critical: "text-error",
+  pre: "text-on-surface-variant",
+  warn: "text-on-surface-variant",
 };
 
 /** AI özet kutusu düz zemin kullanır; vurgu yalnızca ikon/başlık renginde. */
@@ -64,7 +72,7 @@ export function InstallmentCard({ record }: { record: InstallmentRecord }) {
   return (
     <article
       className={clsx(
-        "flex flex-col gap-3.5 rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-5 transition-opacity",
+        "flex flex-col gap-3.5 rounded-xl border border-outline-variant/60 bg-surface-container-lowest p-5 transition-opacity",
         paid && "opacity-60"
       )}
     >
@@ -107,19 +115,20 @@ export function InstallmentCard({ record }: { record: InstallmentRecord }) {
         </div>
       </div>
 
-      {/* Tek durum pill'i + hatırlatma sayısı (düz metin) */}
+      {/* Tek durum satırı (nokta + metin) + hatırlatma sayısı */}
       <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
         <span
           className={clsx(
-            "inline-flex items-center gap-1 rounded-full px-2.5 py-1 font-label-xs text-label-xs font-semibold",
-            statusPillTone[record.statusPill.tone]
+            "inline-flex items-center gap-1.5 font-label-sm text-label-sm font-medium",
+            statusTextTone[record.statusPill.tone]
           )}
         >
-          {record.statusPill.icon && (
-            <span className="material-symbols-outlined text-[13px]">
-              {record.statusPill.icon}
-            </span>
-          )}
+          <span
+            className={clsx(
+              "h-1.5 w-1.5 shrink-0 rounded-full",
+              statusDotTone[record.statusPill.tone]
+            )}
+          />
           {record.statusPill.text}
         </span>
         <span className="font-label-sm text-label-sm text-on-surface-variant">
@@ -177,7 +186,7 @@ export function InstallmentCard({ record }: { record: InstallmentRecord }) {
               type="button"
               onClick={handleRemind}
               disabled={reminded}
-              className="flex h-9 flex-1 items-center justify-center gap-1.5 rounded-lg border border-outline-variant font-label-sm text-label-sm font-semibold text-on-surface transition-colors hover:bg-surface-container-low disabled:opacity-70"
+              className="flex h-9 flex-1 items-center justify-center gap-1.5 rounded-lg border border-outline-variant/60 font-label-sm text-label-sm font-semibold text-on-surface transition-colors hover:bg-surface-container-low disabled:opacity-70"
             >
               <span
                 className={clsx(
@@ -192,7 +201,7 @@ export function InstallmentCard({ record }: { record: InstallmentRecord }) {
             <button
               type="button"
               onClick={() => setPaid(true)}
-              className="flex h-9 items-center justify-center gap-1 rounded-lg bg-primary px-3.5 font-label-sm text-label-sm font-semibold text-on-primary transition-colors hover:bg-primary-container"
+              className="flex h-9 items-center justify-center gap-1 rounded-lg bg-primary-container px-3.5 font-label-sm text-label-sm font-semibold text-on-primary transition-colors hover:bg-primary"
             >
               <span className="material-symbols-outlined text-[16px]">
                 check

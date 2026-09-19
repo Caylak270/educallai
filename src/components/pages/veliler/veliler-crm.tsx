@@ -78,7 +78,7 @@ export function VelilerCrm() {
       {/* LEAD KARTLARI — tek kolon mobil, PC'de 2-3 kolon grid */}
       <div className="grid grid-cols-1 items-stretch gap-3 lg:grid-cols-2 xl:grid-cols-3">
         {visibleLeads.length === 0 ? (
-          <div className="col-span-full rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-8 text-center font-body-md text-body-md text-on-surface-variant">
+          <div className="col-span-full rounded-xl border border-outline-variant/60 bg-surface-container-lowest p-8 text-center font-body-md text-body-md text-on-surface-variant">
             Aramanızla eşleşen veli bulunamadı.
           </div>
         ) : (

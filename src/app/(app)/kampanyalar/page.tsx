@@ -10,7 +10,6 @@ export default function Page() {
   return (
     <PageShell>
       <PageHeader
-        eyebrow="Kampanya Yönetimi"
         title="Kampanyalar"
         description="AI sesli arama ve WhatsApp kampanyalarını tek yerden yönet: liste yükle, saatleri seç, KVKK onayını işaretle ve başlat."
       />

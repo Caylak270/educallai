@@ -9,7 +9,7 @@ export function LeadCard({ lead, onOpen }: { lead: Lead; onOpen: (lead: Lead) =>
   return (
     <div
       className={clsx(
-        "flex h-full cursor-pointer flex-col rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-5 transition-colors hover:border-outline-variant",
+        "flex h-full cursor-pointer flex-col rounded-xl border border-outline-variant/60 bg-surface-container-lowest p-5 transition-colors hover:border-outline-variant",
         lead.focus && "group relative"
       )}
       onClick={() => onOpen(lead)}
@@ -71,7 +71,11 @@ export function LeadCard({ lead, onOpen }: { lead: Lead; onOpen: (lead: Lead) =>
             lead.heatPillClass
           )}
         >
-          <span className="text-xs">{lead.heatEmoji}</span>
+          <span
+            className={clsx("material-symbols-outlined text-[13px]", lead.heatIconClass)}
+          >
+            {lead.heatIcon}
+          </span>
           {lead.heatLabel}
         </span>
         <span className="inline-flex items-center gap-1 font-label-sm text-label-sm text-on-surface-variant">

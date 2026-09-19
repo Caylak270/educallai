@@ -26,7 +26,7 @@ export type LeadDrawer = {
   studentName: string;
   studentClass: string;
   scoreBadge: { text: string; className: string };
-  heatPill: { text: string; className: string };
+  heatPill: { text: string; icon: string; iconClass?: string; className: string };
   stagePill: { text: string; className: string };
   sentiment: { text: string; className: string };
   notePre: string;
@@ -52,7 +52,8 @@ export type Lead = {
   score: number;
   ringClass: string;
   scoreLabelClass: string;
-  heatEmoji: string;
+  heatIcon: string;
+  heatIconClass?: string;
   heatLabel: string;
   heatPillClass: string;
   channelIcon: string;
@@ -81,7 +82,8 @@ export const leads: Lead[] = [
     score: 94,
     ringClass: "text-secondary",
     scoreLabelClass: "text-secondary",
-    heatEmoji: "🔥",
+    heatIcon: "local_fire_department",
+    heatIconClass: "text-error",
     heatLabel: "Sıcak Lead",
     heatPillClass: "bg-tertiary-container/15 text-tertiary-container",
     channelIcon: "phone_in_talk",
@@ -112,7 +114,12 @@ export const leads: Lead[] = [
         text: "Lead Puanı: 94/100",
         className: "bg-secondary-fixed text-on-secondary-fixed",
       },
-      heatPill: { text: "🔥 Sıcak", className: "bg-tertiary-container/15 text-tertiary-container" },
+      heatPill: {
+        text: "Sıcak",
+        icon: "local_fire_department",
+        iconClass: "text-error",
+        className: "bg-tertiary-container/15 text-tertiary-container",
+      },
       stagePill: { text: "Aşama: İlgilendi", className: "bg-primary-fixed text-on-primary-fixed" },
       sentiment: { text: "Sentiment: %92 Pozitif", className: "bg-secondary/15 text-secondary" },
       notePre: "Veli ile ",
@@ -163,7 +170,8 @@ export const leads: Lead[] = [
     score: 88,
     ringClass: "text-secondary",
     scoreLabelClass: "text-secondary",
-    heatEmoji: "🔥",
+    heatIcon: "local_fire_department",
+    heatIconClass: "text-error",
     heatLabel: "Sıcak Lead",
     heatPillClass: "bg-tertiary-container/15 text-tertiary-container",
     channelIcon: "forum",
@@ -195,7 +203,12 @@ export const leads: Lead[] = [
         text: "Lead Puanı: 88/100",
         className: "bg-secondary-fixed text-on-secondary-fixed",
       },
-      heatPill: { text: "🔥 Sıcak", className: "bg-tertiary-container/15 text-tertiary-container" },
+      heatPill: {
+        text: "Sıcak",
+        icon: "local_fire_department",
+        iconClass: "text-error",
+        className: "bg-tertiary-container/15 text-tertiary-container",
+      },
       stagePill: { text: "Aşama: İlgilendi", className: "bg-primary-fixed text-on-primary-fixed" },
       sentiment: { text: "Sentiment: %87 Pozitif", className: "bg-secondary/15 text-secondary" },
       notePre: "Veli ile ",
@@ -246,7 +259,7 @@ export const leads: Lead[] = [
     score: 72,
     ringClass: "text-tertiary-container",
     scoreLabelClass: "text-tertiary",
-    heatEmoji: "⚡",
+    heatIcon: "bolt",
     heatLabel: "Ilık Lead",
     heatPillClass: "bg-surface-container-high text-on-surface-variant",
     channelIcon: "cell_tower",
@@ -270,7 +283,11 @@ export const leads: Lead[] = [
         text: "Lead Puanı: 72/100",
         className: "bg-secondary-fixed text-on-secondary-fixed",
       },
-      heatPill: { text: "⚡ Ilık", className: "bg-surface-container-high text-on-surface-variant" },
+      heatPill: {
+        text: "Ilık",
+        icon: "bolt",
+        className: "bg-surface-container-high text-on-surface-variant",
+      },
       stagePill: { text: "Aşama: İlgilendi", className: "bg-primary-fixed text-on-primary-fixed" },
       sentiment: { text: "Sentiment: %64 Nötr", className: "bg-secondary/15 text-secondary" },
       notePre: "Veli ile ",
@@ -365,13 +382,14 @@ export const kanbanStages: KanbanStage[] = [
 export type PortfolioChip = {
   id: string;
   label: string;
-  emoji?: string;
+  icon?: string;
+  iconClass?: string;
   dot?: boolean;
 };
 
 export const portfolioChips: PortfolioChip[] = [
   { id: "all", label: "Tümü (142)" },
-  { id: "hot", label: "Sıcak Leadler (28)", emoji: "🔥" },
+  { id: "hot", label: "Sıcak Leadler (28)", icon: "local_fire_department", iconClass: "text-error" },
   { id: "yks", label: "12. Sınıf / YKS (64)" },
   { id: "lgs", label: "LGS Hazırlık (39)" },
   { id: "delayed", label: "AI Takip Geciken (7)", dot: true },

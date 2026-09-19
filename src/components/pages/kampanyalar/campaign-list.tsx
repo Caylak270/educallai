@@ -39,7 +39,7 @@ function ProgressBar({ campaign, status }: { campaign: Campaign; status: Campaig
     <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface-container-low">
       <div
         className={clsx(
-          "h-full rounded-full transition-all duration-500",
+          "anim-bar h-full rounded-full transition-all duration-500",
           status === "duraklatildi"
             ? "bg-tertiary-fixed-dim"
             : status === "tamamlandi"
@@ -64,7 +64,7 @@ function CampaignCard({
   onResume: (id: string) => void;
 }) {
   return (
-    <article className="flex flex-col rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-5 transition-colors hover:border-outline-variant">
+    <article className="flex flex-col rounded-xl border border-outline-variant/60 bg-surface-container-lowest p-5 transition-colors hover:border-outline-variant">
       <div className="mb-3 flex items-start justify-between gap-3">
         <div className="min-w-0">
           <h3 className="font-headline-sm text-headline-sm text-on-surface">{campaign.title}</h3>
@@ -149,7 +149,7 @@ function CampaignCard({
         <div className="flex shrink-0 items-center gap-2">
           {status === "aktif" && campaign.controls?.includes("pause") ? (
             <button
-              className="rounded-lg border border-outline-variant px-3 py-1.5 font-label-sm text-label-sm font-medium text-on-surface-variant transition-colors hover:bg-surface-container-low"
+              className="rounded-lg border border-outline-variant/60 bg-surface-container-lowest px-3 py-1.5 font-label-sm text-label-sm font-medium text-on-surface-variant transition-colors hover:bg-surface-container-low"
               type="button"
               onClick={() => onPause(campaign.id)}
             >
@@ -158,7 +158,7 @@ function CampaignCard({
           ) : null}
           {status === "aktif" && campaign.controls?.includes("report") ? (
             <button
-              className="rounded-lg px-3 py-1.5 font-label-sm text-label-sm font-medium text-primary transition-colors hover:bg-primary-fixed"
+              className="rounded-lg px-3 py-1.5 font-label-sm text-label-sm font-medium text-primary transition-colors hover:text-primary-container"
               type="button"
             >
               Rapor
