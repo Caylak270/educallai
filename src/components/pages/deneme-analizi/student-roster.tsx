@@ -30,7 +30,7 @@ function StudentCard({ student }: { student: RosterStudent }) {
   );
 
   return (
-    <div className="flex flex-col space-y-2 rounded-2xl bg-surface-container-lowest p-3.5 shadow-sm transition-shadow hover:shadow-md">
+    <div className="flex flex-col gap-2 rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-4 transition-colors hover:border-outline-variant">
       <div className="flex items-center justify-between">
         <div className="flex min-w-0 items-center gap-2.5">
           <div
@@ -74,7 +74,7 @@ function StudentCard({ student }: { student: RosterStudent }) {
         </div>
       </div>
 
-      <div className="flex items-center justify-between pt-1">
+      <div className="flex items-center justify-between border-t border-outline-variant/50 pt-2.5">
         {/* Son 5 sınav mini sparkline */}
         <div className="flex items-center gap-2">
           <span className="font-label-xs text-label-xs text-on-surface-variant">Son 5:</span>
@@ -110,27 +110,29 @@ function StudentCard({ student }: { student: RosterStudent }) {
   );
 }
 
-/** Tüm öğrenci listesi: arama, filtre/sıralama butonları ve trend kartları. */
+/** Tüm öğrenci listesi: arama, filtre/sıralama butonları ve trend kartları (PC'de iki kolon). */
 export function StudentRoster() {
   return (
-    <div className="flex flex-col space-y-3 pt-2">
+    <section className="flex flex-col gap-3">
       {/* Başlık ve arama / filtre şeridi */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2">
         <div>
-          <h2 className="font-headline-md text-headline-md font-bold text-on-surface">{rosterHeader.title}</h2>
+          <h2 className="font-headline-md text-headline-md font-bold tracking-tight text-on-surface">
+            {rosterHeader.title}
+          </h2>
           <span className="font-label-xs text-label-xs text-on-surface-variant">{rosterHeader.subtitle}</span>
         </div>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1.5">
           <button
             aria-label="Filtrele"
-            className="flex h-9 w-9 items-center justify-center rounded-xl bg-surface-container-lowest text-on-surface-variant shadow-sm"
+            className="flex h-9 w-9 items-center justify-center rounded-xl border border-outline-variant/60 bg-surface-container-lowest text-on-surface-variant transition-colors hover:bg-surface-container-low"
             type="button"
           >
             <span className="material-symbols-outlined text-[18px]">filter_list</span>
           </button>
           <button
             aria-label="Sırala"
-            className="flex h-9 w-9 items-center justify-center rounded-xl bg-surface-container-lowest text-on-surface-variant shadow-sm"
+            className="flex h-9 w-9 items-center justify-center rounded-xl border border-outline-variant/60 bg-surface-container-lowest text-on-surface-variant transition-colors hover:bg-surface-container-low"
             type="button"
           >
             <span className="material-symbols-outlined text-[18px]">swap_vert</span>
@@ -140,22 +142,22 @@ export function StudentRoster() {
 
       {/* Hızlı arama girişi */}
       <div className="relative w-full">
-        <span className="material-symbols-outlined pointer-events-none absolute left-3 top-2.5 text-[20px] text-on-surface-variant">
+        <span className="material-symbols-outlined pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[20px] text-on-surface-variant">
           search
         </span>
         <input
-          className="h-10 w-full rounded-xl bg-surface-container-lowest pl-10 pr-4 font-label-md text-label-md text-on-surface shadow-xs placeholder:text-outline focus:outline-none focus:ring-2 focus:ring-primary-container"
+          className="h-10 w-full rounded-xl border border-outline-variant/60 bg-surface-container-lowest pl-10 pr-4 font-label-md text-label-md text-on-surface placeholder:text-outline focus:outline-none focus:ring-2 focus:ring-primary-container"
           placeholder={rosterHeader.searchPlaceholder}
           type="text"
         />
       </div>
 
       {/* Öğrenci kartları */}
-      <div className="flex flex-col space-y-2.5">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {rosterStudents.map((student) => (
           <StudentCard key={student.id} student={student} />
         ))}
       </div>
-    </div>
+    </section>
   );
 }

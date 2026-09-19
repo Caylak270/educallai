@@ -8,7 +8,7 @@ import { LeadCard } from "./lead-card";
 import { ParentDetailDrawer } from "./parent-detail-drawer";
 import { ViewToggle, type ViewMode } from "./view-toggle";
 
-/* Veliler Portföyü — mobil CRM panosu (kanban) + veli detay drawer'ı */
+/* Veliler CRM — arama, filtre, kanban/liste görünümü ve veli detay drawer'ı */
 export function VelilerCrm() {
   const [view, setView] = useState<ViewMode>("kanban");
   const [activeChipId, setActiveChipId] = useState("all");
@@ -29,53 +29,40 @@ export function VelilerCrm() {
   const activeStage = kanbanStages.find((stage) => stage.id === activeStageId) ?? kanbanStages[2];
 
   return (
-    <div className="relative flex w-full flex-col pb-20">
-      {/* ÜST KONTROL PANELİ (arama, görünüm toggle, filtre chip'leri) */}
-      <div className="flex flex-col gap-3 px-gutter-mobile pb-2 pt-3">
-        {/* Görünüm anahtarı & sayaç özeti */}
-        <div className="flex items-center justify-between gap-space-sm">
-          <div className="flex items-center gap-2">
-            <span className="font-headline-md text-headline-md tracking-tight text-on-surface">
-              Veliler Portföyü
-            </span>
-            <span className="rounded-full bg-surface-container px-2 py-0.5 font-mono-data text-label-sm font-medium text-on-surface-variant">
-              142
-            </span>
-          </div>
-          <ViewToggle value={view} onChange={setView} />
+    <div className="relative flex w-full flex-col gap-3">
+      {/* Arama & hızlı filtre */}
+      <div className="flex items-center gap-2">
+        <div className="relative flex flex-1 items-center">
+          <span className="material-symbols-outlined pointer-events-none absolute left-3 text-[19px] text-outline">
+            search
+          </span>
+          <input
+            className="h-10 w-full rounded-xl border border-outline-variant/60 bg-surface-container-lowest pl-9 pr-3 font-body-md text-body-md text-on-surface transition-colors placeholder:text-outline focus:border-primary focus:outline-none"
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Veli, öğrenci adı veya telefon..."
+            type="text"
+            value={query}
+          />
         </div>
-        {/* Arama & hızlı filtre */}
-        <div className="flex items-center gap-2">
-          <div className="relative flex flex-1 items-center">
-            <span className="material-symbols-outlined pointer-events-none absolute left-3 text-[19px] text-outline">
-              search
-            </span>
-            <input
-              className="h-10 w-full rounded-xl bg-surface-container-lowest pl-9 pr-3 font-body-md text-body-md text-on-surface shadow-sm transition-all placeholder:text-outline focus:outline-none focus:ring-2 focus:ring-primary-container/20"
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Veli, öğrenci adı veya telefon..."
-              type="text"
-              value={query}
-            />
-          </div>
-          <button
-            aria-label="Gelişmiş Filtrele"
-            className="flex h-10 w-10 items-center justify-center rounded-xl bg-surface-container-lowest text-on-surface-variant shadow-sm transition-all hover:text-on-surface active:scale-95"
-            type="button"
-          >
-            <span className="material-symbols-outlined text-[20px]">filter_list</span>
-          </button>
-        </div>
-        {/* Filtre chip'leri */}
-        <FilterChips activeId={activeChipId} onSelect={setActiveChipId} />
+        <button
+          aria-label="Gelişmiş Filtrele"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-outline-variant/60 bg-surface-container-lowest text-on-surface-variant transition-colors hover:text-on-surface"
+          type="button"
+        >
+          <span className="material-symbols-outlined text-[20px]">filter_list</span>
+        </button>
+        <ViewToggle value={view} onChange={setView} />
       </div>
+
+      {/* Filtre chip'leri */}
+      <FilterChips activeId={activeChipId} onSelect={setActiveChipId} />
 
       {/* KANBAN AŞAMA ŞERİDİ (yalnızca Pano görünümünde) */}
       {view === "kanban" && <KanbanStages activeId={activeStageId} onSelect={setActiveStageId} />}
 
       {/* AKTİF AŞAMA METRİKLERİ */}
       {view === "kanban" && (
-        <div className="flex items-center justify-between px-gutter-mobile pb-1 pt-3 text-on-surface-variant">
+        <div className="flex items-center justify-between pt-1 text-on-surface-variant">
           <div className="flex items-center gap-1.5 font-label-md text-label-md">
             <span className="font-semibold text-on-surface">&quot;{activeStage.name}&quot; Aşaması</span>
             <span className="text-outline">·</span>
@@ -88,10 +75,10 @@ export function VelilerCrm() {
         </div>
       )}
 
-      {/* LEAD KARTLARI */}
-      <div className="flex flex-col gap-3 px-gutter-mobile py-2">
+      {/* LEAD KARTLARI — tek kolon mobil, PC'de 2-3 kolon grid */}
+      <div className="grid grid-cols-1 items-stretch gap-3 lg:grid-cols-2 xl:grid-cols-3">
         {visibleLeads.length === 0 ? (
-          <div className="rounded-2xl bg-surface-container-lowest p-6 text-center font-body-md text-body-md text-on-surface-variant shadow-sm">
+          <div className="col-span-full rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-8 text-center font-body-md text-body-md text-on-surface-variant">
             Aramanızla eşleşen veli bulunamadı.
           </div>
         ) : (

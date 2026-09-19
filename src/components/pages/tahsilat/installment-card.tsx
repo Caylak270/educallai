@@ -21,42 +21,21 @@ const infoTone: Record<AmountTone, string> = {
   tertiary: "text-tertiary",
 };
 
+/** Tek durum pill'i — hafif konteyner zeminleri, tek ton. */
 const statusPillTone: Record<StatusPillTone, string> = {
-  ai: "bg-secondary-fixed text-on-secondary-fixed-variant font-semibold",
-  due: "bg-secondary-container text-on-secondary-container font-semibold",
-  critical: "bg-error-container text-on-error-container font-bold",
-  pre: "bg-primary-fixed text-on-primary-fixed-variant font-semibold",
-  warn: "bg-tertiary-fixed text-on-tertiary-fixed font-semibold",
+  ai: "bg-secondary-container text-on-secondary-container",
+  due: "bg-secondary-container text-on-secondary-container",
+  critical: "bg-error-container text-on-error-container",
+  pre: "bg-surface-container text-on-surface-variant",
+  warn: "bg-surface-container text-on-surface-variant",
 };
 
-const accentTone: Record<
-  AccentTone,
-  { box: string; icon: string; title: string; actionIcon: string }
-> = {
-  secondary: {
-    box: "bg-surface-container-low",
-    icon: "text-secondary",
-    title: "text-secondary",
-    actionIcon: "text-secondary",
-  },
-  primary: {
-    box: "bg-surface-container-low",
-    icon: "text-primary",
-    title: "text-on-surface",
-    actionIcon: "text-primary",
-  },
-  error: {
-    box: "bg-error-container/30",
-    icon: "text-error",
-    title: "text-error",
-    actionIcon: "text-error",
-  },
-  tertiary: {
-    box: "bg-surface-container-low",
-    icon: "text-tertiary",
-    title: "text-tertiary",
-    actionIcon: "text-tertiary",
-  },
+/** AI özet kutusu düz zemin kullanır; vurgu yalnızca ikon/başlık renginde. */
+const accentTone: Record<AccentTone, { icon: string; title: string }> = {
+  secondary: { icon: "text-secondary", title: "text-secondary" },
+  primary: { icon: "text-primary", title: "text-on-surface" },
+  error: { icon: "text-error", title: "text-error" },
+  tertiary: { icon: "text-tertiary", title: "text-tertiary" },
 };
 
 export function InstallmentCard({ record }: { record: InstallmentRecord }) {
@@ -85,18 +64,18 @@ export function InstallmentCard({ record }: { record: InstallmentRecord }) {
   return (
     <article
       className={clsx(
-        "flex flex-col gap-3 rounded-xl bg-surface-container-lowest p-3.5 shadow-[0_1px_4px_rgba(11,28,48,0.05)] transition-opacity",
+        "flex flex-col gap-3.5 rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-5 transition-opacity",
         paid && "opacity-60"
       )}
     >
       {/* Header Row */}
-      <div className="flex items-start justify-between gap-2">
+      <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <div className="flex items-center gap-1.5">
-            <h3 className="truncate font-headline-sm text-body-lg font-bold text-on-surface">
+          <div className="flex items-center gap-2">
+            <h3 className="truncate font-headline-sm text-headline-sm text-on-surface">
               {record.studentName}
             </h3>
-            <span className="rounded bg-surface-container px-1.5 py-0.5 font-label-sm text-[10px] text-on-surface-variant">
+            <span className="shrink-0 rounded bg-surface-container px-1.5 py-0.5 font-label-xs text-label-xs text-on-surface-variant">
               {record.gradeTag}
             </span>
           </div>
@@ -110,7 +89,7 @@ export function InstallmentCard({ record }: { record: InstallmentRecord }) {
         <div className="shrink-0 text-right">
           <span
             className={clsx(
-              "font-headline-md text-[18px] font-bold leading-6",
+              "font-headline-md text-headline-md font-bold tracking-tight",
               amountTone[record.amountTone]
             )}
           >
@@ -118,7 +97,7 @@ export function InstallmentCard({ record }: { record: InstallmentRecord }) {
           </span>
           <p
             className={clsx(
-              "font-label-sm text-[11px]",
+              "font-label-sm text-label-sm",
               record.infoBold ? "font-bold" : "font-medium",
               infoTone[record.infoTone]
             )}
@@ -128,11 +107,11 @@ export function InstallmentCard({ record }: { record: InstallmentRecord }) {
         </div>
       </div>
 
-      {/* Status Pill & Reminders */}
-      <div className="flex flex-wrap items-center gap-1.5">
+      {/* Tek durum pill'i + hatırlatma sayısı (düz metin) */}
+      <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
         <span
           className={clsx(
-            "flex items-center gap-1 rounded-full px-2 py-0.5 font-label-sm text-label-sm",
+            "inline-flex items-center gap-1 rounded-full px-2.5 py-1 font-label-xs text-label-xs font-semibold",
             statusPillTone[record.statusPill.tone]
           )}
         >
@@ -141,23 +120,15 @@ export function InstallmentCard({ record }: { record: InstallmentRecord }) {
               {record.statusPill.icon}
             </span>
           )}
-          {record.statusPill.dot && (
-            <span className="h-1.5 w-1.5 rounded-full bg-secondary" />
-          )}
           {record.statusPill.text}
         </span>
-        <span className="rounded-full bg-surface-container px-2 py-0.5 font-label-sm text-label-sm text-on-surface-variant">
+        <span className="font-label-sm text-label-sm text-on-surface-variant">
           {record.reminderPill}
         </span>
       </div>
 
-      {/* AI konuşma özeti / bağlam kutusu */}
-      <div
-        className={clsx(
-          "flex items-start gap-2 rounded-lg p-2.5",
-          tone.box
-        )}
-      >
+      {/* AI konuşma özeti / bağlam kutusu — düz zemin */}
+      <div className="flex items-start gap-2.5 rounded-xl bg-surface-container-low p-3">
         <span
           className={clsx(
             "material-symbols-outlined mt-0.5 shrink-0 text-[18px]",
@@ -167,16 +138,16 @@ export function InstallmentCard({ record }: { record: InstallmentRecord }) {
           {record.context.icon}
         </span>
         <div className="min-w-0 flex-1">
-          <div className="flex items-center justify-between gap-1">
+          <div className="flex items-center justify-between gap-2">
             <span
               className={clsx(
-                "font-label-sm text-label-sm font-semibold",
+                "truncate font-label-sm text-label-sm font-semibold",
                 tone.title
               )}
             >
               {record.context.title}
             </span>
-            <span className="font-label-sm text-[10px] text-on-surface-variant">
+            <span className="shrink-0 font-label-xs text-label-xs text-on-surface-variant">
               {record.context.meta}
             </span>
           </div>
@@ -192,7 +163,7 @@ export function InstallmentCard({ record }: { record: InstallmentRecord }) {
       </div>
 
       {/* Actions Footer */}
-      <div className="flex items-center gap-2 pt-1">
+      <div className="flex items-center gap-2 pt-0.5">
         {paid ? (
           <div className="flex h-9 flex-1 items-center justify-center gap-1.5 rounded-lg bg-secondary/10 font-label-sm text-label-sm font-semibold text-secondary">
             <span className="material-symbols-outlined text-[16px]">
@@ -206,12 +177,12 @@ export function InstallmentCard({ record }: { record: InstallmentRecord }) {
               type="button"
               onClick={handleRemind}
               disabled={reminded}
-              className="flex h-9 flex-1 items-center justify-center gap-1.5 rounded-lg bg-surface-container font-label-sm text-label-sm font-semibold text-on-surface transition-colors hover:bg-surface-container-high disabled:opacity-70"
+              className="flex h-9 flex-1 items-center justify-center gap-1.5 rounded-lg border border-outline-variant font-label-sm text-label-sm font-semibold text-on-surface transition-colors hover:bg-surface-container-low disabled:opacity-70"
             >
               <span
                 className={clsx(
                   "material-symbols-outlined text-[16px]",
-                  tone.actionIcon
+                  tone.icon
                 )}
               >
                 {reminded ? "check" : record.action.icon}

@@ -68,7 +68,7 @@ export function AyarlarView() {
   }, [showToast]);
 
   return (
-    <div className="mx-auto flex w-full max-w-[1560px] flex-col gap-space-xl px-space-lg py-space-lg">
+    <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-6 lg:px-gutter lg:py-8">
       {/* 1. Header Section */}
       <div className="flex flex-col gap-space-md pb-space-xs lg:flex-row lg:items-center lg:justify-between">
         <div className="flex flex-col gap-space-xs">

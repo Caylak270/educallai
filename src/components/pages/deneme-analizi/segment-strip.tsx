@@ -1,26 +1,32 @@
 import { clsx } from "@/lib/clsx";
 import { examSegments } from "@/lib/mock/exams";
 
-/** Segment yatay şeridi: Düşüş Alarmı, Yükselenler, Zirve, Plato, İlk Deneme metrik kartları. */
+/**
+ * Segment kartları: Düşüş Alarmı, Yükselenler, Zirve, Plato, İlk Deneme.
+ * Mobilde yatay kaydırma; PC'de (xl+) tam genişlik 5 kolon grid.
+ */
 export function SegmentStrip() {
   return (
-    <div className="flex flex-col space-y-2">
+    <section className="flex flex-col gap-3">
       <div className="flex items-center justify-between">
-        <span className="font-headline-sm text-headline-sm font-bold text-on-surface">Öğrenci Segmentleri</span>
-        <span className="font-label-xs text-label-xs text-on-surface-variant">5 Dinamik Küme</span>
+        <h2 className="font-headline-md text-headline-md font-bold tracking-tight text-on-surface">
+          Öğrenci Segmentleri
+        </h2>
+        <span className="font-label-xs text-label-xs font-semibold uppercase tracking-wider text-on-surface-variant">
+          5 Dinamik Küme
+        </span>
       </div>
 
-      {/* Yatay kaydırmalı aciliyet şeridi */}
-      <div className="no-scrollbar -mx-space-md flex snap-x gap-3 overflow-x-auto px-space-md pb-2">
+      <div className="no-scrollbar -mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-1 lg:-mx-gutter lg:px-gutter xl:mx-0 xl:grid xl:snap-none xl:grid-cols-5 xl:overflow-visible xl:px-0 xl:pb-0">
         {examSegments.map((segment) => (
-          <div
+          <article
             key={segment.id}
-            className="flex w-64 shrink-0 snap-start flex-col justify-between rounded-2xl bg-surface-container-lowest p-3.5 shadow-sm"
+            className="flex w-64 shrink-0 snap-start flex-col rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-5 transition-colors hover:border-outline-variant xl:w-auto"
           >
             <div className="flex items-start justify-between">
               <div
                 className={clsx(
-                  "flex h-7 w-7 items-center justify-center rounded-lg",
+                  "flex h-8 w-8 items-center justify-center rounded-lg",
                   segment.iconClass
                 )}
               >
@@ -36,30 +42,30 @@ export function SegmentStrip() {
               </span>
             </div>
 
-            <div className="my-2.5">
+            <div className="mt-4">
               <div className="flex items-baseline gap-1.5">
-                <span className="font-headline-lg text-headline-lg font-extrabold text-on-surface">
+                <span className="font-headline-lg text-headline-lg font-extrabold tracking-tight text-on-surface">
                   {segment.count}
                 </span>
                 <span className="font-label-sm text-label-sm text-on-surface-variant">{segment.unit}</span>
               </div>
-              <span className={clsx("font-headline-sm text-headline-sm font-bold", segment.statusClass)}>
+              <span className={clsx("font-label-sm text-label-sm font-bold", segment.statusClass)}>
                 {segment.statusLabel}
               </span>
-              <p className="mt-1 line-clamp-2 font-body-sm text-body-sm text-on-surface-variant">
+              <p className="mt-1.5 line-clamp-2 font-body-sm text-body-sm leading-relaxed text-on-surface-variant">
                 {segment.description}
               </p>
             </div>
 
-            <div className="flex items-center justify-between pt-2">
+            <div className="mt-4 flex items-center justify-between border-t border-outline-variant/50 pt-3">
               <span
                 className={clsx(
-                  "flex items-center gap-1 font-label-xs text-label-xs font-semibold",
+                  "flex items-center gap-1.5 font-label-xs text-label-xs font-semibold",
                   segment.footerClass
                 )}
               >
                 {segment.pulseDot ? (
-                  <span className="h-2 w-2 animate-ping rounded-full bg-error" />
+                  <span className="h-1.5 w-1.5 animate-ping rounded-full bg-error" />
                 ) : null}
                 {segment.footerLabel}
               </span>
@@ -67,9 +73,9 @@ export function SegmentStrip() {
                 arrow_forward
               </span>
             </div>
-          </div>
+          </article>
         ))}
       </div>
-    </div>
+    </section>
   );
 }

@@ -33,51 +33,51 @@ export function CallDetailTabs({
   const [activeTab, setActiveTab] = useState<CallTabId>("transcript");
 
   return (
-    <>
-      {/* Segmentli navigasyon denetleyicisi */}
-      <div className="flex items-center justify-between gap-1 rounded-xl bg-surface-container-high p-1 text-center inset-shadow-sm">
+    <div className="flex flex-col gap-4">
+      {/* Sekme gezinmesi */}
+      <div
+        role="tablist"
+        aria-label="Görüşme detayı sekmeleri"
+        className="flex items-center gap-1 rounded-xl border border-outline-variant/60 bg-surface-container-low p-1"
+      >
         {callTabs.map((tab) => {
           const isActive = tab.id === activeTab;
           return (
             <button
               key={tab.id}
               type="button"
+              role="tab"
+              aria-selected={isActive}
               onClick={() => setActiveTab(tab.id)}
               className={clsx(
-                "flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 font-label-md text-label-md transition-all",
+                "flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 font-label-md text-label-md transition-colors",
                 isActive
-                  ? "bg-surface-container-lowest font-semibold text-primary shadow-sm"
+                  ? "bg-surface-container-lowest font-semibold text-primary"
                   : "font-medium text-on-surface-variant hover:text-on-surface"
               )}
             >
               <span>{tab.label}</span>
               {typeof tab.count === "number" && (
-                <span
-                  className={clsx(
-                    "flex h-5 w-5 items-center justify-center rounded-full font-label-sm text-label-sm",
-                    tab.id === "transcript"
-                      ? "bg-primary-fixed text-primary"
-                      : "bg-surface-container text-on-surface-variant"
-                  )}
-                >
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-surface-container-high font-label-sm text-label-sm text-on-surface-variant">
                   {tab.count}
                 </span>
               )}
-              {tab.dot && (
-                <span className="h-2 w-2 rounded-full bg-secondary" />
-              )}
+              {tab.dot && <span className="h-2 w-2 rounded-full bg-secondary" />}
             </button>
           );
         })}
       </div>
 
-      {activeTab === "transcript" && (
-        <TranscriptPanel segments={transcript} meta={transcriptMeta} />
-      )}
-      {activeTab === "ai-signals" && <AiSignalsPanel signals={signals} />}
-      {activeTab === "actions" && (
-        <ActionsPanel automation={automation} noteBox={noteBox} />
-      )}
-    </>
+      {/* Aktif panel içeriği — tek yüzey */}
+      <div className="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-5">
+        {activeTab === "transcript" && (
+          <TranscriptPanel segments={transcript} meta={transcriptMeta} />
+        )}
+        {activeTab === "ai-signals" && <AiSignalsPanel signals={signals} />}
+        {activeTab === "actions" && (
+          <ActionsPanel automation={automation} noteBox={noteBox} />
+        )}
+      </div>
+    </div>
   );
 }

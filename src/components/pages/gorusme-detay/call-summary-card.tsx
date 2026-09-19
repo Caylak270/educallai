@@ -1,38 +1,26 @@
 import type { CallSummary } from "@/lib/mock/calls";
 
+/**
+ * Veli & çağrı özeti — tek yüzey: kimlik bloğu + telefon/süre meta satırları.
+ * Kanal/durum badge'leri sayfa başlığına (PageHeader actions) taşındı.
+ */
 export function CallSummaryCard({ summary }: { summary: CallSummary }) {
   return (
-    <div className="flex flex-col gap-space-md rounded-xl bg-surface-container-lowest p-space-md shadow-sm">
-      {/* Durum & yön */}
-      <div className="flex items-center justify-between gap-space-xs">
-        <div className="inline-flex items-center gap-1.5 rounded-full bg-secondary-fixed px-2.5 py-1 text-on-secondary-fixed">
-          <span className="h-1.5 w-1.5 rounded-full bg-secondary" />
-          <span className="font-label-sm text-label-sm font-semibold uppercase tracking-wider">
-            {summary.directionPill}
-          </span>
-        </div>
-        <div className="inline-flex items-center gap-1.5 rounded-full bg-secondary-container px-2.5 py-1 text-on-secondary-container">
-          <span className="material-symbols-outlined text-[16px]">verified</span>
-          <span className="font-label-sm text-label-sm font-semibold">
-            {summary.outcomePill}
-          </span>
-        </div>
-      </div>
-
-      {/* Öğrenci & veli bloğu */}
-      <div className="flex items-start gap-space-md">
+    <section className="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-5">
+      {/* Öğrenci & veli kimliği */}
+      <div className="flex items-start gap-4">
         <div className="relative shrink-0">
-          <div className="flex h-13 w-13 items-center justify-center rounded-xl bg-primary-fixed font-headline-md text-headline-md font-bold text-primary inset-shadow-sm">
+          <div className="flex h-13 w-13 items-center justify-center rounded-xl bg-primary-fixed font-headline-md text-headline-md font-bold text-primary">
             {summary.initials}
           </div>
-          <div className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary-container text-on-primary shadow-sm">
+          <div className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary-container text-on-primary">
             <span className="material-symbols-outlined text-[12px]">
               record_voice_over
             </span>
           </div>
         </div>
         <div className="min-w-0 flex-1">
-          <div className="flex items-center justify-between">
+          <div className="flex items-baseline justify-between gap-2">
             <h2 className="truncate font-title-sm text-title-sm font-semibold text-on-surface">
               {summary.parentName}
             </h2>
@@ -46,7 +34,7 @@ export function CallSummaryCard({ summary }: { summary: CallSummary }) {
               {summary.studentName}
             </strong>
           </p>
-          <div className="mt-1.5 flex items-center gap-1.5">
+          <div className="mt-2 flex flex-wrap gap-1.5">
             <span className="inline-flex items-center rounded bg-surface-container-high px-2 py-0.5 font-label-sm text-label-sm font-medium text-on-surface">
               {summary.classTag}
             </span>
@@ -57,35 +45,35 @@ export function CallSummaryCard({ summary }: { summary: CallSummary }) {
         </div>
       </div>
 
-      {/* Çağrı metadata çubuğu */}
-      <div className="grid grid-cols-2 gap-space-xs rounded-lg bg-surface-container-low p-2.5 pt-space-xs">
-        <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-surface-container-lowest text-primary-container shadow-sm">
-            <span className="material-symbols-outlined text-[16px]">call</span>
-          </div>
+      {/* Telefon & süre */}
+      <div className="mt-4 grid grid-cols-1 gap-3 border-t border-outline-variant/50 pt-4 sm:grid-cols-2">
+        <div className="flex items-center gap-2.5">
+          <span className="material-symbols-outlined shrink-0 text-[18px] text-primary">
+            call
+          </span>
           <div className="flex min-w-0 flex-col">
-            <span className="font-label-sm text-label-sm leading-none text-on-surface-variant">
+            <span className="font-label-xs text-label-xs font-semibold uppercase tracking-wider text-on-surface-variant">
               {summary.phoneLabel}
             </span>
-            <span className="mt-1 truncate font-mono-data text-mono-data font-medium text-on-surface">
+            <span className="truncate font-mono-data text-mono-data font-medium text-on-surface">
               {summary.phone}
             </span>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-surface-container-lowest text-tertiary shadow-sm">
-            <span className="material-symbols-outlined text-[16px]">timer</span>
-          </div>
+        <div className="flex items-center gap-2.5">
+          <span className="material-symbols-outlined shrink-0 text-[18px] text-primary">
+            timer
+          </span>
           <div className="flex min-w-0 flex-col">
-            <span className="font-label-sm text-label-sm leading-none text-on-surface-variant">
+            <span className="font-label-xs text-label-xs font-semibold uppercase tracking-wider text-on-surface-variant">
               {summary.durationLabel}
             </span>
-            <span className="mt-1 truncate font-mono-data text-mono-data font-medium text-on-surface">
+            <span className="truncate font-mono-data text-mono-data font-medium text-on-surface">
               {summary.duration}
             </span>
           </div>
         </div>
       </div>
-    </div>
+    </section>
   );
 }

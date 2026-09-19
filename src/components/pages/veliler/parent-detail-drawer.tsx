@@ -27,7 +27,7 @@ const WAVEFORM: { h: string; c: string }[] = [
   { h: "h-2", c: "bg-outline-variant" },
 ];
 
-/* Mobil alt drawer — lead detayı. lead null iken aşağı kayarak kapanır. */
+/* Alt drawer — lead detayı. lead null iken aşağı kayarak kapanır. */
 export function ParentDetailDrawer({ lead, onClose }: { lead: Lead | null; onClose: () => void }) {
   const [cachedLead, setCachedLead] = useState<Lead | null>(lead);
   const [playing, setPlaying] = useState(false);
@@ -43,23 +43,23 @@ export function ParentDetailDrawer({ lead, onClose }: { lead: Lead | null; onClo
     <div
       aria-hidden={!open}
       className={clsx(
-        "fixed inset-x-0 bottom-0 top-14 z-[60] flex flex-col rounded-t-3xl bg-surface-container-lowest shadow-2xl transition-transform duration-300 ease-out lg:left-72",
+        "fixed inset-x-0 bottom-0 top-14 z-[60] flex flex-col rounded-t-3xl border border-b-0 border-outline-variant/60 bg-surface-container-lowest shadow-2xl transition-transform duration-300 ease-out lg:left-72",
         open ? "translate-y-0" : "translate-y-full"
       )}
     >
       {/* Drawer tutamağı & başlık çubuğu */}
-      <div className="flex flex-col items-center rounded-t-3xl border-b border-surface-container bg-surface-container-low/60 px-gutter-mobile pb-3 pt-2.5">
+      <div className="flex flex-col items-center rounded-t-3xl border-b border-outline-variant/50 bg-surface-container-low px-gutter-mobile pb-3 pt-2.5">
         <div className="mb-2 h-1.5 w-12 rounded-full bg-outline-variant" />
         <div className="flex w-full items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-secondary" />
+            <span className="h-2.5 w-2.5 rounded-full bg-secondary" />
             <span className="font-headline-md text-headline-md text-on-surface">
               Veli ve AI CRM Özeti
             </span>
           </div>
           <button
             aria-label="Drawer'ı kapat"
-            className="flex h-8 w-8 items-center justify-center rounded-full bg-surface-container text-on-surface-variant transition-all active:scale-90 hover:text-on-surface"
+            className="flex h-8 w-8 items-center justify-center rounded-full bg-surface-container text-on-surface-variant transition-colors hover:text-on-surface"
             onClick={onClose}
             type="button"
           >
@@ -72,7 +72,7 @@ export function ParentDetailDrawer({ lead, onClose }: { lead: Lead | null; onClo
       {data && (
         <div className="flex flex-1 flex-col gap-4 overflow-y-auto px-gutter-mobile py-4">
           {/* Lead profil kartı */}
-          <div className="flex flex-col gap-3 rounded-2xl bg-surface-container-low p-3.5">
+          <div className="flex flex-col gap-3 rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-4">
             <div className="flex items-start justify-between">
               <div>
                 <h2 className="font-headline-md text-headline-md font-bold text-on-surface">
@@ -96,7 +96,7 @@ export function ParentDetailDrawer({ lead, onClose }: { lead: Lead | null; onClo
               </div>
             </div>
             {/* Metrik rozetleri */}
-            <div className="flex flex-wrap items-center gap-2 border-t border-surface-container pt-2">
+            <div className="flex flex-wrap items-center gap-2 border-t border-outline-variant/50 pt-3">
               <span
                 className={clsx(
                   "flex items-center gap-1 rounded-full px-2.5 py-1 font-mono-data text-label-md font-semibold",
@@ -125,11 +125,11 @@ export function ParentDetailDrawer({ lead, onClose }: { lead: Lead | null; onClo
             </div>
           </div>
 
-          {/* AI yönetici görüşme özeti */}
-          <div className="flex flex-col gap-2 rounded-2xl bg-surface-container-high/60 p-3.5">
+          {/* AI yönetici görüşme özeti — düz zemin, tek küçük ikon */}
+          <div className="flex flex-col gap-2 rounded-lg bg-surface-container-low p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5 text-primary">
-                <span className="material-symbols-outlined text-[18px]">auto_awesome</span>
+                <span className="material-symbols-outlined text-[16px]">auto_awesome</span>
                 <span className="font-title-sm text-title-sm font-semibold">
                   AI Asistan Görüşme Notu
                 </span>
@@ -151,12 +151,12 @@ export function ParentDetailDrawer({ lead, onClose }: { lead: Lead | null; onClo
           </div>
 
           {/* Ses çalma widget'ı */}
-          <div className="flex flex-col gap-2.5 rounded-2xl bg-surface-container-low p-3">
+          <div className="flex flex-col gap-2.5 rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-4">
             <div className="flex items-center justify-between text-on-surface">
               <div className="flex items-center gap-2">
                 <button
                   aria-label={playing ? "Duraklat" : "Oynat"}
-                  className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-on-primary shadow-md transition-all active:scale-95"
+                  className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-on-primary transition-colors hover:bg-primary-container"
                   onClick={() => setPlaying((value) => !value)}
                   type="button"
                 >
@@ -172,7 +172,7 @@ export function ParentDetailDrawer({ lead, onClose }: { lead: Lead | null; onClo
                 </div>
               </div>
               <div className="flex items-center gap-1">
-                <span className="rounded-md bg-surface-container-lowest px-2 py-1 font-mono-data text-label-sm text-on-surface">
+                <span className="rounded-md bg-surface-container px-2 py-1 font-mono-data text-label-sm text-on-surface">
                   1.25x
                 </span>
                 <button
@@ -184,7 +184,7 @@ export function ParentDetailDrawer({ lead, onClose }: { lead: Lead | null; onClo
               </div>
             </div>
             {/* Waveform barları */}
-            <div className="flex h-8 items-center rounded-xl bg-surface-container-lowest px-2">
+            <div className="flex h-8 items-center rounded-xl bg-surface-container-low px-2">
               <div className="flex h-6 flex-1 items-center justify-between gap-1">
                 {WAVEFORM.map((bar, index) => (
                   <span key={index} className={clsx("w-1 rounded-full", bar.h, bar.c)} />
@@ -230,9 +230,9 @@ export function ParentDetailDrawer({ lead, onClose }: { lead: Lead | null; onClo
       )}
 
       {/* Drawer alt aksiyon çubuğu */}
-      <div className="flex flex-col gap-2 border-t border-surface-container bg-surface-container-lowest p-gutter-mobile shadow-lg">
+      <div className="flex flex-col gap-2 border-t border-outline-variant/50 bg-surface-container-lowest p-gutter-mobile pb-safe">
         <button
-          className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-primary font-headline-md text-title-sm text-on-primary shadow-md transition-all hover:bg-primary-container active:scale-[0.98]"
+          className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-primary font-headline-md text-title-sm text-on-primary transition-colors hover:bg-primary-container"
           onClick={() =>
             data && console.log(`Danışman araması başlatılıyor: ${data.name} (${data.drawer.phone})`)
           }
@@ -243,7 +243,7 @@ export function ParentDetailDrawer({ lead, onClose }: { lead: Lead | null; onClo
         </button>
         <div className="grid grid-cols-2 gap-2">
           <button
-            className="flex h-11 items-center justify-center gap-1.5 rounded-xl bg-secondary-container font-label-md text-label-md font-semibold text-on-secondary-container transition-all active:scale-[0.98]"
+            className="flex h-11 items-center justify-center gap-1.5 rounded-xl bg-secondary-container font-label-md text-label-md font-semibold text-on-secondary-container transition-colors hover:bg-secondary"
             onClick={() => console.log("Randevu Oluşturma takvimi açılıyor...")}
             type="button"
           >
@@ -251,7 +251,7 @@ export function ParentDetailDrawer({ lead, onClose }: { lead: Lead | null; onClo
             <span>Randevu Takvimi</span>
           </button>
           <button
-            className="flex h-11 items-center justify-center gap-1.5 rounded-xl bg-surface-container-high font-label-md text-label-md text-on-surface transition-all active:scale-[0.98]"
+            className="flex h-11 items-center justify-center gap-1.5 rounded-xl bg-surface-container font-label-md text-label-md text-on-surface transition-colors hover:bg-surface-container-high"
             onClick={() => console.log("WhatsApp Web / App görüşmesi başlatılıyor...")}
             type="button"
           >

@@ -1,6 +1,7 @@
 import { AudioPlayer } from "@/components/pages/gorusme-detay/audio-player";
 import { CallDetailTabs } from "@/components/pages/gorusme-detay/call-detail-tabs";
 import { CallSummaryCard } from "@/components/pages/gorusme-detay/call-summary-card";
+import { PageHeader, PageShell } from "@/components/ui/page-shell";
 import { getCallById } from "@/lib/mock/calls";
 
 export const metadata = { title: "Görüşme Detayı" };
@@ -12,25 +13,67 @@ export default async function Page({
 }) {
   const { id } = await params;
   const call = getCallById(id);
+  const { summary } = call;
 
   return (
-    <div className="mx-auto w-full max-w-xl">
-      <div className="flex w-full flex-col gap-space-md px-gutter-mobile pb-space-xl pt-space-md">
-        {/* Veli & çağrı özeti */}
-        <CallSummaryCard summary={call.summary} />
+    <PageShell>
+      <PageHeader
+        eyebrow="Görüşme Kaydı"
+        title={`${summary.parentName} · ${summary.studentName}`}
+        description={[
+          summary.classTag,
+          summary.programTag,
+          summary.phone,
+          summary.duration,
+          summary.callTime,
+        ].join(" · ")}
+        actions={
+          <>
+            {/* Kanal badge */}
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-secondary-fixed px-3 py-1.5 font-label-sm text-label-sm font-semibold text-on-secondary-fixed">
+              <span className="h-1.5 w-1.5 rounded-full bg-secondary" />
+              {summary.directionPill}
+            </span>
+            {/* Durum badge */}
+            <span className="hidden items-center gap-1.5 rounded-full bg-primary-fixed px-3 py-1.5 font-label-sm text-label-sm font-semibold text-primary md:inline-flex">
+              <span className="material-symbols-outlined text-[16px]">
+                verified
+              </span>
+              {summary.outcomePill}
+            </span>
+            {/* Sesli aramayı tekrarla */}
+            <button
+              type="button"
+              className="flex h-10 items-center gap-1.5 rounded-xl bg-primary-container px-4 font-label-md text-label-md font-semibold text-on-primary transition-all hover:bg-primary active:scale-[0.98]"
+            >
+              <span className="material-symbols-outlined text-[18px]">
+                call
+              </span>
+              <span>Tekrar Ara</span>
+            </button>
+          </>
+        }
+      />
 
-        {/* Ses oynatıcı */}
-        <AudioPlayer audio={call.audio} />
+      {/* PC'de iki panel: sol özet + oynatıcı (sabit), sağ sekmeli içerik */}
+      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12">
+        {/* SOL: veli & çağrı özeti + ses oynatıcı */}
+        <div className="flex flex-col gap-6 lg:col-span-5 lg:sticky lg:top-20">
+          <CallSummaryCard summary={summary} />
+          <AudioPlayer audio={call.audio} />
+        </div>
 
-        {/* Sekmeler + paneller */}
-        <CallDetailTabs
-          transcript={call.transcript}
-          transcriptMeta={call.transcriptMeta}
-          signals={call.signals}
-          automation={call.automation}
-          noteBox={call.noteBox}
-        />
+        {/* SAĞ: sekmeler + panel içeriği */}
+        <div className="min-w-0 lg:col-span-7">
+          <CallDetailTabs
+            transcript={call.transcript}
+            transcriptMeta={call.transcriptMeta}
+            signals={call.signals}
+            automation={call.automation}
+            noteBox={call.noteBox}
+          />
+        </div>
       </div>
-    </div>
+    </PageShell>
   );
 }

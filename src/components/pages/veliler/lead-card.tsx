@@ -4,12 +4,12 @@ import { clsx } from "@/lib/clsx";
 import { type Lead } from "@/lib/mock/leads";
 import { ScoreRing } from "./score-ring";
 
-/* Zengin lead kartı — karta tıklayınca veli detay drawer'ı açılır */
+/* Lead kartı — karta tıklayınca veli detay drawer'ı açılır */
 export function LeadCard({ lead, onOpen }: { lead: Lead; onOpen: (lead: Lead) => void }) {
   return (
     <div
       className={clsx(
-        "flex cursor-pointer flex-col rounded-2xl bg-surface-container-lowest p-4 shadow-sm transition-all hover:shadow-md active:scale-[0.99]",
+        "flex h-full cursor-pointer flex-col rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-5 transition-colors hover:border-outline-variant",
         lead.focus && "group relative"
       )}
       onClick={() => onOpen(lead)}
@@ -27,7 +27,7 @@ export function LeadCard({ lead, onOpen }: { lead: Lead; onOpen: (lead: Lead) =>
         <div className="flex min-w-0 items-center gap-3">
           <div
             className={clsx(
-              "relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full font-headline-md text-headline-md shadow-sm",
+              "relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full font-headline-md text-headline-md",
               lead.avatarClass
             )}
           >
@@ -48,7 +48,7 @@ export function LeadCard({ lead, onOpen }: { lead: Lead; onOpen: (lead: Lead) =>
               <h3 className="truncate font-title-sm text-title-sm font-semibold text-on-surface">
                 {lead.name}
               </h3>
-              <span className="rounded-md bg-surface-container-high px-1.5 py-0.5 font-label-sm text-label-sm text-on-surface-variant">
+              <span className="shrink-0 rounded-md bg-surface-container px-1.5 py-0.5 font-label-sm text-label-sm text-on-surface-variant">
                 {lead.role}
               </span>
             </div>
@@ -86,9 +86,9 @@ export function LeadCard({ lead, onOpen }: { lead: Lead; onOpen: (lead: Lead) =>
         <span className="font-mono-data text-label-sm text-outline">{lead.time}</span>
       </div>
 
-      {/* AI insight özeti */}
-      <div className="mt-2.5 flex items-start gap-2 rounded-xl bg-surface-container-low p-2.5 text-on-surface">
-        <span className="material-symbols-outlined mt-0.5 shrink-0 text-[18px] text-primary-container">
+      {/* AI insight özeti — düz zemin, tek küçük ikon */}
+      <div className="mt-3 flex items-start gap-2 rounded-lg bg-surface-container-low p-2.5">
+        <span className="material-symbols-outlined mt-0.5 shrink-0 text-[16px] text-primary-container">
           auto_awesome
         </span>
         <p className="line-clamp-2 font-body-sm text-body-sm leading-snug text-on-surface-variant">
@@ -96,16 +96,16 @@ export function LeadCard({ lead, onOpen }: { lead: Lead; onOpen: (lead: Lead) =>
         </p>
       </div>
 
-      {/* Hızlı aksiyon butonları */}
-      <div className="mt-3 flex items-center justify-between gap-2 pt-2.5">
-        <div className="flex items-center gap-1.5">
+      {/* Hızlı aksiyon butonları — kart dibine hizalı, bölümü çizgiyle ayır */}
+      <div className="mt-auto flex items-center justify-between gap-2 border-t border-outline-variant/50 pt-3">
+        <div className="flex flex-wrap items-center gap-1.5">
           {lead.actions.map((action) => (
             <button
               key={action.label}
               className={clsx(
-                "flex items-center gap-1 rounded-lg px-2.5 py-1.5 font-label-md text-label-md transition-all active:scale-95",
+                "flex items-center gap-1 rounded-lg px-2.5 py-1.5 font-label-md text-label-md transition-colors",
                 action.style === "primary"
-                  ? "bg-primary-container text-on-primary shadow-sm"
+                  ? "bg-primary-container text-on-primary"
                   : "bg-surface-container text-on-surface"
               )}
               onClick={(event) => {
@@ -125,7 +125,7 @@ export function LeadCard({ lead, onOpen }: { lead: Lead; onOpen: (lead: Lead) =>
         </div>
         <span
           className={clsx(
-            "material-symbols-outlined text-[18px] text-outline",
+            "material-symbols-outlined shrink-0 text-[18px] text-outline",
             lead.focus && "transition-transform group-hover:translate-x-0.5"
           )}
         >

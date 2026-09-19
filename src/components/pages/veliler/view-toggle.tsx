@@ -18,16 +18,16 @@ export function ViewToggle({
   onChange: (mode: ViewMode) => void;
 }) {
   return (
-    <div className="inline-flex rounded-xl bg-surface-container-high inset-shadow-sm">
+    <div className="inline-flex shrink-0 rounded-xl border border-outline-variant/60 bg-surface-container p-0.5">
       {OPTIONS.map((option) => {
         const active = option.id === value;
         return (
           <button
             key={option.id}
             className={clsx(
-              "flex items-center gap-1 rounded-lg px-2.5 py-1.5 font-label-md text-label-md transition-all",
+              "flex items-center gap-1 rounded-lg px-2.5 py-1.5 font-label-md text-label-md transition-colors",
               active
-                ? "bg-surface-container-lowest text-primary shadow-sm"
+                ? "bg-surface-container-lowest font-semibold text-primary"
                 : "text-on-surface-variant hover:text-on-surface"
             )}
             onClick={() => onChange(option.id)}

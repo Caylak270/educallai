@@ -120,29 +120,24 @@ function NetTrendChart() {
   );
 }
 
-/** Ders dağılımı özeti. */
+/** Ders dağılımı özeti — tam genişlik kart, 4 ders yan yana. */
 function SubjectBreakdown() {
   return (
-    <div className="flex flex-col space-y-1.5">
-      <span className="font-label-xs text-label-xs font-bold uppercase tracking-wider text-on-surface-variant">
+    <div className="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-5">
+      <h3 className="font-headline-sm text-headline-sm font-bold text-on-surface">
         Son Sınav Ders Net Dağılımı
-      </span>
-      <div className="grid grid-cols-2 gap-2">
+      </h3>
+      <div className="mt-4 grid grid-cols-2 gap-x-6 gap-y-4 lg:grid-cols-4">
         {subjectBreakdown.map((subject) => (
-          <div
-            key={subject.name}
-            className="flex items-center justify-between rounded-xl bg-surface-container p-2.5"
-          >
-            <div className="flex items-center gap-2">
-              <span className={clsx("h-6 w-2 rounded-full", subject.barClass)} />
-              <div>
-                <span className="block font-label-sm text-label-sm font-semibold leading-tight text-on-surface">
-                  {subject.name}
-                </span>
-                <span className="text-[10px] text-on-surface-variant">{subject.questions}</span>
-              </div>
+          <div key={subject.name} className="flex items-center gap-3">
+            <span className={clsx("h-9 w-1.5 shrink-0 rounded-full", subject.barClass)} />
+            <div className="min-w-0 flex-1">
+              <p className="truncate font-label-sm text-label-sm font-semibold leading-tight text-on-surface">
+                {subject.name}
+              </p>
+              <span className="text-[11px] text-on-surface-variant">{subject.questions}</span>
             </div>
-            <div className="text-right">
+            <div className="shrink-0 text-right">
               <span className="block font-headline-sm text-headline-sm font-bold leading-tight text-on-surface">
                 {subject.net}
               </span>
@@ -155,26 +150,29 @@ function SubjectBreakdown() {
   );
 }
 
-/** AI ses motoru öneri kutusu. */
+/** AI ses motoru öneri kutusu — tek bordered kutu, butonlar sağda. */
 function AiVoicePlanBox() {
   return (
-    <div className="relative overflow-hidden rounded-2xl bg-surface-container-high p-3.5">
-      <div className="mb-1.5 flex items-center gap-2">
-        <span className="material-symbols-outlined text-[20px] text-primary">auto_awesome</span>
-        <span className="font-headline-sm text-headline-sm font-bold text-primary">
-          {aiVoicePlan.title}
-        </span>
+    <div className="flex flex-col gap-4 rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-5 lg:flex-row lg:items-center lg:justify-between lg:gap-8">
+      <div className="min-w-0">
+        <div className="flex items-center gap-2">
+          <span className="material-symbols-outlined text-[20px] text-primary">auto_awesome</span>
+          <h3 className="font-headline-sm text-headline-sm font-bold text-on-surface">
+            {aiVoicePlan.title}
+          </h3>
+        </div>
+        <p className="mt-2 max-w-3xl font-body-sm text-body-sm leading-relaxed text-on-surface-variant">
+          &quot;Berk son 2 denemedir Matematik ve Fizik branşlarında %18 gerileme yaşadı.{" "}
+          <strong className="font-semibold text-on-surface">Serdar Bey (Veli)</strong> ile yapılacak
+          görüşmede sınav kaygısı ve geometri odaklı haftalık 3 saatlik telafi etüt paketi teklif
+          edilecek.&quot;
+        </p>
       </div>
-      <p className="font-body-sm text-body-sm leading-relaxed text-on-surface-variant">
-        &quot;Berk son 2 denemedir Matematik ve Fizik branşlarında %18 gerileme yaşadı.{" "}
-        <strong>Serdar Bey (Veli)</strong> ile yapılacak görüşmede sınav kaygısı ve geometri odaklı
-        haftalık 3 saatlik telafi etüt paketi teklif edilecek.&quot;
-      </p>
 
-      {/* Anında aksiyonlar */}
-      <div className="mt-3 flex flex-col gap-2">
+      {/* Anında aksiyonlar — sağda */}
+      <div className="flex shrink-0 flex-col gap-2 sm:flex-row sm:items-center">
         <AiCallToastButton
-          className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-primary-container font-label-md text-label-md font-semibold text-on-primary shadow-sm transition-all hover:bg-primary active:scale-[0.99]"
+          className="flex h-11 items-center justify-center gap-2 rounded-xl bg-primary-container px-4 font-label-md text-label-md font-semibold text-on-primary transition-all hover:bg-primary active:scale-[0.99]"
           message={{
             title: `${aiVoicePlan.callButton.student} • Veli Aranıyor`,
             description: `${aiVoicePlan.callButton.parent} aranarak deneme analizi aktarılıyor...`,
@@ -182,98 +180,115 @@ function AiVoicePlanBox() {
         >
           <span className="material-symbols-outlined animate-pulse text-[20px]">phone_in_talk</span>
           <span>{aiVoicePlan.callButton.label}</span>
-          <span className="ml-1 text-[11px] font-normal opacity-80">{aiVoicePlan.callButton.phone}</span>
+          <span className="ml-1 hidden text-[11px] font-normal opacity-80 xl:inline">
+            {aiVoicePlan.callButton.phone}
+          </span>
         </AiCallToastButton>
-        <div className="flex items-center gap-2">
-          <button
-            className="flex h-9 flex-1 items-center justify-center gap-1.5 rounded-lg bg-surface-container px-3 font-label-sm text-label-sm font-semibold text-on-surface transition-colors hover:bg-surface-variant"
-            type="button"
-          >
-            <span className="material-symbols-outlined text-[16px] text-secondary">chat</span>
-            <span>WhatsApp Raporu</span>
-          </button>
-          <button
-            className="flex h-9 flex-1 items-center justify-center gap-1.5 rounded-lg bg-surface-container px-3 font-label-sm text-label-sm font-semibold text-on-surface transition-colors hover:bg-surface-variant"
-            type="button"
-          >
-            <span className="material-symbols-outlined text-[16px]">edit_calendar</span>
-            <span>Etüt Randevusu</span>
-          </button>
-        </div>
+        <button
+          className="flex h-11 items-center justify-center gap-1.5 rounded-xl border border-outline-variant/60 px-3.5 font-label-sm text-label-sm font-semibold text-on-surface transition-colors hover:bg-surface-container-low"
+          type="button"
+        >
+          <span className="material-symbols-outlined text-[16px] text-secondary">chat</span>
+          <span>WhatsApp Raporu</span>
+        </button>
+        <button
+          className="flex h-11 items-center justify-center gap-1.5 rounded-xl border border-outline-variant/60 px-3.5 font-label-sm text-label-sm font-semibold text-on-surface transition-colors hover:bg-surface-container-low"
+          type="button"
+        >
+          <span className="material-symbols-outlined text-[16px]">edit_calendar</span>
+          <span>Etüt Randevusu</span>
+        </button>
       </div>
     </div>
   );
 }
 
-/** Vurgulanan öğrenci detay paneli (Berk Yılmaz). */
+/** Vurgulanan öğrenci detay paneli (Berk Yılmaz): solda trend grafiği, sağda meta + hızlı istatistikler. */
 export function StudentDetailCard() {
   const student = highlightedStudent;
   return (
-    <div
-      className="flex flex-col space-y-4 rounded-2xl bg-surface-container-lowest p-4 shadow-md"
-      id={student.anchorId}
-    >
-      {/* Öğrenci meta başlığı */}
-      <div className="flex items-start justify-between">
-        <div className="flex items-center gap-3">
-          <div className="relative">
-            <div
-              className={clsx(
-                "flex h-12 w-12 items-center justify-center rounded-2xl font-label-md text-label-md font-bold shadow-sm",
-                student.avatarClass
-              )}
+    <section className="flex flex-col gap-4" id={student.anchorId}>
+      {/* Üst blok: grafik (7 kolon) + öğrenci meta & hızlı istatistikler (5 kolon) */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
+        {/* Net trend grafiği */}
+        <div className="rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-5 lg:col-span-7">
+          <NetTrendChart />
+        </div>
+
+        {/* Öğrenci meta + hızlı istatistikler */}
+        <div className="flex flex-col rounded-2xl border border-outline-variant/60 bg-surface-container-lowest p-5 lg:col-span-5">
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex min-w-0 items-center gap-3">
+              <div className="relative shrink-0">
+                <div
+                  className={clsx(
+                    "flex h-12 w-12 items-center justify-center rounded-2xl font-label-md text-label-md font-bold",
+                    student.avatarClass
+                  )}
+                >
+                  {student.initials}
+                </div>
+                <span className="absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-error text-[10px] font-bold text-on-error">
+                  !
+                </span>
+              </div>
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <h2 className="font-headline-md text-headline-md font-bold text-on-surface">
+                    {student.name}
+                  </h2>
+                  <span className="rounded-full bg-error-container px-2 py-0.5 font-label-xs text-label-xs font-bold text-error">
+                    {student.badge}
+                  </span>
+                </div>
+                <p className="mt-0.5 font-label-sm text-label-sm text-on-surface-variant">
+                  {student.meta}
+                </p>
+              </div>
+            </div>
+            <button
+              aria-label="Diğer işlemler"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-outline-variant/60 text-on-surface-variant transition-colors hover:bg-surface-container-low"
+              type="button"
             >
-              {student.initials}
-            </div>
-            <span className="absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-error text-[10px] font-bold text-on-error">
-              !
-            </span>
+              <span className="material-symbols-outlined text-[18px]">more_vert</span>
+            </button>
           </div>
-          <div className="flex flex-col">
-            <div className="flex items-center gap-1.5">
-              <h2 className="font-headline-md text-headline-md font-bold text-on-surface">{student.name}</h2>
-              <span className="rounded-full bg-error-container px-2 py-0.5 font-label-xs text-label-xs font-bold text-error">
-                {student.badge}
-              </span>
-            </div>
-            <span className="font-label-sm text-label-sm text-on-surface-variant">{student.meta}</span>
+
+          {/* Hızlı istatistikler */}
+          <div className="mt-6 grid grid-cols-3 gap-4 border-t border-outline-variant/50 pt-4 lg:mt-auto">
+            {student.stats.map((stat) => (
+              <div key={stat.label} className="flex min-w-0 flex-col">
+                <span className="truncate font-label-xs text-label-xs font-semibold uppercase tracking-wider text-on-surface-variant">
+                  {stat.label}
+                </span>
+                <span
+                  className={clsx(
+                    "mt-1 font-headline-md text-headline-md font-extrabold tracking-tight",
+                    stat.valueClass
+                  )}
+                >
+                  {stat.value}
+                </span>
+                <span
+                  className={clsx("flex items-center font-label-xs text-label-xs font-semibold", stat.noteClass)}
+                >
+                  {stat.noteIcon ? (
+                    <span className="material-symbols-outlined text-[12px]">{stat.noteIcon}</span>
+                  ) : null}
+                  {stat.note}
+                </span>
+              </div>
+            ))}
           </div>
         </div>
-        <button
-          aria-label="Diğer işlemler"
-          className="flex h-8 w-8 items-center justify-center rounded-full bg-surface-container text-on-surface-variant"
-          type="button"
-        >
-          <span className="material-symbols-outlined text-[18px]">more_vert</span>
-        </button>
       </div>
 
-      {/* Hızlı istatistikler */}
-      <div className="grid grid-cols-3 gap-2 rounded-xl bg-surface-container-low p-2.5">
-        {student.stats.map((stat) => (
-          <div key={stat.label} className="flex flex-col">
-            <span className="font-label-xs text-label-xs text-on-surface-variant">{stat.label}</span>
-            <span className={clsx("font-headline-md text-headline-md font-extrabold", stat.valueClass)}>
-              {stat.value}
-            </span>
-            <span className={clsx("flex items-center font-label-xs text-label-xs font-semibold", stat.noteClass)}>
-              {stat.noteIcon ? (
-                <span className="material-symbols-outlined text-[12px]">{stat.noteIcon}</span>
-              ) : null}
-              {stat.note}
-            </span>
-          </div>
-        ))}
-      </div>
-
-      {/* Net trend grafiği */}
-      <NetTrendChart />
-
-      {/* Ders dağılımı */}
+      {/* Ders dağılımı — tam genişlik */}
       <SubjectBreakdown />
 
-      {/* AI ses motoru önerisi */}
+      {/* AI ses motoru önerisi — tam genişlik */}
       <AiVoicePlanBox />
-    </div>
+    </section>
   );
 }
