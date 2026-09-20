@@ -206,7 +206,7 @@ def main() -> None:  # pragma: no cover - canlı ortam bloğu
                     modalities=["text", "audio"],
                     input_audio_noise_reduction={"type": "near_field"},
                     input_audio_transcription={"model": "whisper-1", "language": "tr"},
-                    turn_detection={"type": "semantic_vad", "eagerness": "high"},
+                    # turn_detection: eklenti varsayılanı (semantic VAD) kullanılıyor
                 ),
                 **common,
             )
