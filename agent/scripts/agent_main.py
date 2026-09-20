@@ -18,6 +18,7 @@ yalnızca LiveKit agent oturumunu çalıştırır ve dispatch eder.
 from __future__ import annotations
 
 import logging
+import os
 import sys
 from pathlib import Path
 
@@ -204,7 +205,6 @@ def main() -> None:  # pragma: no cover - canlı ortam bloğu
                     model="gpt-realtime",
                     voice=os.environ.get("REALTIME_VOICE", "marin"),
                     modalities=["text", "audio"],
-                    input_audio_noise_reduction={"type": "near_field"},
                     input_audio_transcription={"model": "whisper-1", "language": "tr"},
                     # turn_detection: eklenti varsayılanı (semantic VAD) kullanılıyor
                 ),
@@ -439,6 +439,7 @@ def main() -> None:  # pragma: no cover - canlı ortam bloğu
         __import__("livekit.agents", fromlist=["WorkerOptions"]).WorkerOptions(
             entrypoint_fnc=entrypoint,
             prewarm_fnc=prewarm,
+            agent_name=os.environ.get("AGENT_NAME", ""),  # dispatch için isimli ajan
         )
     )
 
