@@ -180,10 +180,13 @@ class CascadePipeline:
             self.config.cartesia_voice_id
             or self.config.cartesia_voice_female  # varsayılan: kadın sesi
         )
+        # word_timestamps=False ZORUNLU: TR dili timestamp desteklemiyor,
+        # aksi halde Cartesia sessizce boş ses döndürüyor (canlı testte tespit).
         inner = cartesia.TTS(
             model=self.config.cartesia_model,
             language=self.config.cartesia_language,
             voice=voice_id,
+            word_timestamps=False,
         )
         return NormalizingTTS(inner)
 
