@@ -109,6 +109,17 @@ class NormalizingStream:
     async def aclose(self) -> None:
         await self._inner.aclose()
 
+    async def __aenter__(self) -> "NormalizingStream":
+        aenter = getattr(self._inner, "__aenter__", None)
+        if aenter:
+            await aenter()
+        return self
+
+    async def __aexit__(self, exc_type, exc, tb) -> None:
+        aclose = getattr(self._inner, "aclose", None)
+        if aclose:
+            await aclose()
+
     def __aiter__(self) -> "NormalizingStream":
         return self
 
