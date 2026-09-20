@@ -48,12 +48,19 @@ RECORD_SIGNALS_RULES_BLOCK: str = """\
   `capability_limit_reached=true` ve varsa `recommend_handoff=true` kaydet.
 """
 
-#: KVKK açılış bildirimi — her çağrının başında söylenmesi ZORUNLU metin.
+#: KVKK açılış bildirimi — UZUN metin (web sitesi / SMS / yazılı onay için).
 KVKK_DISCLOSURE: str = (
     "Merhaba, bu görüşme yapay zekâ destekli asistanımız tarafından "
     "yanıtlanmaktadır; kalite ve doğruluk amacıyla kişisel verileriniz "
     "KVKK kapsamında kayıt altına alınmaktadır. Devam etmemizle onayınızı "
     "kabul etmiş olursunuz. Size nasıl yardımcı olabilirim?"
+)
+
+#: KVKK bildirimi — TELEFONDA SÖYLENEN kısa ve doğal hâli.
+#: (Uzun yasal metin telefonda "banka anonsu" etkisi yapıyor — veli kapatıyor.)
+KVKK_DISCLOSURE_SHORT: str = (
+    "Bu arada söyleyeyim, ben yapay zekayım — konuşmamız eğitim kalitesi "
+    "için kayıt altında, tamam mı?"
 )
 
 #: Pattern 4 — iç sezgi bloğunun başlık ve kural şablonu.
@@ -120,6 +127,12 @@ dışı olduğunu belirt ve veliyi kurum konusuna (program, fiyat, randevu) yön
 Veli: "Oğlum bu yıl sınava giriyo ama matematikte çakılı yo."
 Asistan: "Matematik en kritik ders zaten. Son denemesinde kaç net yaptı?
 Ona göre kısa bir plan çıkarayım."
+
+# SÖZ KESİLME ADABI (barge-in)
+Velin seni söz ortasında keserse ANINDA sus — asla sesinle üstüne konuşma.
+Kesilen cümleyi tekrar başlatma; velinin söylediğine göre devam et. Veli
+"sözünü tamamlamadı" diye susup beklerse kısa bir onay ver: "Efendim?",
+"Buyrun, dinliyorum." Sonra kaldığı yerden değil, velinin yönünden devam et.
 """
 
 
@@ -189,7 +202,11 @@ yetki olmadığını kibarca belirtip gerekirse insana aktarım öner.""",
     if extra_rules:
         blocks.append(f"# KURUMA ÖZEL KURALLAR\n{extra_rules}")
     blocks.append(
-        f"# ZORUNLU AÇILIŞ BİLDİRİMİ (KVKK)\n"
-        f"Görüşmenin ilk cümlelerinde şu bildirimi yap:\n\"{KVKK_DISCLOSURE}\""
+        f"# ZORUNLU KAYIT BİLDİRİMİ (KVKK — DOĞAL TEK CÜMLE)\n"
+        f"Selamlaşmadan HEMEN sonra, sohbetin doğal akışında şu kısa cümleyi "
+        f"söyle (tek sefer, ezberlenmiş gibi DEĞİL):\n"
+        f"\"{KVKK_DISCLOSURE_SHORT}\"\n"
+        f"Uzun yasal metni (\"Bu görüşme yapay zekâ destekli... KVKK kapsamında "
+        f"...\") ASLA okuma — banka anonsu gibi durur, veli hattı kapatır."
     )
     return "\n\n".join(blocks)

@@ -82,9 +82,9 @@ def main() -> None:  # pragma: no cover - canlı ortam bloğu
     warm: dict = {}
     try:
         warm["components"] = CascadePipeline(config, capabilities).assemble()
-        logger.info("Sıcak bileşenler başlangıçta kuruldu")
+        print("[velipilot] Sıcak bileşenler başlangıçta kuruldu ✓")
     except Exception as exc:
-        logger.warning("Başlangıç kurulumu atlandı: %s", str(exc)[:120])
+        print(f"[velipilot] Başlangıç kurulumu atlandı: {exc}")
 
     async def prewarm(ctx) -> None:
         pipeline = CascadePipeline(config, capabilities)
@@ -189,11 +189,19 @@ def main() -> None:  # pragma: no cover - canlı ortam bloğu
             stt=comps.stt,   # Deepgram nova-3 tr + keyterms
             llm=comps.llm,   # GPT-4o mini birincil (FallbackAdapter)
             tts=comps.tts,   # Cartesia + Pattern 8 streaming normalizasyon
+            # ── Gecikme + doğal turn-taking ──
+            preemptive_generation=True,   # EOT beklemeden LLM'i başlat
+            min_endpointing_delay=0.3,
+            max_endpointing_delay=1.2,    # belirsiz turlarda bile ≤1.2 sn
+            allow_interruptions=True,
+            min_interruption_duration=0.2,
+            resume_false_interruption=True,   # "hı hı" gibi sesler cümleyi bozmasın
+            false_interruption_timeout=2.0,
         )
 
         # ── Oturum veri toplama (CRM'e yazım için) ─────────────────
 
-        state = {"speaking": False, "task": None}
+        state = {"speaking": False, "task": None, "interrupted": False}
         state["items"] = []       # [(role, text)]
         state["signals"] = []     # record_signals çıktıları
         state["start"] = _time.time()
@@ -350,6 +358,7 @@ def main() -> None:  # pragma: no cover - canlı ortam bloğu
             "Bir saniye, bakayım.",
             "Hım, şimdi bakıyorum.",
             "Tamam, bir saniye.",
+            "Hımm.",
         ]
         @session.on("agent_state_changed")
         def _on_agent_state(ev) -> None:
@@ -357,11 +366,36 @@ def main() -> None:  # pragma: no cover - canlı ortam bloğu
             if state["speaking"] and state["task"] and not state["task"].done():
                 state["task"].cancel()
 
+        @session.on("agent_state_changed")
+        def _mark_interrupt(ev) -> None:
+            # ajan konuşuyorken kullanıcı mikrofonu açarsa = söz kesildi
+            if getattr(ev, "state", "") == "listening" and state["speaking"]:
+                state["interrupted"] = True
+
+        @session.on("metrics_collected")
+        def _on_metrics(ev) -> None:
+            m = getattr(ev, "metrics", None)
+            typ = getattr(m, "type", "?")
+            ttfb = getattr(m, "ttfb", None)
+            total = getattr(m, "total_latency", None) or getattr(m, "duration", None)
+            if typ == "llm_metrics" or (ttfb is not None):
+                logger.info("GECİKME: tip=%s ttfb=%s toplam=%s", typ, ttfb, total)
+
         @session.on("user_input_committed")
         def _on_user_committed(_ev) -> None:
+            if state.get("interrupted"):
+                async def _ack() -> None:
+                    await session.say(
+                        random.choice(["Efendim?", "Buyrun, dinliyorum."]),
+                        allow_interruptions=True,
+                        add_to_chat_ctx=False,
+                    )
+                    state["interrupted"] = False
+                ack_t = asyncio.create_task(_ack())
+                state["task"] = ack_t
             async def _maybe_filler() -> None:
                 try:
-                    await asyncio.sleep(1.3)
+                    await asyncio.sleep(1.0)
                     if not state["speaking"]:
                         await session.say(
                             random.choice(fillers),
