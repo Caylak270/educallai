@@ -67,6 +67,17 @@ export async function PATCH(
     .eq("id", id);
 
   if (error) {
+    // Şema henüz pushlanmadıysa (PGRST205) demo olarak kabul et — UI zaten yerel güncel
+    if (error.code === "PGRST205" || error.message.includes("does not exist")) {
+      return NextResponse.json({
+        ok: true,
+        persisted: false,
+        mode: "supabase-no-schema",
+        note: "Supabase bağlı ama tablolar yok — supabase/migrations dosyalarını SQL Editor ile çalıştır",
+        id,
+        stage,
+      });
+    }
     return NextResponse.json(
       { ok: false, persisted: false, error: error.message },
       { status: 500 }
