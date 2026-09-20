@@ -48,7 +48,7 @@ def main() -> None:  # pragma: no cover - canlı ortam bloğu
     """LiveKit CLI worker'ını başlatır (anahtarlar olmadan çalışmaz)."""
     # --- Sağlayıcı import'ları YALNIZCA canlı çalıştırmada gerekli ---
     try:
-        from livekit.agents import Agent, AgentSession, JobContext, cli, llm
+        from livekit.agents import Agent, AgentSession, JobContext, cli, function_tool, llm
         from livekit.plugins import cartesia, deepgram, openai, silero
     except ImportError as exc:
         raise SystemExit(
@@ -64,6 +64,81 @@ def main() -> None:  # pragma: no cover - canlı ortam bloğu
         )
 
     capabilities = load_capabilities({"can_share_pricing": True})
+
+    def build_live_tools() -> list:
+        """Capability Matrix'e göre livekit @function_tool araçları üretir.
+
+        Not: livekit-agents 1.8 dict araç kabul etmiyor — gerçek fonksiyon
+        araçları zorunlu. Yanıtlar demo; gerçek aksiyonlar Supabase/dialer
+        bağlandığında buraya eklenir.
+        """
+        tools: list = []
+
+        if capabilities.can_share_pricing:
+
+            @function_tool
+            async def quote_pricing(program: str) -> str:
+                """Dershane programının fiyat bilgisini paylaşır.
+
+                Args:
+                    program: Program adı (örn. "YKS", "LGS", "etüt")
+                """
+                return (
+                    f"{program} programımız aylık 12.000 TL'den başlıyor, "
+                    "10 taksit imkânımız var. Kayıt öncesi seviye tespit "
+                    "sınavımız ücretsiz."
+                )
+
+            tools.append(quote_pricing)
+
+        if capabilities.can_create_appointment:
+
+            @function_tool
+            async def create_appointment(date_time: str, topic: str) -> str:
+                """Kurum ziyareti veya seviye tespiti için randevu oluşturur.
+
+                Args:
+                    date_time: Randevu tarihi ve saati (örn. "cumartesi 14:00")
+                    topic: Randevunun konusu
+                """
+                return (
+                    f"Randevu alındı: {date_time} — {topic}. Konum ve "
+                    "hatırlatıcı WhatsApp'tan iletilecek."
+                )
+
+            tools.append(create_appointment)
+
+        if capabilities.can_check_exam_results:
+
+            @function_tool
+            async def check_exam_results(student_name: str) -> str:
+                """Öğrencinin son deneme sınavı sonucunu özetler.
+
+                Args:
+                    student_name: Öğrencinin adı
+                """
+                return (
+                    f"{student_name} için son deneme sonucu: 68 net, "
+                    "sınıf ortalamasının 6 üzerinde. Detaylı analizi "
+                    "görüşmede paylaşabilirim."
+                )
+
+            tools.append(check_exam_results)
+
+        if capabilities.can_transfer_to_human:
+
+            @function_tool
+            async def transfer_to_human(reason: str) -> str:
+                """Görüşmeyi insan danışmana aktarır.
+
+                Args:
+                    reason: Aktarım gerekçesi
+                """
+                return f"Danışmana aktarılıyorsunuz. Gerekçe: {reason}"
+
+            tools.append(transfer_to_human)
+
+        return tools
 
     async def entrypoint(ctx: JobContext) -> None:
         """Her gelen/giden arama için bir agent oturumu başlatır."""
@@ -105,7 +180,7 @@ def main() -> None:  # pragma: no cover - canlı ortam bloğu
                         dershane_name="Limit Dershane",
                         capabilities=capabilities,
                     ),
-                    tools=pipeline.tool_definitions(),
+                    tools=build_live_tools(),
                 )
 
         await session.start(
