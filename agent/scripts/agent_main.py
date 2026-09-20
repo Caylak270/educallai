@@ -164,6 +164,46 @@ def main() -> None:  # pragma: no cover - canlı ortam bloğu
             tts=comps.tts,   # Cartesia + Pattern 8 streaming normalizasyon
         )
 
+        # ── Oturum veri toplama (CRM'e yazım için) ─────────────────
+        import time as _time
+
+        state["items"] = []       # [(role, text)]
+        state["signals"] = []     # record_signals çıktıları
+        state["start"] = _time.time()
+
+        @session.on("conversation_item_added")
+        def _on_item(ev) -> None:
+            text = getattr(ev.item, "text_content", None) or ""
+            if not text:
+                content = getattr(ev.item, "content", None) or []
+                text = " ".join(str(x) for x in content)
+            if text.strip():
+                state["items"].append((str(getattr(ev.item, "role", "user")), text))
+
+        # ── Pattern 1: record_signals aracı (pydantic args) ────────
+        from pydantic import BaseModel, Field
+
+        class RecordSignalsArgs(BaseModel):
+            sentiment: str = Field(description="veli duygusu: positive / neutral / negative")
+            intent: str = Field(description="niyet: kayit_talebi / fiyat_sorusu / deneme_istegi / randevu_talebi / diger")
+            lead_temperature: str = Field(description="hot / warm / cold")
+            enrollment_readiness: float = Field(description="0.0-1.0 arası kayda hazırlık")
+            payment_objection: str | None = Field(default=None, description="ödeme itirazı notu, yoksa null")
+            recommend_handoff: bool = Field(default=False, description="insan danışmana aktarım önerildi mi")
+
+        @function_tool
+        async def record_signals(args: RecordSignalsArgs) -> str:
+            """Her dönüşün sonunda veli hakkında çıkardığın sinyalleri kaydet.
+
+            Args:
+                args: Duygu, niyet ve kayda hazırlık sinyalleri
+            """
+            state["signals"].append(args.model_dump())
+            return "Sinyaller kaydedildi."
+
+        live_tools = build_live_tools()
+        live_tools.append(record_signals)
+
         class VeliPilotAgent(Agent):
             """System prompt + capability-filtreli araçlarla oturum ajanı."""
 
@@ -173,15 +213,83 @@ def main() -> None:  # pragma: no cover - canlı ortam bloğu
                         dershane_name="Limit Dershane",
                         capabilities=capabilities,
                     ),
-                    tools=build_live_tools(),
+                    tools=live_tools,
                 )
 
         await session.start(
             agent=VeliPilotAgent(),
             room=ctx.room,
         )
-        # Sistem 5: outbound aramada cevaba kadar ambiyans maskeleme.
-        logger.info("Ambiyans maskeleme: %s", pipeline.apply_ambiance_masking())
+        # Sistem 5 (canlı): ambiyans maskeleme — yumuşak kahverengi gürültü,
+        # ajan konuşurken kısılır (fade), hat düştü hissini engeller.
+        import numpy as np
+        from livekit import rtc
+
+        async def ambience_task() -> None:
+            source = rtc.AudioSource(24000, 1)
+            track = rtc.LocalAudioTrack.create_audio_track("ambience", source)
+            await ctx.room.local_participant.publish_track(track)
+            rng = np.random.default_rng(7)
+            white = rng.standard_normal(24000) * 0.02
+            brown = np.cumsum(white)
+            brown = brown / (np.max(np.abs(brown)) + 1e-9)
+            base = (brown * 32767 * 0.12).astype(np.int16).tobytes()  # ~%12 genlik
+            gain = 0.35
+            while True:
+                if state["speaking"]:
+                    target = 0.06  # ajan konuşurken neredeyse kapat
+                else:
+                    target = 1.0
+                gain += (target - gain) * 0.08
+                frame_data = (np.frombuffer(base, dtype=np.int16) * gain).astype(np.int16).tobytes()
+                frame = rtc.AudioFrame(frame_data, 24000, 1, 24000)
+                await source.capture_frame(frame)
+                await asyncio.sleep(0)
+
+        amb = asyncio.create_task(ambience_task())
+
+        # ── Oturum sonu: transkript + sinyalleri Supabase'e yaz ────
+        import httpx
+
+        async def save_to_crm() -> None:
+            if not state["items"]:
+                return
+            duration = int(_time.time() - state["start"])
+            transcript = "\n".join(
+                f"{'Veli' if role == 'user' else 'Asistan'}: {text}"
+                for role, text in state["items"]
+            )
+            last_sig = state["signals"][-1] if state["signals"] else {}
+            payload = {
+                "contact_id": "33333333-3333-4333-8333-000000000001",  # demo test velisi
+                "dershane_id": "11111111-1111-4111-8111-111111111111",
+                "channel": "voice",
+                "direction": "inbound",
+                "sentiment": last_sig.get("sentiment") or "neutral",
+                "intent": last_sig.get("intent") or "test_gorusmesi",
+                "lead_temperature": last_sig.get("lead_temperature") or "warm",
+                "enrollment_readiness": float(last_sig.get("enrollment_readiness") or 0.5),
+                "recommend_handoff": bool(last_sig.get("recommend_handoff", False)),
+                "transcript": transcript,
+                "duration_seconds": duration,
+            }
+            try:
+                async with httpx.AsyncClient(timeout=10) as hc:
+                    res = await hc.post(
+                        f"{config.supabase_url}/rest/v1/conversation_signals",
+                        headers={
+                            "apikey": config.supabase_service_key,
+                            "Authorization": f"Bearer {config.supabase_service_key}",
+                            "Content-Type": "application/json",
+                            "Prefer": "return=minimal",
+                        },
+                        json=payload,
+                    )
+                logger.info("CRM kaydı: %s (%s)", res.status_code, transcript[:60])
+            except Exception as exc:  # CRM yazımı oturumu düşürmesin
+                logger.warning("CRM kaydı başarısız: %s", str(exc)[:120])
+
+        ctx.add_shutdown_callback(save_to_crm)
 
         # ── DOLGU SESİ (ölü sessizlik = hat düştü hissi) ─────────────
         # Kullanıcı turunu bitirdikten ~1.3 sn içinde yanıt başlamadıysa
