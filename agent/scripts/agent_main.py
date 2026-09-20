@@ -236,13 +236,16 @@ def main() -> None:  # pragma: no cover - canlı ortam bloğu
                         "model": "gpt-4o-mini-transcribe",
                         "language": "tr",
                     },
-                    # Semantic VAD "high": veli sustuğu an turu kapat —
-                    # dict DEĞİL, typed object (eklenti typed bekliyordu).
-                    turn_detection=_oai_realtime.realtime_audio_input_turn_detection.SemanticVad(
-                        type="semantic_vad",
+                    # ServerVAD: veli sustuktan ~250ms sonra turu kapat —
+                    # semantic VAD'dan belirgin hızlı tur kararı (250ms hedefi).
+                    # dict DEĞİL, typed object (eklenti typed bekliyor).
+                    turn_detection=_oai_realtime.realtime_audio_input_turn_detection.ServerVad(
+                        type="server_vad",
                         create_response=True,
-                        eagerness="high",
                         interrupt_response=True,
+                        threshold=0.6,          # nefes/patlama yanlış turu önler
+                        prefix_padding_ms=150,
+                        silence_duration_ms=180,
                     ),
                 ),
                 **common,
