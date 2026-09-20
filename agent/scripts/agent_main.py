@@ -87,7 +87,10 @@ def main() -> None:  # pragma: no cover - canlı ortam bloğu
     except Exception as exc:
         print(f"[velipilot] Başlangıç kurulumu atlandı: {exc}")
 
-    async def prewarm(ctx) -> None:
+    def prewarm(proc) -> None:
+        # DİKKAT: livekit prewarm_fnc SENKRON'dur (Callable[[JobProcess], Any])
+        # ve JobProcess alır — async yazarsak sessizce hiç çalışmaz
+        # ("coroutine was never awaited" uyarısıyla: gecikme paketi öncesi durum).
         pipeline = CascadePipeline(config, capabilities)
         pipeline.prewarm()
         warm["components"] = pipeline.assemble()
@@ -188,6 +191,27 @@ def main() -> None:  # pragma: no cover - canlı ortam bloğu
             pipeline.prewarm()
             comps = pipeline.assemble()
 
+        # AĞ ISITMA: LLM+TTS bağlantılarını (SSL/WebSocket) ilk veli turundan
+        # ÖNCE aç — velinin ilk sorusu gelene kadar ~3-5 sn vardır, soğuk
+        # connect süresi (1-1.5s) bu pencerede eritilir.
+        async def _warm_network() -> None:
+            try:
+                chat_ctx = llm.ChatContext()
+                chat_ctx.add_message(role="user", content="Merhaba")
+                stream = comps.llm.chat(chat_ctx=chat_ctx)
+                async for _chunk in stream:
+                    break  # ilk parça: bağlantı açıldı
+                tts_stream = comps.tts.stream()
+                tts_stream.push_text("Merhaba.")
+                tts_stream.end_input()
+                async for _frame in tts_stream:
+                    break  # ilk frame: Cartesia bağlantısı açıldı
+                logger.info("Ağ ısıtma: LLM+TTS bağlantıları sıcak")
+            except Exception as exc:
+                logger.warning("Ağ ısıtma atlandı: %s", str(exc)[:120])
+
+        asyncio.create_task(_warm_network())
+
         common = dict(
             # ── Gecikme + doğal turn-taking ──
             preemptive_generation=True,   # EOT beklemeden LLM'i başlat
@@ -206,7 +230,12 @@ def main() -> None:  # pragma: no cover - canlı ortam bloğu
                     model="gpt-realtime",
                     voice=os.environ.get("REALTIME_VOICE", "marin"),
                     modalities=["text", "audio"],
-                    input_audio_transcription={"model": "whisper-1", "language": "tr"},
+                    # gpt-4o-mini-transcribe: whisper-1'den daha iyi TR doğruluk,
+                    # benzer gecikme (plugin'in kendi default'u da bu).
+                    input_audio_transcription={
+                        "model": "gpt-4o-mini-transcribe",
+                        "language": "tr",
+                    },
                     # Semantic VAD "high": veli sustuğu an turu kapat —
                     # dict DEĞİL, typed object (eklenti typed bekliyordu).
                     turn_detection=_oai_realtime.realtime_audio_input_turn_detection.SemanticVad(
@@ -233,7 +262,8 @@ def main() -> None:  # pragma: no cover - canlı ortam bloğu
         state["items"] = []       # [(role, text)]
         state["signals"] = []     # record_signals çıktıları
         state["start"] = _time.time()
-        state["eot_ts"] = None    # kullanıcının konuşmasının bittiği an (kendi ölçümümüz)
+        state["eot_ts"] = None    # kullanıcının SON SES anı (hissiyat ölçümü)
+        state["eot_arrival"] = None  # VAD'ın tur kapatma kararının geldiği an
         state["user_speaking"] = False
 
         @session.on("conversation_item_added")
@@ -403,12 +433,20 @@ def main() -> None:  # pragma: no cover - canlı ortam bloğu
             state["speaking"] = speaking
             if speaking and state["task"] and not state["task"].done():
                 state["task"].cancel()
-            # eot→ilk ses: Realtime modda ChatMessage.metrics doldurulmadığı
-            # için hedef metriği kendimiz ölçüyoruz (moddan bağımsız).
+            # İki ayrı ölçüm (hedef metrik ilki):
+            #  son_ses→ilk ses : velinin hissettiği TOPLAM bekleme (VAD kararı dahil)
+            #  karar→ilk ses   : VAD kararından sonra motorun hızı (LLM+ilk ses)
             if speaking and state["eot_ts"] is not None:
-                delta_ms = (_time.time() - state["eot_ts"]) * 1000
-                logger.info("TUR SÜRESİ(ölçüm): eot→ilk ses=%dms", round(delta_ms))
+                now = _time.time()
+                logger.info(
+                    "TUR SÜRESİ: son_ses→ilk ses=%dms (karar→ses=%dms)",
+                    round((now - state["eot_ts"]) * 1000),
+                    round((now - state["eot_arrival"]) * 1000)
+                    if state["eot_arrival"] is not None
+                    else 0,
+                )
                 state["eot_ts"] = None
+                state["eot_arrival"] = None
 
         @session.on("agent_state_changed")
         def _mark_interrupt(ev) -> None:
@@ -438,7 +476,10 @@ def main() -> None:  # pragma: no cover - canlı ortam bloğu
                 state["user_speaking"] = True
             elif st == "listening" and state["user_speaking"]:
                 state["user_speaking"] = False
+                # created_at = son gerçek ses anı (hissiyat); arrival = kararın
+                # geldiği an. İkisi arası = VAD'ın bekleme süresi.
                 state["eot_ts"] = ts  # kullanıcı sustu → ilk sesi saymaya başla
+                state["eot_arrival"] = _time.time()
                 if state.get("interrupted"):
                     # söz kesildi → filler yok, kısa onay ver
                     async def _ack() -> None:
