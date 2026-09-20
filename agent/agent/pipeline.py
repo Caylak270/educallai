@@ -74,16 +74,78 @@ class PipelineComponents:
     notes: list[str] = field(default_factory=list)
 
 
-class NormalizingTTS:
-    """TTS sarmalayıcı — sentez öncesi Pattern 8 Türkçe normalizasyonu.
+class NormalizingStream:
+    """Streaming normalizasyon sarmalayıcısı.
 
-    Inner TTS'in ``synthesize(text, ...)`` imzasını uygular; diğer
-    öznitelikler ``__getattr__`` ile delege edilir. LiveKit kurulu
-    olmasa da import edilebilir (duck typing).
+    LLM'den metin parça parça gelir; "12.000 TL" gibi Pattern 8 desenleri
+    parçalar arasında bölünebileceği için rakamlı son kelime bir sonraki
+    parçaya kadar bekletilir (taşıma tamponu). Böylece streaming gecikmesi
+    korunur (ilk ses hemen başlar) ama normalizasyon bozulmaz.
     """
 
     def __init__(self, inner: Any) -> None:
         self._inner = inner
+        self._pending = ""
+
+    def push_text(self, token: str) -> None:
+        self._pending += token
+        cut = _safe_prefix_length(self._pending)
+        if cut > 0:
+            self._inner.push_text(normalize_for_tts(self._pending[:cut]))
+            self._pending = self._pending[cut:]
+
+    def flush(self) -> None:
+        if self._pending:
+            self._inner.push_text(normalize_for_tts(self._pending))
+            self._pending = ""
+        self._inner.flush()
+
+    def end_input(self) -> None:
+        if self._pending:
+            self._inner.push_text(normalize_for_tts(self._pending))
+            self._pending = ""
+        self._inner.end_input()
+
+    async def aclose(self) -> None:
+        await self._inner.aclose()
+
+    def __aiter__(self) -> "NormalizingStream":
+        return self
+
+    async def __anext__(self) -> Any:
+        return await self._inner.__anext__()
+
+
+def _safe_prefix_length(text: str) -> int:
+    """Gönderilmesi güvenli önek uzunluğu: sondaki sayı/ayraçlı kelimeyi beklet.
+
+    "12.000 TL" gibi desenler parça sınırında bölünebileceğinden, boşlukla
+    ayrılmış SON kelimenin içinde rakam varsa o kelime gönderilmez.
+    """
+    stripped = text.rstrip()
+    if not stripped:
+        return 0
+    last = stripped.split(" ")[-1]
+    if any(ch.isdigit() for ch in last) or last.endswith((".", ",")) or last in ("TL", "₺", "%"):
+        idx = text.rfind(" ")
+        return idx + 1 if idx != -1 else 0
+    return len(text)
+
+
+class NormalizingTTS:
+    """TTS sarmalayıcı — sentez öncesi Pattern 8 Türkçe normalizasyonu.
+
+    Hem tek parçalı ``synthesize(text, ...)`` hem streaming ``stream()``
+    imzasını uygular; diğer öznitelikler ``__getattr__`` ile delege edilir.
+    LiveKit kurulu olmasa da import edilebilir (duck typing).
+    """
+
+    def __init__(self, inner: Any) -> None:
+        self._inner = inner
+
+    def stream(self, **kwargs: Any) -> NormalizingStream:
+        """Streaming sentez: parçaları normalize ederek alt akıma iletir."""
+        return NormalizingStream(self._inner.stream(**kwargs))
 
     async def synthesize(self, text: str, **kwargs: Any) -> Any:
         """Metni Türkçe okunuşa çevirip alttaki TTS'e gönderir."""

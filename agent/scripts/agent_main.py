@@ -190,6 +190,41 @@ def main() -> None:  # pragma: no cover - canlı ortam bloğu
         # Sistem 5: outbound aramada cevaba kadar ambiyans maskeleme.
         logger.info("Ambiyans maskeleme: %s", pipeline.apply_ambiance_masking())
 
+        # ── DOLGU SESİ (ölü sessizlik = hat düştü hissi) ─────────────
+        # Kullanıcı turunu bitirdikten ~1.3 sn içinde yanıt başlamadıysa
+        # kısa doğal dolgu söylenir; ajan konuşmaya başlayınca iptal edilir.
+        import asyncio
+        import random
+
+        fillers = [
+            "Bir saniye, bakayım.",
+            "Hım, şimdi bakıyorum.",
+            "Tamam, bir saniye.",
+        ]
+        state = {"speaking": False, "task": None}
+
+        @session.on("agent_state_changed")
+        def _on_agent_state(ev) -> None:
+            state["speaking"] = getattr(ev, "state", "") == "speaking"
+            if state["speaking"] and state["task"] and not state["task"].done():
+                state["task"].cancel()
+
+        @session.on("user_input_committed")
+        def _on_user_committed(_ev) -> None:
+            async def _maybe_filler() -> None:
+                try:
+                    await asyncio.sleep(1.3)
+                    if not state["speaking"]:
+                        await session.say(
+                            random.choice(fillers),
+                            allow_interruptions=True,
+                            add_to_chat_ctx=False,
+                        )
+                except asyncio.CancelledError:
+                    pass
+
+            state["task"] = asyncio.create_task(_maybe_filler())
+
     cli.run_app(
         __import__("livekit.agents", fromlist=["WorkerOptions"]).WorkerOptions(
             entrypoint_fnc=entrypoint
