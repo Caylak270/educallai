@@ -186,7 +186,8 @@ class CascadePipeline:
             model=self.config.cartesia_model,
             language=self.config.cartesia_language,
             voice=voice_id,
-            word_timestamps=False,
+            word_timestamps=False,  # TR desteklenmiyor — boş ses döndürüyordu
+            speed=self.config.cartesia_speed,
         )
         return NormalizingTTS(inner)
 
