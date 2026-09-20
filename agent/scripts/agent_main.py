@@ -172,11 +172,13 @@ def main() -> None:  # pragma: no cover - canlı ortam bloğu
         # Yerel import'lar — fonksiyon içi import = tüm fonksiyonda lokal;
         # kullanımdan ÖNCE gelmeli.
         import asyncio
+        import os
         import random
         import time as _time
         import httpx
         import numpy as np
         from livekit import rtc
+        from livekit.plugins import openai as openai_plugin
 
         comps = warm.get("components")
         if comps is None:  # prewarm kaçtıysa yerinde kur
@@ -184,11 +186,7 @@ def main() -> None:  # pragma: no cover - canlı ortam bloğu
             pipeline.prewarm()
             comps = pipeline.assemble()
 
-        session = AgentSession(
-            vad=comps.vad,   # Silero — Pattern 5 (sıcak)
-            stt=comps.stt,   # Deepgram nova-3 tr + keyterms
-            llm=comps.llm,   # GPT-4o mini birincil (FallbackAdapter)
-            tts=comps.tts,   # Cartesia + Pattern 8 streaming normalizasyon
+        common = dict(
             # ── Gecikme + doğal turn-taking ──
             preemptive_generation=True,   # EOT beklemeden LLM'i başlat
             min_endpointing_delay=0.3,
@@ -198,6 +196,26 @@ def main() -> None:  # pragma: no cover - canlı ortam bloğu
             resume_false_interruption=True,   # "hı hı" gibi sesler cümleyi bozmasın
             false_interruption_timeout=2.0,
         )
+        if os.environ.get("REALTIME_MODE") == "1":
+            # OpenAI Realtime: STT+LLM+TTS tek bağlantı — en düşük gecikme yolu.
+            # Not: ses OpenAI'ın sesi (marin); Cartesia sesi kullanılmaz.
+            session = AgentSession(
+                llm=openai_plugin.realtime.RealtimeModel(
+                    model="gpt-realtime",
+                    voice=os.environ.get("REALTIME_VOICE", "marin"),
+                    modalities=["text", "audio"],
+                    input_audio_transcription={"model": "whisper-1", "language": "tr"},
+                ),
+                **common,
+            )
+        else:
+            session = AgentSession(
+                vad=comps.vad,   # Silero — Pattern 5 (sıcak)
+                stt=comps.stt,   # Deepgram nova-3 tr + keyterms
+                llm=comps.llm,   # GPT-4o mini birincil (FallbackAdapter)
+                tts=comps.tts,   # Cartesia + Pattern 8 streaming normalizasyon
+                **common,
+            )
 
         # ── Oturum veri toplama (CRM'e yazım için) ─────────────────
 
