@@ -65,6 +65,15 @@ def main() -> None:  # pragma: no cover - canlı ortam bloğu
 
     capabilities = load_capabilities({"can_share_pricing": True})
 
+    # Soğuk başlatma fix'i: bileşenler worker başlarken BİR KEZ kurulur.
+    warm: dict = {}
+
+    async def prewarm(ctx) -> None:
+        pipeline = CascadePipeline(config, capabilities)
+        pipeline.prewarm()
+        warm["components"] = pipeline.assemble()
+        logger.info("Prewarm: bileşenler sıcak hazır")
+
     def build_live_tools() -> list:
         """Capability Matrix'e göre livekit @function_tool araçları üretir.
 
@@ -142,33 +151,17 @@ def main() -> None:  # pragma: no cover - canlı ortam bloğu
 
     async def entrypoint(ctx: JobContext) -> None:
         """Her gelen/giden arama için bir agent oturumu başlatır."""
-        pipeline = CascadePipeline(config, capabilities)
-        pipeline.prewarm()  # streaming overlap: bağlantıları önceden ısıt
+        comps = warm.get("components")
+        if comps is None:  # prewarm kaçtıysa yerinde kur
+            pipeline = CascadePipeline(config, capabilities)
+            pipeline.prewarm()
+            comps = pipeline.assemble()
 
         session = AgentSession(
-            vad=pipeline.build_vad(),  # Silero — Pattern 5 kalibrasyonu
-            stt=deepgram.STT(
-                model=config.deepgram_model,
-                language=config.deepgram_language,
-                keyterms=config.dershane_keyterms,  # keyterm prompting
-            ),
-            llm=(
-                llm.FallbackAdapter(
-                    [
-                        openai.LLM(model=config.llm_primary_model),  # GPT-4o mini (birincil)
-                        anthropic.LLM(model=config.llm_fallback_model),  # Haiku (yedek)
-                    ]
-                )
-                if config.anthropic_api_key
-                else openai.LLM(model=config.llm_primary_model)
-            ),
-            tts=NormalizingTTS(
-                cartesia.TTS(
-                    model=config.cartesia_model,
-                    language=config.cartesia_language,
-                    voice=config.cartesia_voice_id or config.cartesia_voice_female,
-                )
-            ),
+            vad=comps.vad,   # Silero — Pattern 5 (sıcak)
+            stt=comps.stt,   # Deepgram nova-3 tr + keyterms
+            llm=comps.llm,   # GPT-4o mini birincil (FallbackAdapter)
+            tts=comps.tts,   # Cartesia + Pattern 8 streaming normalizasyon
         )
 
         class VeliPilotAgent(Agent):
@@ -227,7 +220,8 @@ def main() -> None:  # pragma: no cover - canlı ortam bloğu
 
     cli.run_app(
         __import__("livekit.agents", fromlist=["WorkerOptions"]).WorkerOptions(
-            entrypoint_fnc=entrypoint
+            entrypoint_fnc=entrypoint,
+            prewarm_fnc=prewarm,
         )
     )
 
