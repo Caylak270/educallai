@@ -32,6 +32,7 @@ from agent.agent.capabilities import load_capabilities  # noqa: E402
 from agent.agent.config import AgentConfig  # noqa: E402
 from agent.agent.pipeline import CascadePipeline, NormalizingTTS  # noqa: E402
 from agent.agent.prompts import build_system_prompt  # noqa: E402
+from pydantic import BaseModel, Field  # noqa: E402
 
 logger = logging.getLogger("velipilot.agent")
 
@@ -42,6 +43,17 @@ try:
     load_dotenv(Path(__file__).resolve().parents[1] / ".env")
 except ImportError:  # python-dotenv yoksa ortam değişkenleri zaten set edilmeli
     pass
+
+
+class RecordSignalsArgs(BaseModel):
+    """Pattern 1 — LLM'in her turda kaydedeceği sinyaller."""
+
+    sentiment: str = Field(description="veli duygusu: positive / neutral / negative")
+    intent: str = Field(description="niyet: kayit_talebi / fiyat_sorusu / deneme_istegi / randevu_talebi / diger")
+    lead_temperature: str = Field(description="hot / warm / cold")
+    enrollment_readiness: float = Field(description="0.0-1.0 arası kayda hazırlık")
+    payment_objection: str | None = Field(default=None, description="ödeme itirazı notu, yoksa null")
+    recommend_handoff: bool = Field(default=False, description="insan danışmana aktarım önerildi mi")
 
 
 def main() -> None:  # pragma: no cover - canlı ortam bloğu
@@ -65,8 +77,14 @@ def main() -> None:  # pragma: no cover - canlı ortam bloğu
 
     capabilities = load_capabilities({"can_share_pricing": True})
 
-    # Soğuk başlatma fix'i: bileşenler worker başlarken BİR KEZ kurulur.
+    # Soğuk başlatma fix'i: bileşenleri PROSES BAŞLANGICINDA kur (ONNX ~350ms,
+    # SSL context'ler — ilk bağlantıdaki gecikmeyi tamamen kaldırır).
     warm: dict = {}
+    try:
+        warm["components"] = CascadePipeline(config, capabilities).assemble()
+        logger.info("Sıcak bileşenler başlangıçta kuruldu")
+    except Exception as exc:
+        logger.warning("Başlangıç kurulumu atlandı: %s", str(exc)[:120])
 
     async def prewarm(ctx) -> None:
         pipeline = CascadePipeline(config, capabilities)
@@ -189,10 +207,7 @@ def main() -> None:  # pragma: no cover - canlı ortam bloğu
             if text.strip():
                 state["items"].append((str(getattr(ev.item, "role", "user")), text))
 
-        # ── Pattern 1: record_signals aracı (pydantic args) ────────
-        from pydantic import BaseModel, Field
-
-        class RecordSignalsArgs(BaseModel):
+        # ── Pattern 1: record_signals aracı (args: module-level sınıf) ──
             sentiment: str = Field(description="veli duygusu: positive / neutral / negative")
             intent: str = Field(description="niyet: kayit_talebi / fiyat_sorusu / deneme_istegi / randevu_talebi / diger")
             lead_temperature: str = Field(description="hot / warm / cold")
@@ -233,24 +248,54 @@ def main() -> None:  # pragma: no cover - canlı ortam bloğu
         # ajan konuşurken kısılır (fade), hat düştü hissini engeller.
 
         async def ambience_task() -> None:
+            """Dershane ortam sesi: yumuşak uğultu + klavye tık patlamaları."""
             source = rtc.AudioSource(24000, 1)
             track = rtc.LocalAudioTrack.create_audio_track("ambience", source)
             await ctx.room.local_participant.publish_track(track)
+
             rng = np.random.default_rng(7)
-            white = rng.standard_normal(24000) * 0.02
-            brown = np.cumsum(white)
-            brown = brown / (np.max(np.abs(brown)) + 1e-9)
-            base = (brown * 32767 * 0.12).astype(np.int16).tobytes()  # ~%12 genlik
+            sr = 24000
+            loop_sec = 24
+            n = sr * loop_sec
+            # Uğultu yatağı (kahverengi gürültü, DC düzeltilmiş)
+            white = rng.standard_normal(n) * 0.02
+            bed = np.cumsum(white)
+            bed -= np.linspace(bed[0], bed[-1], n)
+            bed /= (np.max(np.abs(bed)) + 1e-9)
+            audio = bed * 0.35
+            # Klavye tık patlamaları: 3-8 hızlı tık + 1-4 sn sessizlik
+            t = 0.0
+            while t < loop_sec - 0.05:
+                burst = rng.integers(3, 9)
+                for _ in range(burst):
+                    pos = int(t * sr)
+                    dur = int(rng.uniform(0.004, 0.012) * sr)
+                    if pos + dur >= n:
+                        break
+                    click = rng.standard_normal(dur) * np.exp(-np.linspace(0, 6, dur))
+                    audio[pos : pos + dur] += click * rng.uniform(0.05, 0.16)
+                    t += rng.uniform(0.05, 0.18)
+                t += rng.uniform(1.0, 4.0)
+            audio = np.tanh(audio * 1.4)  # yumuşak doyurma
+            loop = (audio * 32767 * 0.5).astype(np.int16)  # master ~%50
+            loop_frames = [
+                rtc.AudioFrame(loop[i : i + sr].tobytes(), sr, 1, sr)
+                for i in range(0, len(loop), sr)
+            ]
+
             gain = 0.35
+            idx = 0
             while True:
                 if state["speaking"]:
-                    target = 0.06  # ajan konuşurken neredeyse kapat
+                    target = 0.10  # ajan konuşurken neredeyse kapat
                 else:
-                    target = 1.0
+                    target = 0.55
                 gain += (target - gain) * 0.08
-                frame_data = (np.frombuffer(base, dtype=np.int16) * gain).astype(np.int16).tobytes()
-                frame = rtc.AudioFrame(frame_data, 24000, 1, 24000)
-                await source.capture_frame(frame)
+                frame = loop_frames[idx % len(loop_frames)]
+                data = (np.frombuffer(frame.data, dtype=np.int16) * gain).astype(np.int16).tobytes()
+                out = rtc.AudioFrame(data, sr, 1, frame.samples_per_channel)
+                await source.capture_frame(out)
+                idx += 1
                 await asyncio.sleep(0)
 
         amb = asyncio.create_task(ambience_task())

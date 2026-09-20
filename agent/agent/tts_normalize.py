@@ -422,9 +422,20 @@ def normalize_for_tts(text: str) -> str:
         return decimal_to_words(m.group(0))
 
     result = text
-    # Adım 0 — Marka telaffuzu: "educallai" TTS motorlarında harf harf bozuluyor;
-    # fonetik yazımla ("Edukallay") doğal tek kelime okunuş sağlanır.
+    # Adım 0 — Marka + kısaltma telaffuz haritası. Cartesia "TYT" gibi
+    # kısaltmaları İngilizce okuyor; Türkçe harf adlarıyla fonetik yazım şart.
     result = re.sub(r"educallai", "Edukallay", result, flags=re.IGNORECASE)
+    for akr, okunus in (
+        ("TYT", "te ye te"),
+        ("AYT", "a ye te"),
+        ("YKS", "ye ke se"),
+        ("LGS", "le ge se"),
+        ("DGS", "de ge se"),
+        ("İYS", "i ye se"),
+        ("YÖS", "yö ses"),
+        ("KPSS", "ke pe se se"),
+    ):
+        result = re.sub(rf"(?<![A-Za-z]){akr}(?![A-Za-z])", okunus, result)
     for pattern, repl in (
         (_INSTALLMENT_RE, _inst),
         (_DATE_RE, _date),

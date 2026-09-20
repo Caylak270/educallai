@@ -107,7 +107,7 @@ class AgentConfig:
     cartesia_voice_female: str = "0f95596c-09c4-4418-99fe-5c107e0713c0"  # varsayılan
     cartesia_voice_male: str = "c1cfee3d-532d-47f8-8dd2-8e5b2b66bf1d"
     cartesia_voice_id: str = ""  # boşsa kadın sesi kullanılır
-    cartesia_speed: float = 1.0  # 0.9-1.1 arası doğal; düşük = daha sakin/sıcak
+    cartesia_speed: float = 1.0  # 0.9-1.05 arası doğal; 0.95 = daha sakin/sıcak ton
     cartesia_language: str = "tr"
 
     # --- Operasyon ---
