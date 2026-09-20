@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { isLiveMode } from "@/lib/server/config";
+import { getIntegrations } from "@/lib/server/config";
 
 export const dynamic = "force-dynamic";
 
@@ -42,7 +42,8 @@ export async function PATCH(
     );
   }
 
-  if (!isLiveMode()) {
+  const { supabase: supabaseLive } = getIntegrations();
+  if (!supabaseLive) {
     return NextResponse.json({ ok: true, persisted: false, mode: "demo", id, stage });
   }
 
