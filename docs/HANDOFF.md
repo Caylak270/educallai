@@ -40,6 +40,10 @@ Dashboard: `cd D:\educallai && npm run start` → localhost:3000
 (sıcak önbellek) kullan. Bugün çift kopya yüzünden TTS fix'i bypass edilmişti.
 
 ### Bilinen tuzaklar (tekrarlama!)
+- livekit `prewarm_fnc` **SENKRON** olmalı (Callable[[JobProcess], Any]) — async
+  yazılırsa sessizce hiç çalışmaz ("was never awaited"); sıcak bileşen kurulumu
+  atlanır, her oturum soğuk başlar. Ağ ısıtması için entrypoint başında
+  asyncio.create_task ile _warm_network kullan (bkz. agent_main.py)
 - Fonksiyon içi `import asyncio` + sonradan kullanım → UnboundLocalError
   → import'lar entrypoint'in EN BAŞINA
 - `state` sözlüğü kullanımdan sonra tanımlanma → başta başlat
