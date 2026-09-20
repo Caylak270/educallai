@@ -20,7 +20,7 @@ tahsilat takibi, deneme sınavı analizi ve WhatsApp otomasyonu — tek panelden
 | Veri | Supabase (PostgreSQL 15+, pgvector, RLS) + Edge Functions |
 | Ses taşıma | LiveKit Cloud + Netgsm SIP trunk |
 | STT | Deepgram Nova-3 (`lang=tr`, keyterm prompting) |
-| LLM | Claude Haiku 4.5 (ephemeral prompt cache) / GPT-4o mini fallback |
+| LLM | OpenAI GPT-4o mini (birincil, ephemeral cache) / Claude Haiku 4.5 fallback — 2026-09-20 kararı: Anthropic yerine OpenAI |
 | TTS | Cartesia Sonic 3.6 + Türkçe tarih/sayı normalizasyon katmanı |
 | VAD | Silero VAD (Türkçe kalibrasyonlu) |
 | Mesajlaşma | Meta Graph API (WhatsApp resmi), Netgsm SMS, Zernio (sosyal) |

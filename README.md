@@ -47,7 +47,7 @@ agent/.venv/Scripts/python -m pytest agent/tests -q
 |---|---|
 | Sunum | Next.js 16 + React 19 + Tailwind v4 (M3 token seti) + Vercel |
 | Veri | Supabase (PostgreSQL 15+, pgvector, RLS) |
-| Ses | LiveKit Cloud + Netgsm SIP · Deepgram Nova-3 (tr) · Claude Haiku 4.5 · Cartesia Sonic 3.6 |
+| Ses | LiveKit Cloud + Netgsm SIP · Deepgram Nova-3 (tr) · OpenAI GPT-4o mini (LLM, yedek: Claude Haiku) · Cartesia Sonic 3.6 |
 | Mesajlaşma | Meta WhatsApp Business API, Netgsm SMS, Zernio |
 | Kuyruk | Redis / BullMQ (Outbound Batch Dialer) |
 

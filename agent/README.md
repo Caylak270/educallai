@@ -2,7 +2,7 @@
 
 LiveKit Cloud üzerinde çalışan Türkçe **sesli** dershane/veli danışmanı
 agent modülü. Cascade Pipeline: Silero VAD → Deepgram Nova-3 STT
-(`lang=tr`, keyterm prompting) → Claude Haiku 4.5 (ephemeral prompt
+(`lang=tr`, keyterm prompting) → OpenAI GPT-4o mini (birincil; Claude Haiku 4.5 opsiyonel yedek) (ephemeral prompt
 caching, GPT-4o mini fallback) → Türkçe TTS normalizasyonu → Cartesia
 Sonic 3.6 TTS. Hedef uçtan uca gecikme: **<600 ms** (streaming overlap).
 
@@ -24,7 +24,7 @@ Sonic 3.6 TTS. Hedef uçtan uca gecikme: **<600 ms** (streaming overlap).
    │                     │        │
    │       interim       │        │ final transcript
    │   transcript        │        ▼
-   │         │           │   [Claude Haiku 4.5 LLM]
+   │         │           │   [OpenAI GPT-4o mini (birincil; Claude Haiku 4.5 opsiyonel yedek) LLM]
    │         │           │      FallbackAdapter ──► [GPT-4o mini]
    │         │           │        │            │
    │         │           │        │ ilk cümle  └──► [record_signals]
@@ -109,7 +109,7 @@ agent/.venv/Scripts/python -m agent.scripts.agent_main dev
 | `LIVEKIT_URL` | LiveKit Cloud WS adresi (`wss://...livekit.cloud`) |
 | `LIVEKIT_API_KEY` / `LIVEKIT_API_SECRET` | LiveKit proje kimlik bilgileri |
 | `DEEPGRAM_API_KEY` | Nova-3 STT (tr + keyterm) anahtarı |
-| `ANTHROPIC_API_KEY` | Claude Haiku 4.5 birincil LLM anahtarı |
+| `ANTHROPIC_API_KEY` | OpenAI GPT-4o mini (birincil; Claude Haiku 4.5 opsiyonel yedek) birincil LLM anahtarı |
 | `OPENAI_API_KEY` | GPT-4o mini fallback anahtarı |
 | `CARTESIA_API_KEY` | Sonic 3.6 TTS anahtarı |
 | `SUPABASE_URL` / `SUPABASE_SERVICE_KEY` | pgvector KB + kayıt sinyalleri |

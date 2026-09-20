@@ -14,7 +14,7 @@ konuşma akışını bloklamaz)::
         │ final transcript                          │ (paralel)
         ▼                                          │
     [LLM: Claude Haiku 4.5]                        │
-      FallbackAdapter → GPT-4o mini                │
+      FallbackAdapter → Claude Haiku (yedek)        │
         │ ilk cümle token'ları                     │
         ├───────────────► [record_signals (Pattern B, paralel)]
         ▼                                          │
@@ -143,19 +143,31 @@ class CascadePipeline:
         )
 
     def build_llm(self) -> Any | None:
-        """LLM + FallbackAdapter: Claude Haiku 4.5 → GPT-4o mini.
+        """LLM + FallbackAdapter: OpenAI GPT-4o mini (birincil) → Claude Haiku (yedek).
 
-        ``llm.FallbackAdapter`` birincil modelde hata/aşırı yük durumunda
-        otomatik olarak yedek modele geçer (Pattern: fallback zinciri).
+        2026-09-20 karar: OpenAI birincil LLM (maliyet ~6x düşük: $0,15/$0,60 MTok
+        vs Haiku $1/$5; Türkçe kalite yeterli). Anthropic anahtarı da varsa ikinci
+        hattı olarak FallbackAdapter'a eklenir. Raporlama katmanı: GPT-4o tek motor
+        (Sağlayıcı sadeleşmesi — bkz. PLAN.md).
         """
         if not LIVEKIT_AVAILABLE:
             self._note("livekit-agents kurulu değil; LLM bileşeni atlandı.")
             return None
-        from livekit.plugins import anthropic, openai
+        from livekit.plugins import openai
 
-        primary = anthropic.LLM(model=self.config.llm_primary_model)
-        fallback = openai.LLM(model=self.config.llm_fallback_model)
-        return lk_llm.FallbackAdapter([primary, fallback])
+        models: list[Any] = [openai.LLM(model=self.config.llm_primary_model)]
+
+        anthropic_key = getattr(self.config, "anthropic_api_key", "")
+        if anthropic_key:
+            from livekit.plugins import anthropic
+
+            models.append(anthropic.LLM(model=self.config.llm_fallback_model))
+        else:
+            self._note(
+                "ANTHROPIC_API_KEY yok — yedek hat kurulmadı "
+                "(birincil: OpenAI GPT-4o mini)."
+            )
+        return lk_llm.FallbackAdapter(models)
 
     def build_tts(self) -> Any | None:
         """Cartesia Sonic 3.6 TTS + Pattern 8 normalizasyon sarmalayıcı."""
@@ -164,10 +176,14 @@ class CascadePipeline:
             return None
         from livekit.plugins import cartesia
 
+        voice_id = (
+            self.config.cartesia_voice_id
+            or self.config.cartesia_voice_female  # varsayılan: kadın sesi
+        )
         inner = cartesia.TTS(
             model=self.config.cartesia_model,
             language=self.config.cartesia_language,
-            voice=self.config.cartesia_voice_id or None,
+            voice=voice_id,
         )
         return NormalizingTTS(inner)
 

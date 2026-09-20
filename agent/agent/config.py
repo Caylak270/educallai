@@ -98,9 +98,15 @@ class AgentConfig:
     # --- Pipeline model ayarları ---
     deepgram_model: str = "nova-3"
     deepgram_language: str = "tr"
-    llm_primary_model: str = "claude-haiku-4-5"  # Claude Haiku 4.5
-    llm_fallback_model: str = "gpt-4o-mini"  # FallbackAdapter yedeği
+    # 2026-09-20 karar: OpenAI birincil LLM (maliyet ~6x düşük)
+    llm_primary_model: str = "gpt-4o-mini"  # OpenAI — sesli arama ana motoru
+    llm_fallback_model: str = "claude-haiku-4-5"  # opsiyonel yedek (anahtar varsa)
+    reporting_model: str = "gpt-4o"  # deneme trendi + haftalık rapor (tek motor)
     cartesia_model: str = "sonic-3.6"  # şartname: Cartesia Sonic 3.6
+    # TR ses kimlikleri (kullanıcı sağladı — play.cartesia.ai)
+    cartesia_voice_female: str = "0f95596c-09c4-4418-99fe-5c107e0713c0"
+    cartesia_voice_male: str = "c1cfee3d-532d-47f8-8dd2-8e5b2b66bf1d"
+    cartesia_voice_id: str = ""  # boşsa cinsiyet tercihine göre yukarıdakilerden seçilir
     cartesia_voice_id: str = ""
     cartesia_language: str = "tr"
 
