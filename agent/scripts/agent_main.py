@@ -167,6 +167,7 @@ def main() -> None:  # pragma: no cover - canlı ortam bloğu
         # ── Oturum veri toplama (CRM'e yazım için) ─────────────────
         import time as _time
 
+        state = {"speaking": False, "task": None}
         state["items"] = []       # [(role, text)]
         state["signals"] = []     # record_signals çıktıları
         state["start"] = _time.time()
@@ -302,8 +303,6 @@ def main() -> None:  # pragma: no cover - canlı ortam bloğu
             "Hım, şimdi bakıyorum.",
             "Tamam, bir saniye.",
         ]
-        state = {"speaking": False, "task": None}
-
         @session.on("agent_state_changed")
         def _on_agent_state(ev) -> None:
             state["speaking"] = getattr(ev, "state", "") == "speaking"
