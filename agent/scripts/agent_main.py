@@ -204,7 +204,9 @@ def main() -> None:  # pragma: no cover - canlı ortam bloğu
                     model="gpt-realtime",
                     voice=os.environ.get("REALTIME_VOICE", "marin"),
                     modalities=["text", "audio"],
+                    input_audio_noise_reduction={"type": "near_field"},
                     input_audio_transcription={"model": "whisper-1", "language": "tr"},
+                    turn_detection={"type": "semantic_vad", "eagerness": "high"},
                 ),
                 **common,
             )
@@ -232,6 +234,14 @@ def main() -> None:  # pragma: no cover - canlı ortam bloğu
                 text = " ".join(str(x) for x in content)
             if text.strip():
                 state["items"].append((str(getattr(ev.item, "role", "user")), text))
+            if str(getattr(ev.item, "role", "")) == "assistant":
+                m = getattr(ev.item, "metrics", None)
+                if m:
+                    logger.info(
+                        "TUR SÜRESİ: eot→ilk ses=%sms toplam=%sms",
+                        getattr(m, "ttft", None),
+                        getattr(m, "total_latency", None),
+                    )
 
         # ── Pattern 1: record_signals aracı (args: module-level sınıf) ──
             sentiment: str = Field(description="veli duygusu: positive / neutral / negative")
