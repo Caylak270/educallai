@@ -151,6 +151,15 @@ def main() -> None:  # pragma: no cover - canlı ortam bloğu
 
     async def entrypoint(ctx: JobContext) -> None:
         """Her gelen/giden arama için bir agent oturumu başlatır."""
+        # Yerel import'lar — fonksiyon içi import = tüm fonksiyonda lokal;
+        # kullanımdan ÖNCE gelmeli.
+        import asyncio
+        import random
+        import time as _time
+        import httpx
+        import numpy as np
+        from livekit import rtc
+
         comps = warm.get("components")
         if comps is None:  # prewarm kaçtıysa yerinde kur
             pipeline = CascadePipeline(config, capabilities)
@@ -165,7 +174,6 @@ def main() -> None:  # pragma: no cover - canlı ortam bloğu
         )
 
         # ── Oturum veri toplama (CRM'e yazım için) ─────────────────
-        import time as _time
 
         state = {"speaking": False, "task": None}
         state["items"] = []       # [(role, text)]
@@ -223,8 +231,6 @@ def main() -> None:  # pragma: no cover - canlı ortam bloğu
         )
         # Sistem 5 (canlı): ambiyans maskeleme — yumuşak kahverengi gürültü,
         # ajan konuşurken kısılır (fade), hat düştü hissini engeller.
-        import numpy as np
-        from livekit import rtc
 
         async def ambience_task() -> None:
             source = rtc.AudioSource(24000, 1)
@@ -250,7 +256,6 @@ def main() -> None:  # pragma: no cover - canlı ortam bloğu
         amb = asyncio.create_task(ambience_task())
 
         # ── Oturum sonu: transkript + sinyalleri Supabase'e yaz ────
-        import httpx
 
         async def save_to_crm() -> None:
             if not state["items"]:
@@ -295,8 +300,6 @@ def main() -> None:  # pragma: no cover - canlı ortam bloğu
         # ── DOLGU SESİ (ölü sessizlik = hat düştü hissi) ─────────────
         # Kullanıcı turunu bitirdikten ~1.3 sn içinde yanıt başlamadıysa
         # kısa doğal dolgu söylenir; ajan konuşmaya başlayınca iptal edilir.
-        import asyncio
-        import random
 
         fillers = [
             "Bir saniye, bakayım.",
