@@ -35,13 +35,21 @@ from agent.agent.prompts import build_system_prompt  # noqa: E402
 
 logger = logging.getLogger("velipilot.agent")
 
+# agent/.env dosyasını yükle (LiveKit/OpenAI/Deepgram/Cartesia anahtarları)
+try:
+    from dotenv import load_dotenv
+
+    load_dotenv(Path(__file__).resolve().parents[1] / ".env")
+except ImportError:  # python-dotenv yoksa ortam değişkenleri zaten set edilmeli
+    pass
+
 
 def main() -> None:  # pragma: no cover - canlı ortam bloğu
     """LiveKit CLI worker'ını başlatır (anahtarlar olmadan çalışmaz)."""
     # --- Sağlayıcı import'ları YALNIZCA canlı çalıştırmada gerekli ---
     try:
         from livekit.agents import Agent, AgentSession, JobContext, cli, llm
-        from livekit.plugins import anthropic, cartesia, deepgram, openai, silero
+        from livekit.plugins import cartesia, deepgram, openai, silero
     except ImportError as exc:
         raise SystemExit(
             "livekit-agents kurulu değil. Kurulum: "
@@ -69,17 +77,21 @@ def main() -> None:  # pragma: no cover - canlı ortam bloğu
                 language=config.deepgram_language,
                 keyterms=config.dershane_keyterms,  # keyterm prompting
             ),
-            llm=llm.FallbackAdapter(
-                [
-                    anthropic.LLM(model=config.llm_primary_model),  # Haiku 4.5
-                    openai.LLM(model=config.llm_fallback_model),  # GPT-4o mini
-                ]
+            llm=(
+                llm.FallbackAdapter(
+                    [
+                        openai.LLM(model=config.llm_primary_model),  # GPT-4o mini (birincil)
+                        anthropic.LLM(model=config.llm_fallback_model),  # Haiku (yedek)
+                    ]
+                )
+                if config.anthropic_api_key
+                else openai.LLM(model=config.llm_primary_model)
             ),
             tts=NormalizingTTS(
                 cartesia.TTS(
                     model=config.cartesia_model,
                     language=config.cartesia_language,
-                    voice=config.cartesia_voice_id or None,
+                    voice=config.cartesia_voice_id or config.cartesia_voice_female,
                 )
             ),
         )
@@ -90,7 +102,7 @@ def main() -> None:  # pragma: no cover - canlı ortam bloğu
             def __init__(self) -> None:
                 super().__init__(
                     instructions=build_system_prompt(
-                        dershane_name=config.demo_dershane_id,
+                        dershane_name="Limit Dershane",
                         capabilities=capabilities,
                     ),
                     tools=pipeline.tool_definitions(),

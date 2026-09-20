@@ -102,12 +102,11 @@ class AgentConfig:
     llm_primary_model: str = "gpt-4o-mini"  # OpenAI — sesli arama ana motoru
     llm_fallback_model: str = "claude-haiku-4-5"  # opsiyonel yedek (anahtar varsa)
     reporting_model: str = "gpt-4o"  # deneme trendi + haftalık rapor (tek motor)
-    cartesia_model: str = "sonic-3.6"  # şartname: Cartesia Sonic 3.6
+    cartesia_model: str = "sonic-3"  # canlı doğrulandı (kullanıcı anahtarıyla 200 OK)
     # TR ses kimlikleri (kullanıcı sağladı — play.cartesia.ai)
-    cartesia_voice_female: str = "0f95596c-09c4-4418-99fe-5c107e0713c0"
+    cartesia_voice_female: str = "0f95596c-09c4-4418-99fe-5c107e0713c0"  # varsayılan
     cartesia_voice_male: str = "c1cfee3d-532d-47f8-8dd2-8e5b2b66bf1d"
-    cartesia_voice_id: str = ""  # boşsa cinsiyet tercihine göre yukarıdakilerden seçilir
-    cartesia_voice_id: str = ""
+    cartesia_voice_id: str = ""  # boşsa kadın sesi kullanılır
     cartesia_language: str = "tr"
 
     # --- Operasyon ---
@@ -151,8 +150,9 @@ class AgentConfig:
             "livekit_api_key",
             "livekit_api_secret",
             "deepgram_api_key",
-            "anthropic_api_key",
             "openai_api_key",
+            # anthropic_api_key artık OPSİYONEL yedek (2026-09-20 OpenAI birincil kararı)
+            "cartesia_api_key",
             "cartesia_api_key",
         ]
         return [name for name in required if not getattr(self, name)]

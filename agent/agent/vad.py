@@ -55,11 +55,13 @@ class TurkishVADConfig:
     prefix_padding_duration: float = 0.2
 
     def to_livekit_vad_kwargs(self) -> dict[str, float]:
-        """Silero eklentisine (``VAD.load``) geçirilecek kwargs sözlüğü."""
+        """Silero eklentisinin (``VAD.load``) beklediği kwargs — Pattern 5.
+
+        Canlı doğrulama: livekit-plugins silero imzası saniye cinsinden
+        ``min_speech_duration`` / ``activation_threshold`` alır.
+        """
         return {
-            "min_speech_duration_ms": int(self.min_speech_duration * 1000),
-            "min_silence_duration_ms": int(self.min_silence_duration * 1000),
-            "prefix_padding_duration_ms": int(self.prefix_padding_duration * 1000),
+            "min_speech_duration": self.min_speech_duration,
             "activation_threshold": self.activation_threshold,
         }
 
