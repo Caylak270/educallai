@@ -1,6 +1,6 @@
 # educallai — Oturum Devir Raporu (Yeni Chat İçin)
 
-> Tarih: 2026-09-20 · Repo: D:\educallai · Bu dosya yeni oturumun giriş noktasıdır.
+> Tarih: 2026-09-20 (2. oturum güncellemesi) · Repo: D:\educallai · Bu dosya yeni oturumun giriş noktasıdır.
 
 ## 1. Sistem Ne?
 
@@ -9,19 +9,20 @@ LiveKit Console'dan mikrofonla konuşur, ajan gerçek zamanlı yanıtlar; görü
 sonunda transkript + duygu sinyalleri Supabase'e otomatik yazılır.
 
 Tam şartname: `educallai.docx` (kullanıcı sağlar) · Özet: `PLAN.md`
+Son oturum raporu: `docs/raporlar/2026-09-20-canli-veri-gecikme-telaffuz.md`
 
 ## 2. Çalışan Durum (bu repoda şimdi)
 
 | Bileşen | Durum |
 |---|---|
-| Dashboard (Next.js 16, localhost:3000) | ✅ 10 sayfa canlı |
-| Sesli ajan (Realtime mod) | ✅ uçtan uca konuşma doğrulandı |
+| Dashboard (Next.js 16, localhost:3000) | ✅ 10 sayfa; Görüşmeler+Veliler CANLI Supabase verisi |
+| Sesli ajan (Realtime mod, semantic VAD high) | ✅ canlı; eot→ilk ses ~400ms (hedef <1000ms tuttu) |
 | Supabase (12 tablo + RLS + demo veri) | ✅ canlı |
 | LiveKit Frankfurt projesi | ✅ canlı (en düşük gecikme yolu) |
-| Cartesia TTS (TR kadın sesi) | ✅ doğrulandı |
+| Cartesia TTS (TR kadın sesi) | ✅ doğrulandı (Cascade modda) |
 | Deepgram STT (nova-3, tr) | ✅ doğrulandı (%98,4) |
 | OpenAI GPT-4o mini + Realtime + embedding | ✅ doğrulandı |
-| E2E ses test aracı | ✅ `scripts/voice-e2e.py` |
+| E2E ses test aracı | ✅ `agent/scripts/voice-e2e.py [soru.wav]` — parametrik |
 
 ## 3. Nasıl Çalıştırılır
 
@@ -44,10 +45,24 @@ Dashboard: `cd D:\educallai && npm run start` → localhost:3000
 - `state` sözlüğü kullanımdan sonra tanımlanma → başta başlat
 - Args sınıfları (pydantic) fonksiyon içinde TANIMLANMA — livekit tip ipuçlarını
   global scope'ta çözer → NameError. Module level'a koy.
-- `turn_detection` dict geçme — eklenti typed object istiyor (şu an default kullan)
-- Cartesia: TR'de `word_timestamps` desteklenmez (sessiz ses döner) → False
+- `turn_detection` **dict geçme** → çökme; **typed object** geç:
+  `openai.types.realtime.realtime_audio_input_turn_detection.SemanticVad(eagerness="high")`
+- LiveKit event alan adları `new_state`/`old_state` (`state` DEĞİL!) — yanlış okursan
+  speaking/interrupt mantığı sessizce ölür (1. oturumda yaşandı)
+- `user_input_committed` Realtime modda TETİKLENMEZ → `user_state_changed` kullan
+- `ChatMessage.metrics` TypedDict ve Realtime modda BOŞ → gecikmeyi kendi ölç
+  (agent_main.py'deki TUR SÜRESİ(ölçüm) düzeni)
+- Cartesia: TR'de `word_timestamps` desteklenmez (sessiz ses döner) → False;
+  TTS "wav" konteyner header'ı bozuk geliyor → raw PCM iste, WAV'ı kendin yaz
 - headless Chrome `--window-size` 500px altına inmez → playwright kullan
 - Bash'te JSON içinde `\\n` yazarsan gerçek newline olur → dosyadan oku ya da Edit aracı
+- voice-e2e her koşuda worker başlatır → kapanmazsa öksüz birikir (worker.wait eklendi;
+  gerekirse `taskkill /IM python.exe` yerine agent_main filtreli PowerShell ile temizle)
+
+### Realtime mod telaffuz kuralı
+REALTIME_MODE=1'de Cartesia + tts_normalize BYPASS edilir (OpenAI sesi konuşur).
+Kısaltma okunuşları `prompts.py > OKUNUS_BLOCK` ile prompt'tan verilir (TYT→"te ye te"
+vb.) — e2e ile teyitli. Cascade modda tts_normalize zaten çevirir, çift uygulama yok.
 
 ### Ses kuralı v2 (uygulandı)
 - KVKK: kısa doğal cümle ("ben yapay zekayım, kayıt altındayız, tamam mı?")
@@ -58,13 +73,14 @@ Dashboard: `cd D:\educallai && npm run start` → localhost:3000
 
 ## 5. Sıradaki İşler (öncelik sırasıyla)
 
-1. **Gecikme ölçümü**: kullanıcı test ederken logdan `TUR SÜRESİ` oku
-   (hedef <1000ms; şu an ilk ses ~1-2,8s)
-2. **CRM doğrulama**: kullanıcı konuşunca Supabase `conversation_signals`
-   tablosuna kayıt düşmeli (REST: `GET /rest/v1/conversation_signals`)
-3. **Dashboard-canlı DB bağlantısı**: mock veri → Supabase (Next.js tarafı)
-4. **Netgsm aboneliği**: gerçek telefon araması (tek ücretli eksik)
-5. **EU LiveKit**: kullanıcı yeni Frankfurt projesi açarsa `agent/.env` güncelle
+1. **Gecikme izleme**: kullanıcı test ederken `grep "TUR SÜRESİ" agent/agent-live.log`
+   (eot→ilk ses ~400ms ölçülüyor; ilk tur soğuk ~2,9 sn — hedef <1000ms)
+2. **Dashboard'un kalan sayfaları canlıya**: Ana sayfa KPI, Tahsilat, Deneme, Kampanyalar,
+   Randevular (kalıp hazır: `src/lib/server/{supabase,queries,leads-map}.ts` + mock fallback)
+3. **Netgsm aboneliği**: gerçek telefon araması (tek ücretli eksik)
+4. **`audio_url` bağlama**: görüşme kayıt dosyalarını Supabase Storage'a + detay oynatıcısına
+5. **`/api/config` mode=live** geçişi (entegrasyonlar bağlı ama mode=demo gösteriyor)
+6. STT "YKS"→"Yerkesi" yazımı (kullanıcı telaffuzu) — keyterm iyileştirmesi değerlendir
 
 ## 6. Dosya Haritası
 

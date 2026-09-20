@@ -67,13 +67,22 @@ const CHANNEL_FILTERS = [
   { id: "sms", label: "SMS" },
 ] as const;
 
-export function CallListBrowser() {
+export function CallListBrowser({
+  calls,
+  sourceLabel,
+}: {
+  /** Canlı veri (Supabase). Verilmazsa demo veri gösterilir. */
+  calls?: CallListItem[];
+  /** Listenin kaynağını açıklayan kısa rozet metni. */
+  sourceLabel?: string;
+}) {
+  const list = calls ?? callList;
   const [query, setQuery] = useState("");
   const [channel, setChannel] = useState<"all" | CallChannel>("all");
 
   const visible = useMemo(
     () =>
-      callList.filter((c) => {
+      list.filter((c) => {
         if (channel !== "all" && c.channel !== channel) return false;
         if (!query) return true;
         const q = query.toLocaleLowerCase("tr");
@@ -213,6 +222,15 @@ export function CallListBrowser() {
             </Link>
           ))}
         </div>
+
+        {sourceLabel ? (
+          <div className="flex items-center gap-2 border-b border-outline-variant/40 px-5 py-2.5">
+            <span className="h-1.5 w-1.5 rounded-full bg-tertiary" />
+            <span className="font-label-sm text-label-sm text-on-surface-variant">
+              {sourceLabel}
+            </span>
+          </div>
+        ) : null}
 
         {visible.length === 0 ? (
           <p className="p-8 text-center font-body-md text-body-md text-on-surface-variant">

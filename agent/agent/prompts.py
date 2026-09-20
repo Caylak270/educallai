@@ -79,6 +79,22 @@ KESİN KURAL:
   kullan (ör. fiyat hassasiyeti varsa taksiti erken aç).
 """
 
+#: Kısaltma okunuşları — Realtime modda TTS normalizasyon katmanı
+#: (tts_normalize) devrede OLMADIĞINDAN seslendirme kuralı prompt'a
+#: taşınır; Cascade modda yazıyı zaten tts_normalize çevirir, çift
+#: uygulama olmaz (LLM kısaltmayı yazmaya devam eder).
+OKUNUS_BLOCK: str = """\
+# KISALTMALARIN OKUNUŞU (SESLENDİRME ZORUNLUSU)
+Şu kısaltmaları seslendirirken harfleri İngilizce okuma; Türkçe harf
+adlarıyla söyle, metne yine kısaltmanın kendisini yaz:
+- TYT → "te ye te" diye oku
+- AYT → "a ye te" diye oku
+- YKS → "ye ke se" diye oku
+- LGS → "le ge se" diye oku
+- educallai kelimesini "Edukallay" diye tek kelime gibi söyle.
+"""
+
+
 #: Konuşma stili — STOAIX production deneyiminden derlenen sairlik kuralları.
 #: Amaç: veli görüşmeyi "Bu güzel bir chatbot yapmışlar" değil,
 #: "Bu gerçekten AI mıydı?" diye bitirmeli.
@@ -189,11 +205,14 @@ def build_system_prompt(
     blocks = [
         PERSONA_BLOCK.format(dershane_name=dershane_name),
         KONUSMA_STILI_BLOCK,
+        OKUNUS_BLOCK,
         f"""\
 # YETKİLERİN
 Bu dershane için izinli araçlar: {allowed_text}.
 Bu listede olmayan bir işlemi YAPAMAZSIN ve yapmış gibi davranamazsın;
-yetki olmadığını kibarca belirtip gerekirse insana aktarım öner.""",
+yetki olmadığını kibarca belirtip gerekirse insana aktarım öner.
+Listede OLAN bir araç soruya uyuyorsa cevabı mutlaka aracı çağırarak ver;
+"bilgi veremem" ya da danışmana yönlendirme BAHANE ETME.""",
         CIFT_MANDAT_BLOCK,
         RECORD_SIGNALS_RULES_BLOCK,
     ]

@@ -1,6 +1,6 @@
 """Uçtan uca SES testi: gerçek Türkçe ses çalar → ajanın yanıtı kaydedilir →
 Deepgram ile transkript edilir. STT+LLM+TTS+oda akışının tamamını doğrular."""
-import asyncio, os, time, wave, json
+import asyncio, os, sys, time, wave, json
 from dotenv import load_dotenv
 load_dotenv(".env")
 import numpy as np
@@ -8,7 +8,8 @@ import httpx
 from livekit import rtc, api
 
 SR = 24000
-QUESTION = "Merhaba, YKS hazırlık programınızın fiyatları ne kadar?"
+# Opsiyonel CLI arg: soru ses dosyası (default: test-speech.wav)
+QUESTION_WAV = sys.argv[1] if len(sys.argv) > 1 else "test-speech.wav"
 
 def read_wav(path):
     with wave.open(path, "rb") as w:
@@ -20,7 +21,7 @@ def rms(data):
     return float(np.sqrt(np.mean(a * a)) if len(a) else 0)
 
 async def main():
-    speech, sr = read_wav("test-speech.wav")
+    speech, sr = read_wav(QUESTION_WAV)
     chunk = sr // 50  # 20ms
     frames = [speech[i : i + chunk * 2] for i in range(0, len(speech), chunk * 2)]
     print(f"soru: {len(frames)} frame ({len(speech)/2/sr:.1f} sn)")
@@ -47,6 +48,7 @@ async def main():
 
     room = rtc.Room()
     agent_frames = []   # (monotonic, bytes)
+    agent_meta = {"sr": SR, "ch": 1}  # ajan track'inden güncellenir
     agent_track = asyncio.Event()
 
     @room.on("track_subscribed")
@@ -58,7 +60,12 @@ async def main():
         agent_track.set()
         stream = rtc.AudioStream(track=track)
         async def reader():
+            first = True
             async for ev in stream:
+                if first:
+                    agent_meta["sr"] = ev.frame.sample_rate
+                    agent_meta["ch"] = ev.frame.num_channels
+                    first = False
                 agent_frames.append((time.monotonic(), bytes(ev.frame.data)))
         asyncio.create_task(reader())
 
@@ -104,13 +111,13 @@ async def main():
             break
         await asyncio.sleep(0.02)
 
-    await asyncio.sleep(6)  # yanıtın kalanını da kaydet
+    await asyncio.sleep(14)  # KVKK + araç çağrısı + yanıtın tamamını kaydet
 
     # Ajan sesini wav'a yaz + Deepgram ile transkript et
     if agent_frames:
         all_data = b"".join(d for _, d in agent_frames)
         with wave.open("agent-reply.wav", "wb") as w:
-            w.setnchannels(1); w.setsampwidth(2); w.setframerate(SR)
+            w.setnchannels(agent_meta["ch"]); w.setsampwidth(2); w.setframerate(agent_meta["sr"])
             w.writeframes(all_data)
         dg = os.environ["DEEPGRAM_API_KEY"]
         async with httpx.AsyncClient(timeout=30) as hc:
@@ -130,5 +137,9 @@ async def main():
 
     await room.disconnect()
     worker.terminate()
+    try:
+        worker.wait(timeout=10)  # öksüz worker birikmesini engelle
+    except Exception:
+        worker.kill()
 
 asyncio.run(main())

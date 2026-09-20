@@ -12,7 +12,20 @@ import { ViewToggle, type ViewMode } from "./view-toggle";
 const allLeads: Lead[] = [...baseLeads, ...extraLeads];
 
 /* Veliler CRM — v2: gerçek kanban (varsayılan, sürükle-bırak) + liste görünümü */
-export function VelilerCrm({ initialQuery = "" }: { initialQuery?: string }) {
+export function VelilerCrm({
+  initialQuery = "",
+  leads: liveLeads,
+  sourceLabel,
+  chipCounts,
+}: {
+  initialQuery?: string;
+  /** Canlı veri (Supabase leads+contacts). Verilmazsa demo veri gösterilir. */
+  leads?: Lead[];
+  sourceLabel?: string;
+  /** Canlı filtre chip sayaçları (demo modda mock etiketleri kalır). */
+  chipCounts?: Record<string, number>;
+}) {
+  const allLeads: Lead[] = liveLeads ?? [...baseLeads, ...extraLeads];
   const [view, setView] = useState<ViewMode>("kanban");
   const [activeChipId, setActiveChipId] = useState("all");
   const [query, setQuery] = useState(initialQuery);
@@ -76,7 +89,14 @@ export function VelilerCrm({ initialQuery = "" }: { initialQuery?: string }) {
       </div>
 
       {/* Filtre chip'leri */}
-      <FilterChips activeId={activeChipId} onSelect={setActiveChipId} />
+      <FilterChips activeId={activeChipId} onSelect={setActiveChipId} counts={chipCounts} />
+
+      {sourceLabel ? (
+        <p className="-mt-1 flex items-center gap-2 font-label-sm text-label-sm text-on-surface-variant">
+          <span className="h-1.5 w-1.5 rounded-full bg-tertiary" />
+          {sourceLabel}
+        </p>
+      ) : null}
 
       {view === "kanban" ? (
         /* GERÇEK KANBAN — aşama sütunları + sürükle-bırak */

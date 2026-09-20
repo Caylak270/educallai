@@ -1,10 +1,13 @@
+import { notFound } from "next/navigation";
 import { AudioPlayer } from "@/components/pages/gorusme-detay/audio-player";
 import { CallDetailTabs } from "@/components/pages/gorusme-detay/call-detail-tabs";
 import { CallSummaryCard } from "@/components/pages/gorusme-detay/call-summary-card";
 import { PageHeader, PageShell } from "@/components/ui/page-shell";
 import { getCallById } from "@/lib/mock/calls";
+import { getLiveCallDetail } from "@/lib/server/queries";
 
 export const metadata = { title: "Görüşme Detayı" };
+export const dynamic = "force-dynamic";
 
 export default async function Page({
   params,
@@ -12,7 +15,12 @@ export default async function Page({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const call = getCallById(id);
+  // Önce canlı Supabase kaydı; bulunamazsa demo veriye düş (mock id'li linkler).
+  const liveCall = await getLiveCallDetail(id);
+  const mockCall = liveCall ? null : getCallById(id);
+  if (!liveCall && !mockCall) notFound();
+  const call = liveCall ?? mockCall!;
+  const isLive = Boolean(liveCall);
   const { summary } = call;
 
   return (
@@ -28,6 +36,17 @@ export default async function Page({
         ].join(" · ")}
         actions={
           <>
+            {/* Kaynak rozeti: canlı / demo */}
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-surface-container px-3 py-1.5 font-label-sm text-label-sm text-on-surface-variant">
+              <span
+                className={
+                  isLive
+                    ? "h-1.5 w-1.5 rounded-full bg-tertiary"
+                    : "h-1.5 w-1.5 rounded-full bg-outline"
+                }
+              />
+              {isLive ? "Supabase canlı veri" : "Demo veri"}
+            </span>
             {/* Kanal badge */}
             <span className="inline-flex items-center gap-1.5 rounded-full bg-secondary-fixed px-3 py-1.5 font-label-sm text-label-sm font-semibold text-on-secondary-fixed">
               <span className="h-1.5 w-1.5 rounded-full bg-secondary" />

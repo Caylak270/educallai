@@ -7,14 +7,29 @@ import { portfolioChips } from "@/lib/mock/leads";
 export function FilterChips({
   activeId,
   onSelect,
+  counts,
 }: {
   activeId: string;
   onSelect: (id: string) => void;
+  /** Canlı sayaçlar (chip.id → sayı). Verilmezse mock etiketleri aynen gösterilir. */
+  counts?: Record<string, number>;
 }) {
+  const BASE_LABELS: Record<string, string> = {
+    all: "Tümü",
+    hot: "Sıcak Leadler",
+    yks: "YKS Hazırlık",
+    lgs: "LGS Hazırlık",
+    delayed: "AI Takip Geciken",
+    waiting: "Görüşme Bekleyen",
+  };
   return (
     <div className="flex items-center gap-1.5 overflow-x-auto py-0.5 no-scrollbar">
       {portfolioChips.map((chip) => {
         const active = chip.id === activeId;
+        const label =
+          counts && chip.id in BASE_LABELS
+            ? `${BASE_LABELS[chip.id]} (${counts[chip.id] ?? 0})`
+            : chip.label;
         return (
           <button
             key={chip.id}
@@ -39,7 +54,7 @@ export function FilterChips({
             {chip.dot && (
               <span className="h-1.5 w-1.5 rounded-full bg-error" />
             )}
-            <span>{chip.label}</span>
+            <span>{label}</span>
           </button>
         );
       })}

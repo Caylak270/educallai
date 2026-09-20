@@ -180,6 +180,7 @@ def main() -> None:  # pragma: no cover - canlı ortam bloğu
         import numpy as np
         from livekit import rtc
         from livekit.plugins import openai as openai_plugin
+        from openai.types import realtime as _oai_realtime
 
         comps = warm.get("components")
         if comps is None:  # prewarm kaçtıysa yerinde kur
@@ -206,7 +207,14 @@ def main() -> None:  # pragma: no cover - canlı ortam bloğu
                     voice=os.environ.get("REALTIME_VOICE", "marin"),
                     modalities=["text", "audio"],
                     input_audio_transcription={"model": "whisper-1", "language": "tr"},
-                    # turn_detection: eklenti varsayılanı (semantic VAD) kullanılıyor
+                    # Semantic VAD "high": veli sustuğu an turu kapat —
+                    # dict DEĞİL, typed object (eklenti typed bekliyordu).
+                    turn_detection=_oai_realtime.realtime_audio_input_turn_detection.SemanticVad(
+                        type="semantic_vad",
+                        create_response=True,
+                        eagerness="high",
+                        interrupt_response=True,
+                    ),
                 ),
                 **common,
             )
@@ -225,6 +233,8 @@ def main() -> None:  # pragma: no cover - canlı ortam bloğu
         state["items"] = []       # [(role, text)]
         state["signals"] = []     # record_signals çıktıları
         state["start"] = _time.time()
+        state["eot_ts"] = None    # kullanıcının konuşmasının bittiği an (kendi ölçümümüz)
+        state["user_speaking"] = False
 
         @session.on("conversation_item_added")
         def _on_item(ev) -> None:
@@ -235,21 +245,20 @@ def main() -> None:  # pragma: no cover - canlı ortam bloğu
             if text.strip():
                 state["items"].append((str(getattr(ev.item, "role", "user")), text))
             if str(getattr(ev.item, "role", "")) == "assistant":
-                m = getattr(ev.item, "metrics", None)
-                if m:
-                    logger.info(
-                        "TUR SÜRESİ: eot→ilk ses=%sms toplam=%sms",
-                        getattr(m, "ttft", None),
-                        getattr(m, "total_latency", None),
-                    )
-
-        # ── Pattern 1: record_signals aracı (args: module-level sınıf) ──
-            sentiment: str = Field(description="veli duygusu: positive / neutral / negative")
-            intent: str = Field(description="niyet: kayit_talebi / fiyat_sorusu / deneme_istegi / randevu_talebi / diger")
-            lead_temperature: str = Field(description="hot / warm / cold")
-            enrollment_readiness: float = Field(description="0.0-1.0 arası kayda hazırlık")
-            payment_objection: str | None = Field(default=None, description="ödeme itirazı notu, yoksa null")
-            recommend_handoff: bool = Field(default=False, description="insan danışmana aktarım önerildi mi")
+                # MetricsReport bir dict (TypedDict); e2e_latency = kullanıcı
+                # sustu → ajanın ilk sesi (asıl hedef metrik, ms×1000).
+                m = getattr(ev.item, "metrics", None) or {}
+                e2e = m.get("e2e_latency")
+                logger.info(
+                    "TUR SÜRESİ: eot→ilk ses=%sms (eot=%sms, stt=%sms)",
+                    round(e2e * 1000) if e2e is not None else "N/A",
+                    round(m["end_of_turn_delay"] * 1000)
+                    if m.get("end_of_turn_delay") is not None
+                    else "N/A",
+                    round(m["transcription_delay"] * 1000)
+                    if m.get("transcription_delay") is not None
+                    else "N/A",
+                )
 
         @function_tool
         async def record_signals(args: RecordSignalsArgs) -> str:
@@ -390,14 +399,21 @@ def main() -> None:  # pragma: no cover - canlı ortam bloğu
         ]
         @session.on("agent_state_changed")
         def _on_agent_state(ev) -> None:
-            state["speaking"] = getattr(ev, "state", "") == "speaking"
-            if state["speaking"] and state["task"] and not state["task"].done():
+            speaking = getattr(ev, "new_state", "") == "speaking"
+            state["speaking"] = speaking
+            if speaking and state["task"] and not state["task"].done():
                 state["task"].cancel()
+            # eot→ilk ses: Realtime modda ChatMessage.metrics doldurulmadığı
+            # için hedef metriği kendimiz ölçüyoruz (moddan bağımsız).
+            if speaking and state["eot_ts"] is not None:
+                delta_ms = (_time.time() - state["eot_ts"]) * 1000
+                logger.info("TUR SÜRESİ(ölçüm): eot→ilk ses=%dms", round(delta_ms))
+                state["eot_ts"] = None
 
         @session.on("agent_state_changed")
         def _mark_interrupt(ev) -> None:
             # ajan konuşuyorken kullanıcı mikrofonu açarsa = söz kesildi
-            if getattr(ev, "state", "") == "listening" and state["speaking"]:
+            if getattr(ev, "new_state", "") == "listening" and state["speaking"]:
                 state["interrupted"] = True
 
         @session.on("metrics_collected")
@@ -409,31 +425,43 @@ def main() -> None:  # pragma: no cover - canlı ortam bloğu
             if typ == "llm_metrics" or (ttfb is not None):
                 logger.info("GECİKME: tip=%s ttfb=%s toplam=%s", typ, ttfb, total)
 
-        @session.on("user_input_committed")
-        def _on_user_committed(_ev) -> None:
-            if state.get("interrupted"):
-                async def _ack() -> None:
-                    await session.say(
-                        random.choice(["Efendim?", "Buyrun, dinliyorum."]),
-                        allow_interruptions=True,
-                        add_to_chat_ctx=False,
-                    )
-                    state["interrupted"] = False
-                ack_t = asyncio.create_task(_ack())
-                state["task"] = ack_t
-            async def _maybe_filler() -> None:
-                try:
-                    await asyncio.sleep(1.0)
-                    if not state["speaking"]:
+        @session.on("user_state_changed")
+        def _on_user_state(ev) -> None:
+            """Kullanıcı konuşmayı bitirdiğinde eot zamanını işaretle ve
+            gerektiğinde dolgu sesi kur. Not: user_input_committed Realtime
+            (speech-to-speech) modda tetiklenmiyor; bu event her iki modda gelir.
+            Alan adları: new_state / created_at (UserStateChangedEvent)."""
+            st = getattr(ev, "new_state", "")
+            # created_at = kullanıcının son ses anı (varsa) — en doğru eot
+            ts = getattr(ev, "created_at", None) or _time.time()
+            if st == "speaking":
+                state["user_speaking"] = True
+            elif st == "listening" and state["user_speaking"]:
+                state["user_speaking"] = False
+                state["eot_ts"] = ts  # kullanıcı sustu → ilk sesi saymaya başla
+                if state.get("interrupted"):
+                    # söz kesildi → filler yok, kısa onay ver
+                    async def _ack() -> None:
                         await session.say(
-                            random.choice(fillers),
+                            random.choice(["Efendim?", "Buyrun, dinliyorum."]),
                             allow_interruptions=True,
                             add_to_chat_ctx=False,
                         )
-                except asyncio.CancelledError:
-                    pass
-
-            state["task"] = asyncio.create_task(_maybe_filler())
+                        state["interrupted"] = False
+                    state["task"] = asyncio.create_task(_ack())
+                else:
+                    async def _maybe_filler() -> None:
+                        try:
+                            await asyncio.sleep(1.0)
+                            if not state["speaking"]:
+                                await session.say(
+                                    random.choice(fillers),
+                                    allow_interruptions=True,
+                                    add_to_chat_ctx=False,
+                                )
+                        except asyncio.CancelledError:
+                            pass
+                    state["task"] = asyncio.create_task(_maybe_filler())
 
     cli.run_app(
         __import__("livekit.agents", fromlist=["WorkerOptions"]).WorkerOptions(
