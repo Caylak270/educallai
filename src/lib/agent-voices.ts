@@ -1,17 +1,18 @@
 /**
  * Sesli ajanın canlı ses kataloğu — agent/agent-settings.json'a yazılır.
  * engine "natural" = Cartesia cascade (insan gibi TR sesi, ~1,4 sn),
+ * engine "hybrid"  = OpenAI Realtime beyin + Cartesia ses (~0,6-0,8 sn),
  * engine "fast"    = OpenAI Realtime (en hızlı, ~0,4 sn).
  */
 
-export type AgentEngine = "natural" | "fast";
+export type AgentEngine = "natural" | "hybrid" | "fast";
 
 export interface AgentVoiceOption {
   id: string;
   engine: AgentEngine;
   name: string;
   description: string;
-  /** natural modda Cartesia ses cinsiyeti */
+  /** natural/hybrid modda Cartesia ses cinsiyeti */
   cartVoice: "female" | "male" | null;
   /** fast modda OpenAI Realtime ses adı */
   realtimeVoice: string | null;
@@ -19,6 +20,24 @@ export interface AgentVoiceOption {
 }
 
 export const AGENT_VOICES: AgentVoiceOption[] = [
+  {
+    id: "hybrid-female",
+    engine: "hybrid",
+    name: "VeliPilot Kadın (Hibrit)",
+    description: "Doğal TR kadın sesi + hızlı zekâ (~0,6-0,8 sn) — önerilen",
+    cartVoice: "female",
+    realtimeVoice: null,
+    tag: "Hibrit",
+  },
+  {
+    id: "hybrid-male",
+    engine: "hybrid",
+    name: "VeliPilot Erkek (Hibrit)",
+    description: "Sakin TR erkek sesi + hızlı zekâ (~0,6-0,8 sn)",
+    cartVoice: "male",
+    realtimeVoice: null,
+    tag: "Hibrit",
+  },
   {
     id: "cartesia-female",
     engine: "natural",

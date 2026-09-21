@@ -207,35 +207,36 @@ def main() -> None:  # pragma: no cover - canlı ortam bloğu
         )
 
         comps = warm.get("components")
-        if use_realtime:
-            if comps is None:  # Realtime modda VAD/STT/LLM/TTS zinciri kurulmaz
-                comps = CascadePipeline(live_config, capabilities).assemble()
-        else:
-            # Cartesia modu: ses cinsiyeti + hız tercihini TAZE TTS ile uygula
-            # (VAD/STT/LLM sıcak kalır, yalnız TTS yeniden kurulur — ucuz).
+        # Cartesia ses gerektiren modlar (natural + hybrid): ses cinsiyeti/hız
+        # tercihini TAZE TTS ile uygula (VAD/STT/LLM sıcak kalır).
+        if not use_realtime or settings.mode == "hybrid":
             voice_pipeline = CascadePipeline(live_config, capabilities)
             if comps is None:
                 voice_pipeline.prewarm()
                 comps = voice_pipeline.assemble()
             else:
                 comps.tts = voice_pipeline.build_tts()
+        elif comps is None:  # saf Realtime modda zincir kurulmaz ama emniyet
+            comps = CascadePipeline(live_config, capabilities).assemble()
 
-        # AĞ ISITMA: LLM+TTS bağlantılarını (SSL/WebSocket) ilk veli turundan
-        # ÖNCE aç — velinin ilk sorusu gelene kadar ~3-5 sn vardır, soğuk
-        # connect süresi (1-1.5s) bu pencerede eritilir.
+        # AĞ ISITMA: ilk veli turundan ÖNCE bağlantıları aç — soğuk connect
+        # (1-1.5s) velinin ilk sorusu gelmeden eritilir. Moda göre ısıtılır.
         async def _warm_network() -> None:
             try:
-                chat_ctx = llm.ChatContext()
-                chat_ctx.add_message(role="user", content="Merhaba")
-                stream = comps.llm.chat(chat_ctx=chat_ctx)
-                async for _chunk in stream:
-                    break  # ilk parça: bağlantı açıldı
+                if use_realtime and settings.mode != "hybrid":
+                    return  # Realtime bağlantısı session.start ile açılır
+                if not (use_realtime and settings.mode == "hybrid"):
+                    chat_ctx = llm.ChatContext()
+                    chat_ctx.add_message(role="user", content="Merhaba")
+                    stream = comps.llm.chat(chat_ctx=chat_ctx)
+                    async for _chunk in stream:
+                        break  # ilk parça: LLM bağlantısı açıldı
                 tts_stream = comps.tts.stream()
                 tts_stream.push_text("Merhaba.")
                 tts_stream.end_input()
                 async for _frame in tts_stream:
                     break  # ilk frame: Cartesia bağlantısı açıldı
-                logger.info("Ağ ısıtma: LLM+TTS bağlantıları sıcak")
+                logger.info("Ağ ısıtma: bağlantılar sıcak (mod=%s)", settings.mode or "env")
             except Exception as exc:
                 logger.warning("Ağ ısıtma atlandı: %s", str(exc)[:120])
 
@@ -251,7 +252,7 @@ def main() -> None:  # pragma: no cover - canlı ortam bloğu
             resume_false_interruption=True,   # "hı hı" gibi sesler cümleyi bozmasın
             false_interruption_timeout=2.0,
         )
-        if use_realtime:
+        if use_realtime and settings.mode != "hybrid":
             # OpenAI Realtime: STT+LLM+TTS tek bağlantı — en düşük gecikme yolu.
             rt_voice = settings.realtime_voice or os.environ.get("REALTIME_VOICE", "marin")
             session = AgentSession(
@@ -277,6 +278,30 @@ def main() -> None:  # pragma: no cover - canlı ortam bloğu
                         silence_duration_ms=turn_close_ms,
                     ),
                 ),
+                **common,
+            )
+        elif use_realtime and settings.mode == "hybrid":
+            # HİBRİT: Realtime sadece BEYİN (metin üretir, ses üretmez) —
+            # seslendirmeyi Cartesia yapar. Realtime'ın hızlı zekâsı +
+            # Cascade'in doğal TR sesi (dashboard'da 'Hibrit' modu).
+            session = AgentSession(
+                llm=openai_plugin.realtime.RealtimeModel(
+                    model="gpt-realtime",
+                    modalities=["text"],  # ← ses YOK; metin → Cartesia TTS
+                    input_audio_transcription={
+                        "model": "gpt-4o-mini-transcribe",
+                        "language": "tr",
+                    },
+                    turn_detection=_oai_realtime.realtime_audio_input_turn_detection.ServerVad(
+                        type="server_vad",
+                        create_response=True,
+                        interrupt_response=True,
+                        threshold=0.6,
+                        prefix_padding_ms=min(150, int(turn_close_ms * 0.8)),
+                        silence_duration_ms=turn_close_ms,
+                    ),
+                ),
+                tts=comps.tts,   # Cartesia + Pattern 8 streaming normalizasyon
                 **common,
             )
         else:
@@ -536,7 +561,11 @@ def main() -> None:  # pragma: no cover - canlı ortam bloğu
                 else:
                     async def _maybe_filler() -> None:
                         try:
-                            await asyncio.sleep(1.0)
+                            # 600ms: algılanan gecikmeyi düşüren backchannel
+                            # hızı (Parloa bulgusu: erken "bir bakayım" velinin
+                            # zihinsel saatini sıfırlar); 200ms'de her nefeste
+                            # devreye girerdi — dengeli değer.
+                            await asyncio.sleep(0.6)
                             if not state["speaking"]:
                                 await session.say(
                                     random.choice(fillers),

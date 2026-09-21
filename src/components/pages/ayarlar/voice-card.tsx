@@ -11,7 +11,7 @@ type VoiceCardProps = {
 };
 
 interface SavedSettings {
-  mode: "natural" | "fast" | null;
+  mode: "natural" | "fast" | "hybrid" | null;
   voice: "female" | "male" | null;
   speech_speed: number | null;
   turn_close_ms: number | null;
@@ -53,7 +53,9 @@ export function VoiceCard({ showToast }: VoiceCardProps) {
         const id =
           engine === "natural"
             ? `cartesia-${s.voice ?? DEFAULTS.voice}`
-            : `realtime-${s.realtime_voice ?? DEFAULTS.realtime_voice}`;
+            : engine === "hybrid"
+              ? `hybrid-${s.voice ?? DEFAULTS.voice}`
+              : `realtime-${s.realtime_voice ?? DEFAULTS.realtime_voice}`;
         if (!alive) return;
         setVoiceId(id);
         setSpeed(s.speech_speed ?? DEFAULTS.speech_speed);
@@ -82,7 +84,7 @@ export function VoiceCard({ showToast }: VoiceCardProps) {
         body: JSON.stringify({
           mode: engine,
           voice: cartVoice,
-          speech_speed: engine === "natural" ? speed : null,
+          speech_speed: engine !== "fast" ? speed : null,
           turn_close_ms: turnMs,
           realtime_voice: realtimeVoice,
         }),
@@ -122,7 +124,7 @@ export function VoiceCard({ showToast }: VoiceCardProps) {
           <div className="flex items-center gap-space-sm">
             <div className="relative">
               <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary font-title-sm text-title-sm font-bold text-on-primary">
-                {selected.engine === "natural" ? (selected.cartVoice === "male" ? "E" : "K") : "H"}
+                {selected.cartVoice === "male" ? "E" : selected.cartVoice === "female" ? "K" : "H"}
               </div>
               <span className="absolute bottom-0 right-0 h-3.5 w-3.5 rounded-full bg-secondary ring-2 ring-surface-container-lowest" />
             </div>
@@ -143,9 +145,9 @@ export function VoiceCard({ showToast }: VoiceCardProps) {
           <span
             className={clsx(
               "rounded-md px-2 py-1 font-label-sm text-label-sm font-semibold",
-              selected.engine === "natural"
-                ? "bg-tertiary-container/30 text-tertiary-container"
-                : "bg-primary-fixed text-primary"
+              selected.engine === "fast"
+                ? "bg-primary-fixed text-primary"
+                : "bg-tertiary-container/30 text-tertiary-container"
             )}
           >
             {selected.tag}
@@ -154,7 +156,9 @@ export function VoiceCard({ showToast }: VoiceCardProps) {
         <p className="font-body-sm text-body-sm italic text-on-surface-variant">
           {selected.engine === "natural"
             ? "En doğal Türkçe ses — cevaplar ~1,4 sn'de başlar."
-            : "En hızlı yanıt — cevaplar ~0,4 sn'de başlar, ses OpenAI motorundan gelir."}
+            : selected.engine === "hybrid"
+              ? "Doğal TR sesi + hızlı zekâ — cevaplar ~0,6-0,8 sn'de başlar."
+              : "En hızlı yanıt — cevaplar ~0,4 sn'de başlar, ses OpenAI motorundan gelir."}
         </p>
       </div>
 
@@ -185,9 +189,9 @@ export function VoiceCard({ showToast }: VoiceCardProps) {
                   <span
                     className={clsx(
                       "rounded-sm px-1.5 py-0.5 font-label-xs text-label-xs font-semibold",
-                      voice.engine === "natural"
-                        ? "bg-tertiary-container/25 text-tertiary-container"
-                        : "bg-primary-fixed text-primary"
+                      voice.engine === "fast"
+                        ? "bg-primary-fixed text-primary"
+                        : "bg-tertiary-container/25 text-tertiary-container"
                     )}
                   >
                     {voice.tag}
@@ -205,13 +209,13 @@ export function VoiceCard({ showToast }: VoiceCardProps) {
       {/* Konuşma hızı — yalnız doğal (Cartesia) modda etkin */}
       <div className="flex flex-col gap-1">
         <div className="flex items-center justify-between font-label-md text-label-md">
-          <span className={clsx("text-on-surface", selected.engine !== "natural" && "opacity-50")}>
+          <span className={clsx("text-on-surface", !selected.cartVoice && "opacity-50")}>
             Konuşma Hızı
           </span>
           <span
             className={clsx(
               "font-mono-data text-mono-data font-bold",
-              selected.engine === "natural" ? "text-primary" : "text-outline"
+              selected.cartVoice ? "text-primary" : "text-outline"
             )}
           >
             {selected.engine === "natural" ? speedLabel : "—"}
@@ -223,13 +227,13 @@ export function VoiceCard({ showToast }: VoiceCardProps) {
           max={1.15}
           step={0.05}
           value={speed}
-          disabled={selected.engine !== "natural"}
+          disabled={!selected.cartVoice}
           onChange={(event) => setSpeed(Number(event.target.value))}
           aria-label="Konuşma Hızı"
           className="w-full cursor-pointer accent-primary disabled:cursor-not-allowed disabled:opacity-40"
         />
         <span className="font-body-sm text-body-sm text-[11px] text-on-surface-variant">
-          Doğal ses modunda konuşma temposu (0.95 = daha sakin ve sıcak).
+          Doğal ses modlarında konuşma temposu (0.95 = daha sakin ve sıcak).
         </span>
       </div>
 

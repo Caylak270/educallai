@@ -11,7 +11,7 @@ import path from "node:path";
 
 const SETTINGS_PATH = path.join(process.cwd(), "agent", "agent-settings.json");
 
-const MODES = ["fast", "natural"] as const;
+const MODES = ["fast", "natural", "hybrid"] as const;
 const VOICES = ["female", "male"] as const;
 const REALTIME_VOICES = [
   "marin",

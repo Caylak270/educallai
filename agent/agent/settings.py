@@ -49,10 +49,27 @@ class AgentSettings:
 
     @property
     def use_realtime(self) -> bool | None:
-        """Realtime mod tercihi; ``None`` = env (REALTIME_MODE) karar verir."""
+        """Realtime LLM tercihi; ``None`` = env (REALTIME_MODE) karar verir.
+
+        "hybrid" de Realtime LLM kullanır (ama ses Cartesia'dan çıkar) —
+        entrypoint bu alanı yalnız LLM motoru kararı için okur.
+        """
         if self.mode == "fast":
             return True
         if self.mode == "natural":
+            return False
+        if self.mode == "hybrid":
+            return True  # Realtime LLM (ses değil) — entrypoint mode ile ayırır
+        return None
+
+    @property
+    def uses_cartesia_tts(self) -> bool | None:
+        """Sesin Cartesia'dan çıkıp çıkmayacağı (natural VE hybrid modda evet)."""
+        if self.mode == "natural":
+            return True
+        if self.mode == "hybrid":
+            return True
+        if self.mode == "fast":
             return False
         return None
 
@@ -89,7 +106,7 @@ def load_agent_settings(path: Path | str = DEFAULT_SETTINGS_PATH) -> AgentSettin
     # olabilir → köşeli durumlarda None'a zorlamak yerine güvenli bırakma:
     # sadece bilinen sesleri kabul ediyoruz (anti-halüsinasyon ilkesi).
     return AgentSettings(
-        mode=_enum("mode", ("fast", "natural")),
+        mode=_enum("mode", ("fast", "natural", "hybrid")),
         voice=_enum("voice", ("female", "male")),
         speech_speed=_float("speech_speed", 0.7, 1.3),
         turn_close_ms=_int("turn_close_ms", TURN_CLOSE_MIN_MS, TURN_CLOSE_MAX_MS),
