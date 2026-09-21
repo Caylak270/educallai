@@ -69,7 +69,7 @@ class TestLoadAgentPrompt:
             },
         )
         s = load_agent_prompt(p)
-        assert len(s.instructions) <= 4000
+        assert len(s.instructions) <= 6000
         assert len(s.collect_fields) <= 8
         assert len(s.examples) <= 5
 

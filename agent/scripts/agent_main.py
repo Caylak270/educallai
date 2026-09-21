@@ -337,6 +337,13 @@ def main() -> None:  # pragma: no cover - canlı ortam bloğu
 
         # Dashboard "Ajan Promptu" tercihleri — her görüşmede TAZE okunur
         agent_prompt = load_agent_prompt()
+        prompt_block = build_prompt_block(agent_prompt)
+        logger.info(
+            "Ajan promptu: ad=%s greeting=%s blok=%s",
+            agent_prompt.assistant_name or "-",
+            agent_prompt.greeting or "-",
+            f"{len(prompt_block)} karakter" if prompt_block else "boş",
+        )
 
         class VeliPilotAgent(Agent):
             """System prompt + capability-filtreli araçlarla oturum ajanı."""
@@ -346,7 +353,7 @@ def main() -> None:  # pragma: no cover - canlı ortam bloğu
                     instructions=build_system_prompt(
                         dershane_name="Limit Dershane",
                         capabilities=capabilities,
-                        custom_block=build_prompt_block(agent_prompt),
+                        custom_block=prompt_block,
                     ),
                     tools=live_tools,
                 )

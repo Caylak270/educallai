@@ -13,7 +13,8 @@ const PROMPT_PATH = path.join(process.cwd(), "agent", "agent-prompt.json");
 const TONES = ["sıcak_profesyonel", "enerjik_samimi", "sakin_resmi"] as const;
 const MAX = {
   name: 60,
-  instructions: 4000,
+  greeting: 200,
+  instructions: 6000,
   fields: 8,
   rules: 8,
   examples: 5,
@@ -25,6 +26,7 @@ type Rule = { keywords: string; response: string };
 type Example = { user: string; assistant: string };
 type PromptPayload = {
   assistant_name: string | null;
+  greeting: string | null;
   tone: (typeof TONES)[number] | null;
   instructions: string | null;
   collect_fields: Field[];
@@ -71,6 +73,7 @@ function sanitize(body: Record<string, unknown>): PromptPayload {
 
   return {
     assistant_name: clampText(body.assistant_name, MAX.name),
+    greeting: clampText(body.greeting, MAX.greeting),
     tone,
     instructions: clampText(body.instructions, MAX.instructions),
     collect_fields,

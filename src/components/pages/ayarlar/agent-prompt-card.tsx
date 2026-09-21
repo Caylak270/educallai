@@ -22,6 +22,7 @@ interface Example {
 
 interface PromptPayload {
   assistant_name?: string | null;
+  greeting?: string | null;
   tone?: string | null;
   instructions?: string | null;
   collect_fields?: CollectField[];
@@ -76,6 +77,7 @@ export function AgentPromptCard({ showToast }: VoiceTestLike) {
   const [savedFlash, setSavedFlash] = useState(false);
 
   const [name, setName] = useState("");
+  const [greeting, setGreeting] = useState("");
   const [tone, setTone] = useState<string>("sıcak_profesyonel");
   const [instructions, setInstructions] = useState("");
   const [fields, setFields] = useState<CollectField[]>([]);
@@ -92,6 +94,7 @@ export function AgentPromptCard({ showToast }: VoiceTestLike) {
         if (!alive) return;
         const p = data.prompt ?? {};
         setName(p.assistant_name ?? "");
+        setGreeting(p.greeting ?? "");
         setTone(p.tone ?? "sıcak_profesyonel");
         setInstructions(p.instructions ?? "");
         setFields(p.collect_fields ?? []);
@@ -117,6 +120,7 @@ export function AgentPromptCard({ showToast }: VoiceTestLike) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           assistant_name: name || null,
+          greeting: greeting || null,
           tone,
           instructions: instructions || null,
           collect_fields: fields,
@@ -137,7 +141,7 @@ export function AgentPromptCard({ showToast }: VoiceTestLike) {
     } finally {
       setSaving(false);
     }
-  }, [name, tone, instructions, fields, rules, fallback, examples, showToast]);
+  }, [name, greeting, tone, instructions, fields, rules, fallback, examples, showToast]);
 
   return (
     <section className="flex flex-col gap-4 rounded-xl border border-outline-variant/60 bg-surface-container-lowest p-space-lg">
@@ -188,6 +192,22 @@ export function AgentPromptCard({ showToast }: VoiceTestLike) {
               </select>
             </label>
           </div>
+
+          <label className="flex flex-col gap-1">
+            <span className={labelClass}>İlk Karşılama Mesajı</span>
+            <input
+              className={inputClass}
+              maxLength={200}
+              onChange={(e) => setGreeting(e.target.value)}
+              placeholder="Merhaba iyi günler."
+              type="text"
+              value={greeting}
+            />
+            <span className="font-body-sm text-body-sm text-[11px] text-on-surface-variant">
+              Çağrı bağlandığında asistanın söyleyeceği ilk cümle. Boş bırakılırsa
+              varsayılan açılış kullanılır.
+            </span>
+          </label>
 
           <Section
             desc="Ajanın görevi, görev tanımı ve özel talimatların. Persona ve güvenlik kuralları korunur; bu metin onlara EKLENİR."

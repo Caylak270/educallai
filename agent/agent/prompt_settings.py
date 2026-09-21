@@ -9,8 +9,9 @@ ve kişisel/kurumsal talimatlar olarak promptun sonuna eklenir.
 
     {
       "assistant_name": "VeliPilot",
+      "greeting": "Merhaba iyi günler.",    # çağrı bağlanınca söylenecek ilk cümle
       "tone": "sıcak_profesyonel",          # TONES anahtarlarından biri
-      "instructions": "# ROL\\n...",         # serbest talimat (≤ 4000 kr)
+      "instructions": "# ROL\\n...",         # serbest talimat (≤ 6000 kr)
       "collect_fields": [                    # görüşmede toplanacak bilgiler
         {"label": "Ad Soyad", "key": "full_name", "required": true}
       ],
@@ -30,7 +31,7 @@ from pathlib import Path
 
 DEFAULT_PROMPT_PATH = Path(__file__).resolve().parents[1] / "agent-prompt.json"
 
-MAX_INSTRUCTIONS_CHARS = 4000
+MAX_INSTRUCTIONS_CHARS = 6000
 MAX_FIELDS = 8
 MAX_RULES = 8
 MAX_EXAMPLES = 5
@@ -67,6 +68,7 @@ class ExampleDialogue:
 @dataclass(frozen=True)
 class AgentPrompt:
     assistant_name: str | None = None
+    greeting: str | None = None
     tone: str | None = None
     instructions: str | None = None
     collect_fields: list[CollectField] = field(default_factory=list)
@@ -77,6 +79,7 @@ class AgentPrompt:
     def is_empty(self) -> bool:
         return not (
             self.assistant_name
+            or self.greeting
             or self.tone
             or self.instructions
             or self.collect_fields
@@ -135,6 +138,7 @@ def load_agent_prompt(path: Path | str = DEFAULT_PROMPT_PATH) -> AgentPrompt:
 
     return AgentPrompt(
         assistant_name=_clean_text(data.get("assistant_name"))[:60] or None,
+        greeting=_clean_text(data.get("greeting"))[:200] or None,
         tone=tone if tone in TONES else None,
         instructions=_clean_text(data.get("instructions"))[:MAX_INSTRUCTIONS_CHARS] or None,
         collect_fields=fields,
@@ -156,6 +160,11 @@ def build_prompt_block(prompt: AgentPrompt) -> str | None:
 
     if prompt.assistant_name:
         lines.append(f"Kimlik adın: **{prompt.assistant_name}**.")
+    if prompt.greeting:
+        lines.append(
+            f"AÇILIŞ CÜMLEN: \"{prompt.greeting}\" — çağrı bağlandığında İLK bu cümleyi "
+            "söyle; aşağıdaki genel açılış kuralını bu tercih geçersiz kılar."
+        )
     if prompt.tone:
         lines.append(TONES.get(prompt.tone, TONES[DEFAULT_TONE]))
     if prompt.instructions:
