@@ -28,10 +28,21 @@ Son oturum raporu: `docs/raporlar/2026-09-20-canli-veri-gecikme-telaffuz.md`
 
 ```bash
 cd D:\educallai\agent
-.venv\Scripts\python scripts\agent_main.py dev
+AGENT_NAME=velipilot-live .venv\Scripts\python scripts\agent_main.py dev
 # LiveKit Console (educallai-i46ygd0c projesi) → Start session → konuş
+# NOT: ajan artık İSİMLİ (velipilot-live) — Console'dan da bu ajan seçilir;
+# dashboard sesli test dispatch'i bu ismi bekler (dispatch_agent.py)
 ```
 Dashboard: `cd D:\educallai && npm run start` → localhost:3000
+
+**Dashboard sesli test (Ayarlar → Sesli Test):** token `/api/agent-test-token`
+üretilir + `dispatch_agent.py` ajanı `agent-test-*` odasına dispatch eder →
+tarayıcı mikrofonla katılır → ajan agent-settings.json'daki SON ayarlarla
+konuşur. Test transkripti CRM'e yazılır.
+
+⚠️ `.env.local` ile `agent/.env` LiveKit projeleri AYNI olmalı (frankfurt-ap460t13).
+2026-09-21'de iki farklı proje olduğu fark edildi: dashboard başka projeye token
+üretiyordu, ajan asla katılamıyordu. Düzeltildi — değiştirirsen ikisini birden değiştir.
 
 ## 4. Kritik Bilgiler (yeniden öğrenme!)
 

@@ -6,6 +6,7 @@ import { ComplianceCard } from "./compliance-card";
 import { ScheduleCard } from "./schedule-card";
 import { TestCallCard } from "./test-call-card";
 import { VoiceCard } from "./voice-card";
+import { VoiceTestCard } from "./voice-test-card";
 import {
   DEFAULT_SETTINGS,
   RESET_TOAST_MESSAGE,
@@ -133,6 +134,8 @@ export function AyarlarView() {
         <div className="flex min-w-0 flex-col gap-space-lg lg:col-span-4">
           {/* Canlı ajan ses & gecikme kartı — agent-settings.json'a yazar */}
           <VoiceCard showToast={showToast} />
+          {/* Seçilen ayarlarla mikrofonla canlı konuşma testi */}
+          <VoiceTestCard />
           <ComplianceCard />
           <TestCallCard phone={settings.phone} onPhoneChange={(value) => update({ phone: value })} />
         </div>
