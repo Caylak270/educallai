@@ -33,6 +33,8 @@ from agent.agent.capabilities import load_capabilities  # noqa: E402
 from agent.agent.config import AgentConfig  # noqa: E402
 from agent.agent.pipeline import CascadePipeline, NormalizingTTS  # noqa: E402
 from agent.agent.prompts import build_system_prompt  # noqa: E402
+from agent.agent.settings import apply_to_config as apply_settings_to_config  # noqa: E402
+from agent.agent.settings import load_agent_settings  # noqa: E402
 from pydantic import BaseModel, Field  # noqa: E402
 
 logger = logging.getLogger("velipilot.agent")
@@ -185,11 +187,37 @@ def main() -> None:  # pragma: no cover - canlı ortam bloğu
         from livekit.plugins import openai as openai_plugin
         from openai.types import realtime as _oai_realtime
 
+        # ── Dashboard-canlı ayarlar: her görüşmede TAZE okunur ──────
+        # Dashboard (Ayarlar → AI Ses ve Ton Seçimi) agent-settings.json'a
+        # yazar; burada okunması yeterli — ajan restart GEREKMEZ.
+        settings = load_agent_settings()
+        live_config = apply_settings_to_config(settings, AgentConfig.from_env())
+        use_realtime = settings.use_realtime
+        if use_realtime is None:  # tercihi yoksa .env'deki REALTIME_MODE karar verir
+            use_realtime = os.environ.get("REALTIME_MODE") == "1"
+        turn_close_ms = settings.turn_close_ms or 180  # dengeli: bölme yok (test matrisi)
+        logger.info(
+            "Canlı ayarlar: mod=%s ses=%s hız=%s tur_ms=%s rt_ses=%s",
+            settings.mode or "env",
+            settings.voice or "varsayılan",
+            settings.speech_speed or "varsayılan",
+            turn_close_ms,
+            settings.realtime_voice or "varsayılan",
+        )
+
         comps = warm.get("components")
-        if comps is None:  # prewarm kaçtıysa yerinde kur
-            pipeline = CascadePipeline(config, capabilities)
-            pipeline.prewarm()
-            comps = pipeline.assemble()
+        if use_realtime:
+            if comps is None:  # Realtime modda VAD/STT/LLM/TTS zinciri kurulmaz
+                comps = CascadePipeline(live_config, capabilities).assemble()
+        else:
+            # Cartesia modu: ses cinsiyeti + hız tercihini TAZE TTS ile uygula
+            # (VAD/STT/LLM sıcak kalır, yalnız TTS yeniden kurulur — ucuz).
+            voice_pipeline = CascadePipeline(live_config, capabilities)
+            if comps is None:
+                voice_pipeline.prewarm()
+                comps = voice_pipeline.assemble()
+            else:
+                comps.tts = voice_pipeline.build_tts()
 
         # AĞ ISITMA: LLM+TTS bağlantılarını (SSL/WebSocket) ilk veli turundan
         # ÖNCE aç — velinin ilk sorusu gelene kadar ~3-5 sn vardır, soğuk
@@ -215,20 +243,20 @@ def main() -> None:  # pragma: no cover - canlı ortam bloğu
         common = dict(
             # ── Gecikme + doğal turn-taking ──
             preemptive_generation=True,   # EOT beklemeden LLM'i başlat
-            min_endpointing_delay=0.3,
+            min_endpointing_delay=max(0.12, min(0.5, turn_close_ms / 1000)),
             max_endpointing_delay=1.2,    # belirsiz turlarda bile ≤1.2 sn
             allow_interruptions=True,
             min_interruption_duration=0.2,
             resume_false_interruption=True,   # "hı hı" gibi sesler cümleyi bozmasın
             false_interruption_timeout=2.0,
         )
-        if os.environ.get("REALTIME_MODE") == "1":
+        if use_realtime:
             # OpenAI Realtime: STT+LLM+TTS tek bağlantı — en düşük gecikme yolu.
-            # Not: ses OpenAI'ın sesi (marin); Cartesia sesi kullanılmaz.
+            rt_voice = settings.realtime_voice or os.environ.get("REALTIME_VOICE", "marin")
             session = AgentSession(
                 llm=openai_plugin.realtime.RealtimeModel(
                     model="gpt-realtime",
-                    voice=os.environ.get("REALTIME_VOICE", "marin"),
+                    voice=rt_voice,
                     modalities=["text", "audio"],
                     # gpt-4o-mini-transcribe: whisper-1'den daha iyi TR doğruluk,
                     # benzer gecikme (plugin'in kendi default'u da bu).
@@ -236,16 +264,16 @@ def main() -> None:  # pragma: no cover - canlı ortam bloğu
                         "model": "gpt-4o-mini-transcribe",
                         "language": "tr",
                     },
-                    # ServerVAD: veli sustuktan ~250ms sonra turu kapat —
-                    # semantic VAD'dan belirgin hızlı tur kararı (250ms hedefi).
+                    # ServerVAD: veli sustuktan turn_close_ms sonra turu kapat —
+                    # dashboard'dan ayarlanır (180ms = bölmesiz dengeli değer).
                     # dict DEĞİL, typed object (eklenti typed bekliyor).
                     turn_detection=_oai_realtime.realtime_audio_input_turn_detection.ServerVad(
                         type="server_vad",
                         create_response=True,
                         interrupt_response=True,
                         threshold=0.6,          # nefes/patlama yanlış turu önler
-                        prefix_padding_ms=150,
-                        silence_duration_ms=180,
+                        prefix_padding_ms=min(150, int(turn_close_ms * 0.8)),
+                        silence_duration_ms=turn_close_ms,
                     ),
                 ),
                 **common,

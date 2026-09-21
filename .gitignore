@@ -44,3 +44,4 @@ agent/e2e-worker.log
 agent/agent-reply.wav
 agent/test-speech*.wav
 dashboard.log
+agent/agent-settings.json

@@ -131,14 +131,8 @@ export function AyarlarView() {
 
         {/* RIGHT COLUMN (~35% width = 4 cols) */}
         <div className="flex min-w-0 flex-col gap-space-lg lg:col-span-4">
-          <VoiceCard
-            selectedVoiceId={settings.selectedVoiceId}
-            speechSpeed={settings.speechSpeed}
-            latencyMs={settings.latencyMs}
-            onVoiceChange={(id) => update({ selectedVoiceId: id })}
-            onSpeedChange={(value) => update({ speechSpeed: value })}
-            onLatencyChange={(value) => update({ latencyMs: value })}
-          />
+          {/* Canlı ajan ses & gecikme kartı — agent-settings.json'a yazar */}
+          <VoiceCard showToast={showToast} />
           <ComplianceCard />
           <TestCallCard phone={settings.phone} onPhoneChange={(value) => update({ phone: value })} />
         </div>
