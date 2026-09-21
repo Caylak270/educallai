@@ -35,6 +35,7 @@ from agent.agent.pipeline import CascadePipeline, NormalizingTTS  # noqa: E402
 from agent.agent.prompts import build_system_prompt  # noqa: E402
 from agent.agent.settings import apply_to_config as apply_settings_to_config  # noqa: E402
 from agent.agent.settings import load_agent_settings  # noqa: E402
+from agent.agent.prompt_settings import build_prompt_block, load_agent_prompt  # noqa: E402
 from pydantic import BaseModel, Field  # noqa: E402
 
 logger = logging.getLogger("velipilot.agent")
@@ -334,6 +335,9 @@ def main() -> None:  # pragma: no cover - canlı ortam bloğu
         live_tools = build_live_tools()
         live_tools.append(record_signals)
 
+        # Dashboard "Ajan Promptu" tercihleri — her görüşmede TAZE okunur
+        agent_prompt = load_agent_prompt()
+
         class VeliPilotAgent(Agent):
             """System prompt + capability-filtreli araçlarla oturum ajanı."""
 
@@ -342,6 +346,7 @@ def main() -> None:  # pragma: no cover - canlı ortam bloğu
                     instructions=build_system_prompt(
                         dershane_name="Limit Dershane",
                         capabilities=capabilities,
+                        custom_block=build_prompt_block(agent_prompt),
                     ),
                     tools=live_tools,
                 )

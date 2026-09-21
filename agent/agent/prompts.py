@@ -170,6 +170,7 @@ def build_system_prompt(
     capabilities: DershaneCapabilities,
     contact_summary: str | Mapping[str, object] | None = None,
     extra_rules: str | None = None,
+    custom_block: str | None = None,
 ) -> str:
     """Tam system prompt'u birleştirir.
 
@@ -180,6 +181,8 @@ def build_system_prompt(
             kapatılır.
         contact_summary: Varsa Pattern 4 iç sezgi bloğu eklenir.
         extra_rules: Kiracıya özel ek kurallar (opsiyonel).
+        custom_block: Dashboard "Ajan Promptu" kartından gelen, yönetici
+            tanımlı Türkçe blok (prompt_settings.build_prompt_block çıktısı).
 
     Returns:
         Birleşik Türkçe system prompt metni.
@@ -206,6 +209,8 @@ Listede OLAN bir araç soruya uyuyorsa cevabı mutlaka aracı çağırarak ver;
         blocks.append(build_inner_intuition(contact_summary))
     if extra_rules:
         blocks.append(f"# KURUMA ÖZEL KURALLAR\n{extra_rules}")
+    if custom_block:
+        blocks.append(custom_block)
     blocks.append(
         f"# ZORUNLU KAYIT BİLDİRİMİ (KVKK — DOĞAL TEK CÜMLE)\n"
         f"Selamlaşmadan HEMEN sonra, sohbetin doğal akışında şu kısa cümleyi "

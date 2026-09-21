@@ -45,3 +45,4 @@ agent/agent-reply.wav
 agent/test-speech*.wav
 dashboard.log
 agent/agent-settings.json
+agent/agent-prompt.json

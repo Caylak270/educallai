@@ -40,6 +40,17 @@ Dashboard: `cd D:\educallai && npm run start` → localhost:3000
 tarayıcı mikrofonla katılır → ajan agent-settings.json'daki SON ayarlarla
 konuşur. Test transkripti CRM'e yazılır.
 
+**Dashboard canlı ajan ayarları (2 dosya, ikisi gitignore'da):**
+- `agent/agent-settings.json` → ses/mod/hız/tur-ms (Ayarlar → AI Ses ve Ton Seçimi)
+- `agent/agent-prompt.json` → yönetici promptu: ad, ton, serbest talimatlar,
+  toplanacak bilgiler, kaçınma kuralları (tetikleyici→yanıt), fallback, örnek
+  diyaloglar (Ayarlar → Ajan Promptu)
+İkisi de ajanca HER GÖRÜŞME BAŞINDA taze okunur — restart gerekmez.
+Prompt bloğu `prompt_settings.build_prompt_block` ile üretilip system
+prompt'un sonuna "KURUMA ÖZEL TALİMATLAR" olarak eklenir (persona/KVKK korunur).
+Kanıt: dashboard'dan "garanti" kaçınma kuralı yazıldı → ajan soruya kayıtlı
+yanıtı birebir söyledi (voice-e2e).
+
 ⚠️ `.env.local` ile `agent/.env` LiveKit projeleri AYNI olmalı (frankfurt-ap460t13).
 2026-09-21'de iki farklı proje olduğu fark edildi: dashboard başka projeye token
 üretiyordu, ajan asla katılamıyordu. Düzeltildi — değiştirirsen ikisini birden değiştir.

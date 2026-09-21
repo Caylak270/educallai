@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { AgentPromptCard } from "./agent-prompt-card";
 import { CapabilitiesCard } from "./capabilities-card";
 import { ComplianceCard } from "./compliance-card";
 import { ScheduleCard } from "./schedule-card";
@@ -120,6 +121,8 @@ export function AyarlarView() {
       <div className="grid grid-cols-1 items-start gap-space-xl lg:grid-cols-12">
         {/* LEFT COLUMN (~65% width = 8 cols) */}
         <div className="flex min-w-0 flex-col gap-space-lg lg:col-span-8">
+          {/* Canlı ajan promptu — agent-prompt.json'a yazar */}
+          <AgentPromptCard showToast={showToast} />
           <CapabilitiesCard values={settings.capabilities} onToggle={handleCapabilityToggle} />
           <ScheduleCard
             rows={settings.schedule}
