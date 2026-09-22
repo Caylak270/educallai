@@ -11,24 +11,40 @@ Dershaneler için **7/24 çok kanallı AI sesli + yazılı asistan platformu**: 
 
 ```
 educallai/
-├── src/                    Next.js 16 (App Router, TS, Tailwind v4) dashboard
-│   ├── app/(app)/          Sayfalar: /, /veliler, /gorusmeler/[id], /tahsilat,
+├── src/                    Next.js 16 (App Router, TS, Tailwind v4)
+│   ├── app/(site)/         Pazarlama web sitesi: /web (16 bölüm, canlı CRM demosu)
+│   ├── app/demo/           /web içindeki canlı vitrine gömülü CRM demo ekranı
+│   ├── app/(app)/          Dashboard: /, /veliler, /gorusmeler/[id], /tahsilat,
 │   │                       /deneme-analizi, /kampanyalar, /randevular, /raporlar, /ayarlar
-│   ├── components/
-│   │   ├── shell/          Kabuk: sidebar (lg+), mobil header + alt tab bar, logo
-│   │   └── pages/          Sayfa bileşenleri (tasarım Stitch'ten port edilmiş)
+│   ├── app/robots.ts       SEO: robots.txt + sitemap.xml
+│   ├── components/site/    Web sitesi bileşenleri (hero chat, kanban, reveal…)
+│   ├── components/shell/   Dashboard kabuğu: sidebar, mobil header, logo
+│   ├── components/pages/   Dashboard sayfa bileşenleri
 │   └── lib/
 │       ├── mock/           Demo veri (Supabase bağlanana dek)
 │       └── types/db.ts     Veritabanı satır tipleri (migration'larla birebir)
+├── public/brand/           Logo, ikon, OG görseli
 ├── agent/                  Python voice agent (LiveKit Cascade Pipeline)
 │   ├── agent/              Pattern 1-8 + Batch Dialer + Tahsilat SM + Deneme motoru
 │   └── tests/              134 test (harici servis gerektirmez)
 ├── supabase/               SQL migration'lar (12 tablo + RLS) + demo seed
 ├── design/screens/         Stitch tasarım referansları (7 ekran HTML)
 ├── docs/raporlar/          İlerleme raporları
-├── docs/render/            Sayfa render PNG'leri (tam sayfa)
-└── scripts/render-pages.mjs  Playwright tabanlı tam sayfa render aracı
+└── scripts/site-smoke.mjs  Web sitesi smoke test paketi (26 kontrol)
 ```
+
+## Web Sitesi (/web)
+
+Pazarlama sitesi `/web` rotasında, dashboard'dan tamamen ayrı `(site)` route
+grubunda ve kendi Tailwind temasıyla çalışır. Canlı vitrindeki CRM ekranı,
+`/demo` rotasının iframe'e gömülü halidir — içindeki sidebar menüyle gezilebilir.
+Geliştirme sonrası doğrulama:
+
+```bash
+node scripts/site-smoke.mjs   # 26 kontrol (rota, link, etkileşim, taşma)
+```
+
+Blog planı: `/blog` route'u + sitemap entegrasyonu (Article schema) eklenecek.
 
 ## Çalıştırma
 
