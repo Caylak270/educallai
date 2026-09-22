@@ -50,3 +50,6 @@ agent/agent-prompt.json
 # render arşivi (yeniden üretilebilir, agır PNG)
 docs/render/
 scripts/tmp-*.mjs
+
+# MCP yapılandırması (API anahtarı içerir)
+.mcp.json
