@@ -65,6 +65,11 @@ export type Lead = {
   insight: string;
   actions: LeadAction[];
   drawer: LeadDrawer;
+  /**
+   * Filtre chip etiketleri (all hariç): hot | yks | lgs | delayed | waiting.
+   * Canlı veride sunucu (buildLeadsView) doldurur; demo leadlerde istemci türetir.
+   */
+  chipTags?: string[];
 };
 
 export const leads: Lead[] = [

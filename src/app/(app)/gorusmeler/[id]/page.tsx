@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { AudioPlayer } from "@/components/pages/gorusme-detay/audio-player";
 import { CallDetailTabs } from "@/components/pages/gorusme-detay/call-detail-tabs";
 import { CallSummaryCard } from "@/components/pages/gorusme-detay/call-summary-card";
+import { RecallButton } from "@/components/pages/gorusme-detay/recall-button";
 import { PageHeader, PageShell } from "@/components/ui/page-shell";
 import { getCallById } from "@/lib/mock/calls";
 import { getLiveCallDetail } from "@/lib/server/queries";
@@ -15,7 +16,8 @@ export default async function Page({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  // Önce canlı Supabase kaydı; bulunamazsa demo veriye düş (mock id'li linkler).
+  // Önce canlı Supabase kaydı; bulunamazsa bilinen demo id'ler örnek kayda düşer,
+  // aksi hâlde (silinmiş/yabancı id) 404.
   const liveCall = await getLiveCallDetail(id);
   const mockCall = liveCall ? null : getCallById(id);
   if (!liveCall && !mockCall) notFound();
@@ -59,16 +61,8 @@ export default async function Page({
               </span>
               {summary.outcomePill}
             </span>
-            {/* Sesli aramayı tekrarla */}
-            <button
-              type="button"
-              className="flex h-10 items-center gap-1.5 rounded-xl bg-primary-container px-4 font-label-md text-label-md font-semibold text-on-primary transition-all hover:bg-primary active:scale-[0.98]"
-            >
-              <span className="material-symbols-outlined text-[18px]">
-                call
-              </span>
-              <span>Tekrar Ara</span>
-            </button>
+            {/* Sesli aramayı tekrarla (POST /api/calls) */}
+            <RecallButton name={summary.parentName} phone={summary.phone} />
           </>
         }
       />

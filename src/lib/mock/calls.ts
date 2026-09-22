@@ -1,8 +1,10 @@
 /**
  * Mock veri — Görüşme Detayı ekranı (design/screens/05-gorusme-detay.mobile.html).
- * Tek örnek görüşme: route /gorusmeler/[id] her id için bu kaydı gösterir.
- * Gerçek veri katmanı (Supabase conversations + conversation_signals) bağlanana dek demo.
+ * Tek örnek görüşme: demo modda bilinen mock id'ler bu kayda düşer, bilinmeyen
+ * id'ler 404 verir. Gerçek veri Supabase (conversation_signals) üzerinden akar.
  */
+
+import { callList } from "./call-list";
 
 /* ── Veli & çağrı özeti ──────────────────────────────────────── */
 
@@ -345,7 +347,16 @@ export const sampleCall: {
   },
 };
 
-/** id param'ı şu an tek örnek görüşmeye işaret eder (mock). */
+/**
+ * Demo detay: yalnızca bilinen mock id'ler (liste mock'u + örnek detay) örnek
+ * görüşmeye düşer; bilinmeyen id'ler undefined döner → sayfa 404 verir.
+ */
+const KNOWN_MOCK_CALL_IDS = new Set<string>([
+  sampleCall.id,
+  ...callList.map((call) => call.id),
+]);
+
 export function getCallById(id: string) {
+  if (!KNOWN_MOCK_CALL_IDS.has(id)) return undefined;
   return { ...sampleCall, id };
 }

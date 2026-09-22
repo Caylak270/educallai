@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { clsx } from "@/lib/clsx";
 import {
   callList,
@@ -12,6 +12,11 @@ import {
   type CallListItem,
   type CallSentiment,
 } from "@/lib/mock/call-list";
+import {
+  onRangeChange,
+  readRange,
+  type RangeSelection,
+} from "@/components/shell/topbar-menus";
 
 const CHANNEL_ICONS: Record<CallChannel, string> = {
   voice: "phone_in_talk",
@@ -79,10 +84,25 @@ export function CallListBrowser({
   const list = calls ?? callList;
   const [query, setQuery] = useState("");
   const [channel, setChannel] = useState<"all" | CallChannel>("all");
+  const [range, setRange] = useState<RangeSelection>({ days: 30, label: "Son 30 gün" });
+
+  // Topbardaki tarih aralığı seçimini izle (sortKey = dakika cinsinden "önce")
+  useEffect(() => {
+    let alive = true;
+    void Promise.resolve().then(() => {
+      if (alive) setRange(readRange());
+    });
+    const unsubscribe = onRangeChange(setRange);
+    return () => {
+      alive = false;
+      unsubscribe();
+    };
+  }, []);
 
   const visible = useMemo(
     () =>
       list.filter((c) => {
+        if (c.sortKey > range.days * 24 * 60) return false;
         if (channel !== "all" && c.channel !== channel) return false;
         if (!query) return true;
         const q = query.toLocaleLowerCase("tr");
@@ -92,7 +112,7 @@ export function CallListBrowser({
           c.summary.toLocaleLowerCase("tr").includes(q)
         );
       }),
-    [query, channel]
+    [list, range, query, channel]
   );
 
   return (

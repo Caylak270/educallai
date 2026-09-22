@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { clsx } from "@/lib/clsx";
 import { CallButton } from "@/components/ui/call-button";
 import type { Lead } from "@/lib/mock/leads";
@@ -31,11 +31,15 @@ const WAVEFORM: { h: string; c: string }[] = [
 /* Alt drawer — lead detayı. lead null iken aşağı kayarak kapanır. */
 export function ParentDetailDrawer({ lead, onClose }: { lead: Lead | null; onClose: () => void }) {
   const [cachedLead, setCachedLead] = useState<Lead | null>(lead);
+  const [lastLead, setLastLead] = useState<Lead | null>(lead);
   const [playing, setPlaying] = useState(false);
 
-  useEffect(() => {
+  // Prop değişince render sırasında önbelleği güncelle (React'in önerilen deseni;
+  // kapanış animasyonu sırasında içerik korunur).
+  if (lead !== lastLead) {
+    setLastLead(lead);
     if (lead) setCachedLead(lead);
-  }, [lead]);
+  }
 
   const open = lead !== null;
   const data = cachedLead;
@@ -210,8 +214,8 @@ export function ParentDetailDrawer({ lead, onClose }: { lead: Lead | null; onClo
             <div className="relative space-y-4 pl-6">
               {/* Dikey çizgi */}
               <div className="absolute bottom-2 left-2 top-2 w-0.5 bg-surface-container-high" />
-              {data.drawer.timeline.map((item) => (
-                <div key={item.title} className="relative flex flex-col gap-1">
+              {data.drawer.timeline.map((item, index) => (
+                <div key={`${item.title}-${index}`} className="relative flex flex-col gap-1">
                   <span
                     className={clsx(
                       "absolute -left-6 top-0.5 flex h-4 w-4 items-center justify-center rounded-full ring-4 ring-surface-container-lowest",

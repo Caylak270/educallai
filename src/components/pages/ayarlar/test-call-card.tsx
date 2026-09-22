@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { CardHeader } from "./card-header";
 import { clsx } from "@/lib/clsx";
 
-type CallStatus = "idle" | "connecting" | "sent";
+type CallStatus = "idle" | "connecting" | "sent" | "failed";
 
 type TestCallCardProps = {
   phone: string;
@@ -13,22 +13,53 @@ type TestCallCardProps = {
 
 export function TestCallCard({ phone, onPhoneChange }: TestCallCardProps) {
   const [status, setStatus] = useState<CallStatus>("idle");
-  const timers = useRef<Array<ReturnType<typeof setTimeout>>>([]);
+  const [note, setNote] = useState<string | null>(null);
 
-  useEffect(() => {
-    const pending = timers.current;
-    return () => pending.forEach(clearTimeout);
-  }, []);
-
-  const triggerCall = () => {
-    if (status !== "idle") return;
+  const triggerCall = async () => {
+    if (status === "connecting") return;
     setStatus("connecting");
-    timers.current.push(
-      setTimeout(() => {
+    setNote(null);
+    // Girdiyi E.164'e çevir: "5XX XXX XX XX" → "+905XXXXXXXXX"
+    const digits = (phone.match(/\d/g) ?? []).join("");
+    const clean = digits.length >= 10 ? `+90${digits.slice(-10)}` : "";
+    if (!clean) {
+      setStatus("failed");
+      setNote("Geçerli bir numara girin (örn. 5XX XXX XX XX).");
+      return;
+    }
+    try {
+      const res = await fetch("/api/calls", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          phone: clean,
+          name: "Test Çağrısı",
+          context: "Ayarlar test çağrısı",
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.ok) {
         setStatus("sent");
-        timers.current.push(setTimeout(() => setStatus("idle"), 4000));
-      }, 1200)
-    );
+        setNote(
+          data.mode === "live"
+            ? "Çağrı LiveKit üzerinden çevriliyor — telefonunuzu bekleyin!"
+            : "Demo kaydı oluşturuldu — gerçek arama için LIVEKIT + NETGSM anahtarları gerekir."
+        );
+      } else {
+        setStatus("failed");
+        setNote(data.error ?? "Arama başlatılamadı.");
+      }
+    } catch {
+      setStatus("failed");
+      setNote("Sunucuya ulaşılamadı.");
+    }
+  };
+
+  const resetLater = () => {
+    setTimeout(() => {
+      setStatus("idle");
+      setNote(null);
+    }, 8000);
   };
 
   return (
@@ -64,33 +95,50 @@ export function TestCallCard({ phone, onPhoneChange }: TestCallCardProps) {
 
         <button
           type="button"
-          onClick={triggerCall}
-          disabled={status !== "idle"}
+          onClick={() => {
+            void triggerCall();
+            resetLater();
+          }}
+          disabled={status === "connecting"}
           className={clsx(
             "flex w-full items-center justify-center gap-space-xs rounded-xl bg-primary-container px-space-md py-space-sm font-title-sm text-title-sm text-on-primary transition-all hover:bg-primary active:scale-[0.99]",
-            status !== "idle" && "opacity-50"
+            status === "connecting" && "opacity-50"
           )}
         >
-          <span className={clsx("material-symbols-outlined text-[18px]", status === "connecting" && "animate-spin")}>
-            {status === "idle" ? "ring_volume" : status === "connecting" ? "refresh" : "done"}
+          <span
+            className={clsx(
+              "material-symbols-outlined text-[18px]",
+              status === "connecting" && "animate-spin"
+            )}
+          >
+            {status === "connecting" ? "refresh" : "ring_volume"}
           </span>
           <span>
-            {status === "idle"
-              ? "Numarama Demo Çağrı Gönder"
-              : status === "connecting"
-                ? "Bağlanıyor..."
-                : "Çağrı Gönderildi"}
+            {status === "connecting"
+              ? "Bağlanıyor..."
+              : status === "sent"
+                ? "Çağrı Gönderildi"
+                : "Numarama Demo Çağrı Gönder"}
           </span>
         </button>
 
         <span
           className={clsx(
-            "text-center font-label-sm text-label-sm text-secondary",
-            status === "sent" ? "flex items-center justify-center gap-1" : "hidden"
+            "text-center font-label-sm text-label-sm",
+            status === "sent" || status === "failed"
+              ? "flex items-center justify-center gap-1"
+              : "hidden",
+            status === "failed" ? "text-error" : "text-secondary"
           )}
         >
-          <span className="material-symbols-outlined text-[14px]">done</span>
-          Çağrı sıraya alındı, 10 saniye içinde aranacaksınız!
+          {status === "sent" || status === "failed" ? (
+            <>
+              <span className="material-symbols-outlined text-[14px]">
+                {status === "sent" ? "done" : "error"}
+              </span>
+              {note}
+            </>
+          ) : null}
         </span>
       </div>
     </section>

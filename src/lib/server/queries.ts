@@ -175,6 +175,10 @@ export async function getLiveCallDetail(
   id: string,
 ): Promise<LiveCallDetail | null> {
   if (!supabaseLive || !id) return null;
+  // conversation_signals.id uuid olduğu için uuid olmayan id'ler (demo mock
+  // id'leri) sorgulanmaz — PostgREST 400 yerine doğrudan mock'a düşülür.
+  const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (!UUID_RE.test(id)) return null;
   const [signals, contacts] = await Promise.all([
     sbSelect<ConversationSignal>(
       "conversation_signals",

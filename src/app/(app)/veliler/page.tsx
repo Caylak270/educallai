@@ -10,9 +10,9 @@ export const dynamic = "force-dynamic";
 export default async function Page({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string }>;
+  searchParams: Promise<{ q?: string; odak?: string }>;
 }) {
-  const { q } = await searchParams;
+  const { q, odak } = await searchParams;
   const liveLeads = await getLiveLeads();
 
   return (
@@ -24,6 +24,7 @@ export default async function Page({
       {liveLeads ? (
         <VelilerCrm
           initialQuery={q ?? ""}
+          autoFocusSearch={odak === "ara"}
           leads={buildLeadsView(liveLeads)}
           chipCounts={computeChipCounts(liveLeads)}
           sourceLabel={
@@ -35,6 +36,7 @@ export default async function Page({
       ) : (
         <VelilerCrm
           initialQuery={q ?? ""}
+          autoFocusSearch={odak === "ara"}
           sourceLabel="Demo veri — Supabase bağlantısı bekleniyor"
         />
       )}

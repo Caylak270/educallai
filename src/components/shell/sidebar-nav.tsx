@@ -16,11 +16,11 @@ export const NAV_ITEMS = [
   { href: "/ayarlar", label: "Ayarlar", icon: "settings" },
 ] as const;
 
-export function SidebarNav() {
+export function SidebarNav({ collapsed = false }: { collapsed?: boolean }) {
   const pathname = usePathname();
 
   return (
-    <nav className="flex flex-col gap-1">
+    <nav className={clsx("flex gap-1", collapsed ? "flex-col items-center" : "flex-col")}>
       {NAV_ITEMS.map((item) => {
         const active =
           item.href === "/"
@@ -30,17 +30,28 @@ export function SidebarNav() {
           <Link
             key={item.href}
             href={item.href}
+            title={collapsed ? item.label : undefined}
             className={clsx(
-              "group flex items-center gap-3 rounded-xl px-space-md py-2.5 font-label-md text-label-md transition-all",
-              active
-                ? "bg-primary-container font-semibold text-on-primary-container shadow-sm"
-                : "text-on-surface-variant hover:bg-surface-container hover:text-on-surface"
+              "group flex items-center rounded-xl font-label-md text-label-md transition-all",
+              collapsed
+                ? clsx(
+                    "h-10 w-10 justify-center",
+                    active
+                      ? "bg-primary-container text-on-primary-container"
+                      : "text-on-surface-variant hover:bg-surface-container hover:text-on-surface"
+                  )
+                : clsx(
+                    "gap-3 px-space-md py-2.5",
+                    active
+                      ? "bg-primary-container font-semibold text-on-primary-container shadow-sm"
+                      : "text-on-surface-variant hover:bg-surface-container hover:text-on-surface"
+                  )
             )}
           >
-            <span className="material-symbols-outlined text-[20px] transition-colors">
+            <span className="material-symbols-outlined shrink-0 text-[20px] transition-colors">
               {item.icon}
             </span>
-            <span>{item.label}</span>
+            {!collapsed ? <span>{item.label}</span> : null}
           </Link>
         );
       })}

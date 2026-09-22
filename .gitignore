@@ -46,3 +46,7 @@ agent/test-speech*.wav
 dashboard.log
 agent/agent-settings.json
 agent/agent-prompt.json
+
+# render arşivi (yeniden üretilebilir, agır PNG)
+docs/render/
+scripts/tmp-*.mjs

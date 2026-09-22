@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* .dark sınıfı (html üzerinde) için dark: varyantı — ikon/dekoratif geçişlerde kullanılır */
+@custom-variant dark (&:where(.dark, .dark *));
+
 /*
   educallai (VeliPilot AI) — Material Design 3 tasarım tokenları
   Kaynak: Stitch ekranları (design/screens/*.html) — birebir taşınmış
@@ -157,6 +160,71 @@
   --spacing-space-xl: 2rem;
   --spacing-margin: 2rem;
   --spacing-margin-mobile: 1rem;
+}
+
+/* ── Dark mode (M3 koyu palet) ────────────────────────────────
+   html.dark üzerinde tokenlar yeniden tanımlanır; tüm utility'ler
+   var() referanslı olduğu için tema otomatik akar. ThemeToggle +
+   root layout'taki inline script sınıfı FOUC'suz yönetir. */
+
+html {
+  color-scheme: light;
+}
+
+html.dark {
+  color-scheme: dark;
+
+  --color-primary: #c3c0ff;
+  --color-on-primary: #171264;
+  --color-primary-container: #33239e;
+  --color-on-primary-container: #e2dfff;
+  --color-primary-fixed: #e2dfff;
+  --color-on-primary-fixed: #0f0069;
+  --color-primary-fixed-dim: #c3c0ff;
+  --color-on-primary-fixed-variant: #3323cc;
+  --color-surface-tint: #c3c0ff;
+  --color-inverse-primary: #3525cd;
+
+  --color-secondary: #4fdbc8;
+  --color-on-secondary: #003731;
+  --color-secondary-container: #005048;
+  --color-on-secondary-container: #71f8e4;
+  --color-secondary-fixed: #71f8e4;
+  --color-on-secondary-fixed: #00201c;
+  --color-secondary-fixed-dim: #4fdbc8;
+  --color-on-secondary-fixed-variant: #006b5f;
+
+  --color-tertiary: #ffb95f;
+  --color-on-tertiary: #452b00;
+  --color-tertiary-container: #653e00;
+  --color-on-tertiary-container: #ffddb8;
+  --color-tertiary-fixed: #ffddb8;
+  --color-on-tertiary-fixed: #2a1700;
+  --color-tertiary-fixed-dim: #ffb95f;
+  --color-on-tertiary-fixed-variant: #885500;
+
+  --color-error: #ffb4ab;
+  --color-on-error: #690005;
+  --color-error-container: #93000a;
+  --color-on-error-container: #ffdad6;
+
+  --color-background: #101222;
+  --color-on-background: #e3e1f2;
+  --color-surface: #101222;
+  --color-on-surface: #e3e1f2;
+  --color-surface-variant: #46455b;
+  --color-on-surface-variant: #c7c4d8;
+  --color-surface-dim: #0c0e1c;
+  --color-surface-bright: #35374a;
+  --color-surface-container-lowest: #0b0d1a;
+  --color-surface-container-low: #131528;
+  --color-surface-container: #1a1c30;
+  --color-surface-container-high: #242638;
+  --color-surface-container-highest: #2f3145;
+  --color-inverse-surface: #e3e1f2;
+  --color-inverse-on-surface: #2a2a42;
+  --color-outline: #8f90a4;
+  --color-outline-variant: #46455b;
 }
 
 /* Material Symbols Outlined */

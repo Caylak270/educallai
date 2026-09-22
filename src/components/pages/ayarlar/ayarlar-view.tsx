@@ -22,6 +22,7 @@ const TOAST_DURATION_MS = 3200;
 export function AyarlarView() {
   const [settings, setSettings] = useState<SettingsState>(DEFAULT_SETTINGS);
   const [toast, setToast] = useState<{ id: number; message: string } | null>(null);
+  const [saving, setSaving] = useState(false);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const showToast = useCallback((message: string) => {
@@ -33,6 +34,49 @@ export function AyarlarView() {
   useEffect(() => {
     return () => {
       if (toastTimer.current) clearTimeout(toastTimer.current);
+    };
+  }, []);
+
+  // Kalıcı yapılandırmayı yükle (Supabase bağlıysa kayıtlı değerler)
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/dershane-config")
+      .then((res) => res.json())
+      .then((data) => {
+        if (cancelled || !data?.persisted) return;
+        setSettings((prev) => {
+          const caps = (data.capabilities ?? {}) as Record<string, unknown>;
+          const ui = (data.ui ?? {}) as {
+            schedule?: Array<{ id: string; enabled: boolean; start: string; end: string }>;
+            retryHours?: number;
+            dailyCallLimit?: number;
+          };
+          const savedCaps = Object.fromEntries(
+            Object.entries(prev.capabilities).map(([key, value]) => [
+              key,
+              typeof caps[key] === "boolean" ? (caps[key] as boolean) : value,
+            ])
+          );
+          return {
+            ...prev,
+            capabilities: savedCaps,
+            schedule: Array.isArray(ui.schedule)
+              ? prev.schedule.map((row) => {
+                  const saved = ui.schedule?.find((s) => s.id === row.id);
+                  return saved
+                    ? { ...row, enabled: !!saved.enabled, start: saved.start, end: saved.end }
+                    : row;
+                })
+              : prev.schedule,
+            retryHours: typeof ui.retryHours === "number" ? ui.retryHours : prev.retryHours,
+            dailyCallLimit:
+              typeof ui.dailyCallLimit === "number" ? ui.dailyCallLimit : prev.dailyCallLimit,
+          };
+        });
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
     };
   }, []);
 
@@ -66,8 +110,29 @@ export function AyarlarView() {
   }, [showToast]);
 
   const handleSaveConfiguration = useCallback(() => {
-    showToast(SAVE_TOAST_MESSAGE);
-  }, [showToast]);
+    if (saving) return;
+    setSaving(true);
+    fetch("/api/dershane-config", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        capabilities: settings.capabilities,
+        schedule: settings.schedule,
+        retryHours: settings.retryHours,
+        dailyCallLimit: settings.dailyCallLimit,
+      }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        showToast(
+          data?.persisted
+            ? SAVE_TOAST_MESSAGE
+            : "Demo modda kaydedildi — Supabase anahtarları eklenince kalıcı olacak."
+        );
+      })
+      .catch(() => showToast("Kaydedilemedi — sunucuya ulaşılamadı."))
+      .finally(() => setSaving(false));
+  }, [saving, settings, showToast]);
 
   return (
     <div className="flex w-full flex-col gap-6 px-4 py-6 lg:px-6 lg:py-8 2xl:mx-auto 2xl:max-w-[1720px]">
@@ -104,15 +169,16 @@ export function AyarlarView() {
           <button
             type="button"
             onClick={handleSaveConfiguration}
-            className="flex items-center gap-space-xs rounded-xl bg-primary-container px-space-lg py-space-sm font-title-sm text-title-sm text-on-primary transition-all hover:bg-primary"
+            disabled={saving}
+            className="flex items-center gap-space-xs rounded-xl bg-primary-container px-space-lg py-space-sm font-title-sm text-title-sm text-on-primary transition-all hover:bg-primary disabled:opacity-60"
           >
             <span
-              className="material-symbols-outlined text-[18px]"
+              className={clsx("material-symbols-outlined text-[18px]", saving && "animate-spin")}
               style={{ fontVariationSettings: "'FILL' 1" }}
             >
-              save
+              {saving ? "refresh" : "save"}
             </span>
-            <span>Değişiklikleri Kaydet</span>
+            <span>{saving ? "Kaydediliyor..." : "Değişiklikleri Kaydet"}</span>
           </button>
         </div>
       </div>

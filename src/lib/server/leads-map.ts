@@ -5,7 +5,6 @@
  */
 
 import type { Lead } from "@/lib/mock/leads";
-import type { ConversationSignal } from "@/lib/types/db";
 import type { LiveLeadRow } from "./queries";
 
 /* ── Aşama eşlemeleri (db ↔ kanban id) ──────────────────────── */
@@ -124,20 +123,29 @@ function durationLabel(sec: number | null): string {
   return `${Math.floor(sec / 60)} dk ${sec % 60} sn`;
 }
 
+/** Tek lead satırının filtre chip etiketleri — computeChipCounts ile aynı mantık. */
+export function chipTagsOfRow(row: LiveLeadRow): string[] {
+  const yksTypes = ["YKS", "TYT", "AYT"];
+  const examType = (row.contact?.exam_type ?? "").toUpperCase();
+  const tags: string[] = [];
+  if (row.temperature === "hot") tags.push("hot");
+  if (yksTypes.includes(examType)) tags.push("yks");
+  if (examType === "LGS") tags.push("lgs");
+  if (row.next_follow_up && new Date(row.next_follow_up) < new Date())
+    tags.push("delayed");
+  if ((row.signals?.length ?? 0) === 0) tags.push("waiting");
+  return tags;
+}
+
 /** Canlı lead sayıları — filtre chip sayaçları için. */
 export function computeChipCounts(rows: LiveLeadRow[]): Record<string, number> {
-  const yksTypes = ["YKS", "TYT", "AYT"];
-  const examType = (r: LiveLeadRow) => (r.contact?.exam_type ?? "").toUpperCase();
-  return {
-    all: rows.length,
-    hot: rows.filter((r) => r.temperature === "hot").length,
-    yks: rows.filter((r) => yksTypes.includes(examType(r))).length,
-    lgs: rows.filter((r) => examType(r) === "LGS").length,
-    delayed: rows.filter(
-      (r) => r.next_follow_up && new Date(r.next_follow_up) < new Date(),
-    ).length,
-    waiting: rows.filter((r) => (r.signals?.length ?? 0) === 0).length,
-  };
+  const counts: Record<string, number> = { all: rows.length };
+  for (const row of rows) {
+    for (const tag of chipTagsOfRow(row)) {
+      counts[tag] = (counts[tag] ?? 0) + 1;
+    }
+  }
+  return counts;
 }
 
 /** Canlı lead satırlarını CRM kanban kart modeline çevirir. */
@@ -184,6 +192,7 @@ export function buildLeadsView(rows: LiveLeadRow[]): Lead[] {
     return {
       id: row.id,
       stage: DB_STAGE_TO_KANBAN[row.stage] ?? "yeni",
+      chipTags: chipTagsOfRow(row),
       initials: initialsOf(name) || "V",
       avatarClass: AVATAR_STYLES[temp] ?? AVATAR_STYLES.cold,
       badgeIcon: channel.icon,

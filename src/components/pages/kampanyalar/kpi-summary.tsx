@@ -17,7 +17,7 @@ export function KpiSummary() {
               </span>
             </>
           }
-          hint={<>Hedefin %{reached.percent}'ine ulaşıldı</>}
+          hint={<>Hedefin %{reached.percent}&apos;ine ulaşıldı</>}
         />
         <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-surface-container-low">
           <div

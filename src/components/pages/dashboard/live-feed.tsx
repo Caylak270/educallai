@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { clsx } from "@/lib/clsx";
 import { feedItems } from "@/lib/mock/kpis";
+import { RefreshButton } from "@/components/ui/refresh-button";
 
 /* Son AI Görüşmeleri & Canlı İletişim Akışı */
 export function LiveFeed() {
@@ -21,13 +22,7 @@ export function LiveFeed() {
             Canlı çağrı dökümleri ve WhatsApp etkileşim özeti
           </p>
         </div>
-        <button
-          className="flex h-8 items-center gap-1 rounded-lg bg-surface-container px-3 font-label-sm text-label-sm font-semibold text-on-surface transition-colors hover:bg-surface-container-high"
-          type="button"
-        >
-          <span className="material-symbols-outlined text-[16px]">sync</span>
-          <span>Yenile</span>
-        </button>
+        <RefreshButton className="flex h-8 items-center gap-1 rounded-lg bg-surface-container px-3 font-label-sm text-label-sm font-semibold text-on-surface transition-colors hover:bg-surface-container-high" />
       </div>
 
       {/* Akış kartları */}
