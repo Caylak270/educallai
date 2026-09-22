@@ -87,6 +87,8 @@ async def main():
         print("  dispatch:", str(e)[:100])
 
     await asyncio.wait_for(agent_track.wait(), timeout=25)
+    # Proaktif karşılama ("Merhaba iyi günler") ile soru üst üste binmesin
+    await asyncio.sleep(4)
 
     # Soruyu gönder
     source = rtc.AudioSource(SR, 1)

@@ -243,6 +243,9 @@ class CascadePipeline:
                     # Gemini API 400 veriyor: "deadline 5s is too short, min 10s"
                     # → SDK timeout'unu 30s'e çek (ms cinsinden HttpOptions).
                     http_options=types.HttpOptions(timeout=30_000),
+                    # 2.5-flash düşünme modu ilk token'ı geciktirir — sesli
+                    # konuşma için kapatılır (daha hızlı + kota dostu).
+                    thinking_config=types.ThinkingConfig(thinking_budget=0),
                 )
             )
             self._note("LLM birincil: Gemini (test) — OpenAI ikinci sıraya alındı")

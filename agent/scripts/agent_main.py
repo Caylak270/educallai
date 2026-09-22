@@ -404,27 +404,16 @@ def main() -> None:  # pragma: no cover - canlı ortam bloğu
             room=ctx.room,
             # LiveKit Cloud BVC gürültü engelleme (Builder'daki Quali VF S
             # eşdeğeri) — mikrofon/gürültü filtresi, tüm modlarda etkin.
-            room_input_options=RoomInputOptions(noise_cancellation=BVC()),
+            # NOT: BVC gürültü engelleme geçici kaldırıldı — RoomIO input
+            # kurulumunu takıyordu (ajan ses track'i hiç publish etmiyordu).
+            # accepted_sources default [MICROPHONE] ile sorun yok.
+            # room_input_options=RoomInputOptions(noise_cancellation=BVC()),
         )
 
-        # ── PROAKTİF KARŞILAMA (STOAIX tarzı) ────────────────────────
-        # Veli odaya girdiği an yöneticinin tanımladığı İLK KARŞILAMA
-        # söylenir — veli "merhaba" demek zorunda kalmadan ajan konuşur.
-        greeting_done = {"said": False}
-
-        def _greet_once(participant) -> None:
-            if greeting_done["said"] or not agent_prompt.greeting:
-                return
-            greeting_done["said"] = True
-            logger.info("Proaktif karşılama: %s", agent_prompt.greeting)
-            asyncio.create_task(
-                session.say(agent_prompt.greeting, allow_interruptions=True)
-            )
-
-        ctx.room.on("participant_connected", _greet_once)
-        # Ajan veliden önce odaya girdiyse mevcut katılımcıyı tara
-        for _p in ctx.room.remote_participants.values():
-            _greet_once(_p)
+        # ── PROAKTİF KARŞILAMA (geçici devre dışı) ───────────────────
+        # Not: session.say RoomIO hazır olmadan çağrılınca input stream
+        # takılıyordu; greeting talimatı promptta kaldığından ajan ilk
+        # yanıtında yine "Merhaba iyi günler." ile açılıyor (23:58 kanıt).
         # Sistem 5 (canlı): ambiyans maskeleme — yumuşak kahverengi gürültü,
         # ajan konuşurken kısılır (fade), hat düştü hissini engeller.
 
