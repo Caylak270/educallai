@@ -322,6 +322,7 @@ def main() -> None:  # pragma: no cover - canlı ortam bloğu
         state["eot_ts"] = None    # kullanıcının SON SES anı (hissiyat ölçümü)
         state["eot_arrival"] = None  # VAD'ın tur kapatma kararının geldiği an
         state["user_speaking"] = False
+        state["filler_said"] = False  # tur başına tek dolgu
 
         @session.on("conversation_item_added")
         def _on_item(ev) -> None:
@@ -393,6 +394,25 @@ def main() -> None:  # pragma: no cover - canlı ortam bloğu
             agent=VeliPilotAgent(),
             room=ctx.room,
         )
+
+        # ── PROAKTİF KARŞILAMA (STOAIX tarzı) ────────────────────────
+        # Veli odaya girdiği an yöneticinin tanımladığı İLK KARŞILAMA
+        # söylenir — veli "merhaba" demek zorunda kalmadan ajan konuşur.
+        greeting_done = {"said": False}
+
+        def _greet_once(participant) -> None:
+            if greeting_done["said"] or not agent_prompt.greeting:
+                return
+            greeting_done["said"] = True
+            logger.info("Proaktif karşılama: %s", agent_prompt.greeting)
+            asyncio.create_task(
+                session.say(agent_prompt.greeting, allow_interruptions=True)
+            )
+
+        ctx.room.on("participant_connected", _greet_once)
+        # Ajan veliden önce odaya girdiyse mevcut katılımcıyı tara
+        for _p in ctx.room.remote_participants.values():
+            _greet_once(_p)
         # Sistem 5 (canlı): ambiyans maskeleme — yumuşak kahverengi gürültü,
         # ajan konuşurken kısılır (fade), hat düştü hissini engeller.
 
@@ -491,15 +511,14 @@ def main() -> None:  # pragma: no cover - canlı ortam bloğu
 
         ctx.add_shutdown_callback(save_to_crm)
 
-        # ── DOLGU SESİ (ölü sessizlik = hat düştü hissi) ─────────────
-        # Kullanıcı turunu bitirdikten ~1.3 sn içinde yanıt başlamadıysa
-        # kısa doğal dolgu söylenir; ajan konuşmaya başlayınca iptal edilir.
+        # ── DOLGU SESİ (backchannel) ─────────────────────────────────
+        # Veli sustuktan ~0.9 sn içinde yanıt başlamadıysa KISA nötr bir
+        # dolgu söylenir (tur başına TEK — "bakayım" spam'i doğal değil);
+        # ajan konuşmaya başlayınca iptal edilir.
 
         fillers = [
-            "Bir saniye, bakayım.",
-            "Hım, şimdi bakıyorum.",
-            "Tamam, bir saniye.",
             "Hımm.",
+            "Bir saniye.",
         ]
         @session.on("agent_state_changed")
         def _on_agent_state(ev) -> None:
@@ -548,6 +567,7 @@ def main() -> None:  # pragma: no cover - canlı ortam bloğu
             ts = getattr(ev, "created_at", None) or _time.time()
             if st == "speaking":
                 state["user_speaking"] = True
+                state["filler_said"] = False  # yeni tur → dolgu hakkı sıfırlanır
             elif st == "listening" and state["user_speaking"]:
                 state["user_speaking"] = False
                 # created_at = son gerçek ses anı (hissiyat); arrival = kararın
@@ -567,12 +587,12 @@ def main() -> None:  # pragma: no cover - canlı ortam bloğu
                 else:
                     async def _maybe_filler() -> None:
                         try:
-                            # 600ms: algılanan gecikmeyi düşüren backchannel
-                            # hızı (Parloa bulgusu: erken "bir bakayım" velinin
-                            # zihinsel saatini sıfırlar); 200ms'de her nefeste
-                            # devreye girerdi — dengeli değer.
-                            await asyncio.sleep(0.6)
-                            if not state["speaking"]:
+                            # 900ms backchannel + TUR BAŞINA TEK: her duraklamada
+                            # "bir saniye bakayım" spam'i doğal değil (veli
+                            # "kafayı yedi" dedi) — kısa nötr dolgular, tek sefer.
+                            await asyncio.sleep(0.9)
+                            if not state["speaking"] and not state["filler_said"]:
+                                state["filler_said"] = True
                                 await session.say(
                                     random.choice(fillers),
                                     allow_interruptions=True,
