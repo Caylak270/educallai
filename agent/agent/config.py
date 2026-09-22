@@ -84,6 +84,7 @@ class AgentConfig:
     anthropic_api_key: str = ""
     openai_api_key: str = ""
     cartesia_api_key: str = ""
+    gemini_api_key: str = ""  # test amaçlı birincil LLM (OpenAI kredi bitince, 2026-09-22)
 
     # --- Veri / bildirim ---
     supabase_url: str = ""
@@ -99,7 +100,9 @@ class AgentConfig:
     deepgram_model: str = "nova-3"
     deepgram_language: str = "tr"
     # 2026-09-20 karar: OpenAI birincil LLM (maliyet ~6x düşük)
+    # 2026-09-22: GEMINI_API_KEY verilirse Gemini birincil (OpenAI kredi 429), OpenAI yedeğe düşer
     llm_primary_model: str = "gpt-4o-mini"  # OpenAI — sesli arama ana motoru
+    llm_gemini_model: str = "gemini-2.5-flash"
     llm_fallback_model: str = "claude-haiku-4-5"  # opsiyonel yedek (anahtar varsa)
     reporting_model: str = "gpt-4o"  # deneme trendi + haftalık rapor (tek motor)
     cartesia_model: str = "sonic-3"  # canlı doğrulandı (kullanıcı anahtarıyla 200 OK)

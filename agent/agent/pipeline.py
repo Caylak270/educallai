@@ -228,7 +228,26 @@ class CascadePipeline:
             return None
         from livekit.plugins import openai
 
-        models: list[Any] = [openai.LLM(model=self.config.llm_primary_model)]
+        models: list[Any] = []
+
+        # 2026-09-22: GEMINI_API_KEY verilirse Gemini BİRİNCİL (OpenAI kredi
+        # 429'da çalışmıyor); anahtar yoksa OpenAI başa döner.
+        if self.config.gemini_api_key:
+            from livekit.plugins import google
+            from google.genai import types
+
+            models.append(
+                google.LLM(
+                    model=self.config.llm_gemini_model,
+                    api_key=self.config.gemini_api_key,
+                    # Gemini API 400 veriyor: "deadline 5s is too short, min 10s"
+                    # → SDK timeout'unu 30s'e çek (ms cinsinden HttpOptions).
+                    http_options=types.HttpOptions(timeout=30_000),
+                )
+            )
+            self._note("LLM birincil: Gemini (test) — OpenAI ikinci sıraya alındı")
+
+        models.append(openai.LLM(model=self.config.llm_primary_model))
 
         anthropic_key = getattr(self.config, "anthropic_api_key", "")
         if anthropic_key:
