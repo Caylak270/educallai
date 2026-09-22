@@ -64,8 +64,17 @@ def main() -> None:  # pragma: no cover - canlı ortam bloğu
     """LiveKit CLI worker'ını başlatır (anahtarlar olmadan çalışmaz)."""
     # --- Sağlayıcı import'ları YALNIZCA canlı çalıştırmada gerekli ---
     try:
-        from livekit.agents import Agent, AgentSession, JobContext, cli, function_tool, llm
+        from livekit.agents import (
+            Agent,
+            AgentSession,
+            JobContext,
+            RoomInputOptions,
+            cli,
+            function_tool,
+            llm,
+        )
         from livekit.plugins import cartesia, deepgram, openai, silero
+        from livekit.plugins.noise_cancellation import BVC
     except ImportError as exc:
         raise SystemExit(
             "livekit-agents kurulu değil. Kurulum: "
@@ -393,6 +402,9 @@ def main() -> None:  # pragma: no cover - canlı ortam bloğu
         await session.start(
             agent=VeliPilotAgent(),
             room=ctx.room,
+            # LiveKit Cloud BVC gürültü engelleme (Builder'daki Quali VF S
+            # eşdeğeri) — mikrofon/gürültü filtresi, tüm modlarda etkin.
+            room_input_options=RoomInputOptions(noise_cancellation=BVC()),
         )
 
         # ── PROAKTİF KARŞILAMA (STOAIX tarzı) ────────────────────────

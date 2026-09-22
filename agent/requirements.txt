@@ -24,3 +24,5 @@ python-dotenv>=1.0     # .env yükleme (config.from_env)
 
 # --- Dev / test ---
 pytest>=8.0            # agent/tests paketi
+livekit-plugins-noise-cancellation
+livekit-plugins-google
