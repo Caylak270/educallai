@@ -171,6 +171,9 @@ def build_system_prompt(
     contact_summary: str | Mapping[str, object] | None = None,
     extra_rules: str | None = None,
     custom_block: str | None = None,
+    custom_full: bool = False,
+    kvkk_enabled: bool | None = None,
+    kvkk_text: str | None = None,
 ) -> str:
     """Tam system prompt'u birleştirir.
 
@@ -183,6 +186,11 @@ def build_system_prompt(
         extra_rules: Kiracıya özel ek kurallar (opsiyonel).
         custom_block: Dashboard "Ajan Promptu" kartından gelen, yönetici
             tanımlı Türkçe blok (prompt_settings.build_prompt_block çıktısı).
+        custom_full: True ise yönetici talimatı ANA GÖVDE olur — yerleşik
+            persona/konuşma stili devre dışı kalır; yalnızca değiştirilemez
+            sistem kuralları (KVKK, yetkiler, sinyal kaydı, okunuş) korunur.
+        kvkk_enabled/kvkk_text: tam denetimde kayıt bildirimi tercihi
+            (None/True = standart; False = bildirim yok; metin = özel bildirim).
 
     Returns:
         Birleşik Türkçe system prompt metni.
@@ -191,6 +199,19 @@ def build_system_prompt(
     allowed_text = (
         ", ".join(allowed) if allowed else "yok (yalnızca sohbet ve kayıt)"
     )
+
+    # TAM DENETİM: yönetici talimat girdiyse onu ana gövde yap; yalnızca
+    # değiştirilemez sistem kurallarını (KVKK, yetki, sinyal, okunuş) sonda tut.
+    if custom_full and custom_block:
+        from .prompt_settings import build_mandatory_rules
+
+        mandatory = build_mandatory_rules(
+            allowed_text=allowed_text,
+            kvkk_enabled=kvkk_enabled,
+            kvkk_text=kvkk_text,
+        )
+        return custom_block.strip() + "\n\n" + mandatory
+
     blocks = [
         PERSONA_BLOCK.format(dershane_name=dershane_name),
         KONUSMA_STILI_BLOCK,

@@ -367,7 +367,9 @@ def main() -> None:  # pragma: no cover - canlı ortam bloğu
             "Ajan promptu: ad=%s greeting=%s blok=%s",
             agent_prompt.assistant_name or "-",
             agent_prompt.greeting or "-",
-            f"{len(prompt_block)} karakter" if prompt_block else "boş",
+            f"tam denetim {len(prompt_block)} kr"
+            if agent_prompt.instructions and prompt_block
+            else (f"{len(prompt_block)} kr" if prompt_block else "boş"),
         )
 
         class VeliPilotAgent(Agent):
@@ -379,6 +381,10 @@ def main() -> None:  # pragma: no cover - canlı ortam bloğu
                         dershane_name="Limit Dershane",
                         capabilities=capabilities,
                         custom_block=prompt_block,
+                        # Yönetici talimat girdiyse o talimat ANA GÖVDE olur
+                        custom_full=bool(agent_prompt.instructions),
+                        kvkk_enabled=agent_prompt.kvkk_enabled,
+                        kvkk_text=agent_prompt.kvkk_text,
                     ),
                     tools=live_tools,
                 )

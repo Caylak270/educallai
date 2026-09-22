@@ -29,6 +29,8 @@ interface PromptPayload {
   avoid_rules?: AvoidRule[];
   fallback_reply?: string | null;
   examples?: Example[];
+  kvkk_enabled?: boolean | null;
+  kvkk_text?: string | null;
 }
 
 const TONE_OPTIONS = [
@@ -84,6 +86,8 @@ export function AgentPromptCard({ showToast }: VoiceTestLike) {
   const [rules, setRules] = useState<AvoidRule[]>([]);
   const [fallback, setFallback] = useState("");
   const [examples, setExamples] = useState<Example[]>([]);
+  const [kvkkOn, setKvkkOn] = useState(true);
+  const [kvkkText, setKvkkText] = useState("");
 
   useEffect(() => {
     let alive = true;
@@ -101,6 +105,8 @@ export function AgentPromptCard({ showToast }: VoiceTestLike) {
         setRules(p.avoid_rules ?? []);
         setFallback(p.fallback_reply ?? "");
         setExamples(p.examples ?? []);
+        setKvkkOn(p.kvkk_enabled !== false); // null/true → açık (yasal varsayılan)
+        setKvkkText(p.kvkk_text ?? "");
       } catch {
         // dosya yoksa varsayılan boş form
       } finally {
@@ -127,6 +133,8 @@ export function AgentPromptCard({ showToast }: VoiceTestLike) {
           avoid_rules: rules,
           fallback_reply: fallback || null,
           examples,
+          kvkk_enabled: kvkkOn,
+          kvkk_text: kvkkOn ? kvkkText || null : null,
         }),
       });
       if (!res.ok) {
@@ -141,7 +149,7 @@ export function AgentPromptCard({ showToast }: VoiceTestLike) {
     } finally {
       setSaving(false);
     }
-  }, [name, greeting, tone, instructions, fields, rules, fallback, examples, showToast]);
+  }, [name, greeting, tone, instructions, fields, rules, fallback, examples, kvkkOn, kvkkText, showToast]);
 
   return (
     <section className="flex flex-col gap-4 rounded-xl border border-outline-variant/60 bg-surface-container-lowest p-space-lg">
@@ -210,7 +218,7 @@ export function AgentPromptCard({ showToast }: VoiceTestLike) {
           </label>
 
           <Section
-            desc="Ajanın görevi, görev tanımı ve özel talimatların. Persona ve güvenlik kuralları korunur; bu metin onlara EKLENİR."
+            desc="Bu alanı doldurduğunuzda ajan yerleşik davranışını BIRAKIR ve sizin talimatlarınıza göre konuşur (yalnızca KVKK, yetki ve kayıt kuralları korunur). Boş bırakırsanız yerleşik danışman kişiliği kullanılır."
             title="Asistan Talimatları"
           >
             <textarea
@@ -341,6 +349,32 @@ export function AgentPromptCard({ showToast }: VoiceTestLike) {
                 <span className="material-symbols-outlined text-[18px]">add</span>
                 Kural Ekle ({rules.length}/8)
               </button>
+            ) : null}
+          </Section>
+
+          {/* Kayıt bildirimi (KVKK) */}
+          <Section
+            desc="Ajan, selamlaşmadan hemen sonra görüşmenin kayıt altında olduğunu bildirir. Yasal güvence için AÇIK tutulması önerilir; kapatırsanız ajan hiçbir kayıt bildirimi yapmaz."
+            title="Kayıt Bildirimi (KVKK)"
+          >
+            <label className="flex items-center gap-2 font-label-md text-label-md text-on-surface">
+              <input
+                checked={kvkkOn}
+                className="accent-primary"
+                onChange={(e) => setKvkkOn(e.target.checked)}
+                type="checkbox"
+              />
+              Ajan kayıt bildirimi yapsın
+            </label>
+            {kvkkOn ? (
+              <input
+                className={inputClass}
+                maxLength={400}
+                onChange={(e) => setKvkkText(e.target.value)}
+                placeholder="Bu arada söyleyeyim, ben yapay zekayım — konuşmamız eğitim kalitesi için kayıt altında, tamam mı?"
+                type="text"
+                value={kvkkText}
+              />
             ) : null}
           </Section>
 

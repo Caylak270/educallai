@@ -37,6 +37,13 @@ MAX_RULES = 8
 MAX_EXAMPLES = 5
 MAX_TEXT_CHARS = 400
 
+#: Varsayılan kayıt bildirimi (prompts.KVKK_DISCLOSURE_SHORT ile aynı metin;
+#: ayrı tanımlı — modüller arası import döngüsü olmasın).
+DEFAULT_KVKK_TEXT = (
+    "Bu arada söyleyeyim, ben yapay zekayım — konuşmamız eğitim kalitesi "
+    "için kayıt altında, tamam mı?"
+)
+
 #: Konuşma tonu anahtarı → veliye hitap cümlesi (system prompt'a girer).
 TONES: dict[str, str] = {
     "sıcak_profesyonel": "Sıcak ve profesyonel bir üslupla, veliye güven veren bir ton kullan.",
@@ -75,6 +82,9 @@ class AgentPrompt:
     avoid_rules: list[AvoidRule] = field(default_factory=list)
     fallback_reply: str | None = None
     examples: list[ExampleDialogue] = field(default_factory=list)
+    #: True/False = yönetici kararı; None = varsayılan (bildirim AÇIK — yasal güvence)
+    kvkk_enabled: bool | None = None
+    kvkk_text: str | None = None
 
     def is_empty(self) -> bool:
         return not (
@@ -86,6 +96,8 @@ class AgentPrompt:
             or self.avoid_rules
             or self.fallback_reply
             or self.examples
+            or self.kvkk_enabled is not None
+            or self.kvkk_text
         )
 
 
@@ -145,7 +157,55 @@ def load_agent_prompt(path: Path | str = DEFAULT_PROMPT_PATH) -> AgentPrompt:
         avoid_rules=rules,
         fallback_reply=_clean_text(data.get("fallback_reply"))[:MAX_TEXT_CHARS] or None,
         examples=examples,
+        kvkk_enabled=(
+            bool(data["kvkk_enabled"]) if isinstance(data.get("kvkk_enabled"), bool) else None
+        ),
+        kvkk_text=_clean_text(data.get("kvkk_text"))[:MAX_TEXT_CHARS] or None,
     )
+
+
+def build_mandatory_rules(
+    allowed_text: str,
+    kvkk_enabled: bool | None = True,
+    kvkk_text: str | None = None,
+) -> str:
+    """Değiştirilemez sistem kuralları bloğu — TALİMAT GİRİLMİŞ (tam denetim)
+    modunda yönetici bloğunun sonuna eklenir.
+
+    Args:
+        allowed_text: İzinli araç listesi metni (virgülle).
+        kvkk_enabled: None/True = standart kayıt bildirimi; False = bildirim YOK
+            (yönetici açıkça kapatmış); kvkk_text verilirse onu kullanır.
+        kvkk_text: Yöneticinin özel kayıt bildirimi metni.
+    """
+    use_default = kvkk_enabled is not False
+    custom_text = (kvkk_text or "").strip()
+    if custom_text:
+        kvkk_line = (
+            f'1. Kayıt bildirimi: selamlaşmadan hemen sonra şu cümleyi doğal biçimde '
+            f'söyle: "{custom_text}"'
+        )
+    elif use_default:
+        kvkk_line = (
+            '1. KVKK bildirimi: selamlaşmadan hemen sonra şu cümleyi doğal biçimde söyle:\n'
+            '   "' + DEFAULT_KVKK_TEXT + '"'
+        )
+    else:
+        kvkk_line = (
+            "1. Kayıt bildirimi YAPMA — veliye \"kayıt altındasınız\", \"KVKK\" gibi "
+            "ifadeler söyleme; doğrudan selamla ve konuya gir."
+        )
+    return f"""\
+# ZORUNLU SİSTEM KURALLARI (DEĞİŞTİRİLEMEZ)
+{kvkk_line}
+2. İzinli araçların: {allowed_text}. Bir araç soruya uyuyorsa cevabı MUTLAKA
+   aracı çağırarak ver; listede olmayan bir işlemi yapamazsın ve yapmış gibi
+   davranamazsın — gerekirse insana aktarım öner.
+3. Görüşme boyunca en az bir kez `record_signals` aracıyla velinin duygu,
+   niyet ve kayda hazırlık sinyallerini kaydet.
+4. Kısaltmaları seslendirirken Türkçe harf adlarıyla oku: TYT→"te ye te",
+   AYT→"a ye te", YKS→"ye ke se", LGS→"le ge se"; educallai→"Edukallay".
+5. Yetkin olmayan indirim, taviz veya sonuç vaadi ASLA verme."""
 
 
 def build_prompt_block(prompt: AgentPrompt) -> str | None:

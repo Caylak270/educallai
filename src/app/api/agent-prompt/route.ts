@@ -33,6 +33,8 @@ type PromptPayload = {
   avoid_rules: Rule[];
   fallback_reply: string | null;
   examples: Example[];
+  kvkk_enabled: boolean | null;
+  kvkk_text: string | null;
 };
 
 function clampText(v: unknown, max: number): string | null {
@@ -80,6 +82,8 @@ function sanitize(body: Record<string, unknown>): PromptPayload {
     avoid_rules,
     fallback_reply: clampText(body.fallback_reply, MAX.text),
     examples,
+    kvkk_enabled: typeof body.kvkk_enabled === "boolean" ? body.kvkk_enabled : null,
+    kvkk_text: clampText(body.kvkk_text, MAX.text),
   };
 }
 
