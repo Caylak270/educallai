@@ -246,8 +246,20 @@ class CascadePipeline:
                     )
                 )
             self._note(
-                "LLM: Groq gpt-oss-120b → gpt-oss-20b → Gemini → (OpenAI pasif)"
+                "LLM: Groq gpt-oss-120b → gpt-oss-20b → OpenRouter(gemma-4) → Gemini → (OpenAI pasif)"
             )
+
+        # 2026-09-23: OPENROUTER_API_KEY varsa Gemma 4 31B 3. hat (Claude önerisi:
+        # saf hız). Groq günlük kotaları dolunca devreye girer.
+        if self.config.openrouter_api_key:
+            models.append(
+                openai.LLM(
+                    model=self.config.llm_openrouter_model,
+                    api_key=self.config.openrouter_api_key,
+                    base_url="https://openrouter.ai/api/v1",
+                )
+            )
+            self._note("LLM hat: OpenRouter " + self.config.llm_openrouter_model)
 
         # 2026-09-23 Claude önerisi: sesli konuşmada ANA MOTOR Claude Haiku
         # (TR doğallık + güvenilirlik); Gemini/OpenAI yedeğe düşer. Anahtar

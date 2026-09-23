@@ -87,6 +87,8 @@ class AgentConfig:
     gemini_api_key: str = ""  # test amaçlı birincil LLM (OpenAI kredi bitince, 2026-09-22)
     groq_api_key: str = ""  # 2026-09-23: birincil — gpt-oss-120b Groq LPU (ücretsiz, ~1sn)
     llm_groq_model: str = "openai/gpt-oss-120b"
+    openrouter_api_key: str = ""  # 2026-09-23: Groq kotaları dolunca 3. hat
+    llm_openrouter_model: str = "google/gemma-4-31b-it"  # Claude önerisi (hız)
 
     # --- Veri / bildirim ---
     supabase_url: str = ""
