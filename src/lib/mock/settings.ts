@@ -80,6 +80,28 @@ export const agentRouting = {
   contact: "Dahili: 104 • 0850 885 91 22",
 };
 
+/** İnsana yönlendirme hedefi — dershaneler.capabilities.human_handoff alanına yazılır. */
+export type HumanHandoffTarget = "advisor" | "manager" | "off";
+
+export const humanHandoffTargets: Array<{
+  id: HumanHandoffTarget;
+  label: string;
+  /** Yönlendirme kutusunda görünen açıklama. */
+  boxLabel: string;
+  boxContact?: string;
+}> = [
+  {
+    id: "advisor",
+    label: "Danışman",
+    boxLabel: agentRouting.desk,
+    boxContact: agentRouting.contact,
+  },
+  { id: "manager", label: "Müdür", boxLabel: "Müdür Masası (mesai saatleri içinde)" },
+  { id: "off", label: "Kapalı", boxLabel: "Yönlendirme kapalı — AI görüşmeyi kibarca sonlandırır" },
+];
+
+export const DEFAULT_HUMAN_HANDOFF: HumanHandoffTarget = "advisor";
+
 export type ScheduleRowConfig = {
   id: string;
   label: string;
@@ -215,6 +237,8 @@ export type ScheduleRowState = {
 
 export type SettingsState = {
   capabilities: Record<string, boolean>;
+  /** İnsana yönlendirme hedefi (capabilities.human_handoff). */
+  humanHandoff: HumanHandoffTarget;
   schedule: ScheduleRowState[];
   retryHours: number;
   dailyCallLimit: number;
@@ -226,6 +250,7 @@ export type SettingsState = {
 
 export const DEFAULT_SETTINGS: SettingsState = {
   capabilities: Object.fromEntries(capabilityToggles.map((toggle) => [toggle.id, true])),
+  humanHandoff: DEFAULT_HUMAN_HANDOFF,
   schedule: scheduleRows.map((row) => ({
     id: row.id,
     enabled: row.defaultEnabled,

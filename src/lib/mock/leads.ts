@@ -4,12 +4,26 @@
   (Zeynep Kaya drawer içeriği tasarımdaki hâliyle; diğer leadler için uyduyo içerik yazılmıştır.)
 */
 
+/**
+ * Lead kartı hızlı aksiyonlarının türü — LeadCard gerçek davranışı buna göre bağlar:
+ * call → POST /api/calls (AI arama) · appointment → /randevular?odak=yeni
+ * whatsapp → wa.me derin bağlantı · assign/remind → gerçek API yok, "Yakında"
+ * soon → henüz işlevi olmayan aksiyon (dürüst disabled).
+ */
+export type LeadActionKind =
+  | "call"
+  | "appointment"
+  | "whatsapp"
+  | "assign"
+  | "remind"
+  | "soon";
+
 export type LeadAction = {
   icon: string;
   label: string;
   style: "primary" | "neutral";
   iconClass?: string;
-  message: string;
+  kind: LeadActionKind;
 };
 
 export type LeadTimelineItem = {
@@ -105,13 +119,13 @@ export const leads: Lead[] = [
         icon: "record_voice_over",
         label: "Tekrar Ara (AI)",
         style: "primary",
-        message: "AI Voice Bot araması başlatılıyor...",
+        kind: "call",
       },
       {
         icon: "assignment_ind",
         label: "Danışman Ata",
         style: "neutral",
-        message: "Rehber Danışman atama penceresi açıldı.",
+        kind: "assign",
       },
     ],
     drawer: {
@@ -195,13 +209,13 @@ export const leads: Lead[] = [
         label: "Mesajı Aç",
         style: "neutral",
         iconClass: "text-secondary",
-        message: "WhatsApp konuşması açılıyor...",
+        kind: "whatsapp",
       },
       {
         icon: "event",
         label: "Randevu Yaz",
         style: "neutral",
-        message: "Randevu yazma ekranı açılıyor...",
+        kind: "appointment",
       },
     ],
     drawer: {
@@ -282,7 +296,7 @@ export const leads: Lead[] = [
         icon: "alarm",
         label: "Hatırlatıcı Kur",
         style: "neutral",
-        message: "Hatırlatıcı kuruluyor...",
+        kind: "remind",
       },
     ],
     drawer: {

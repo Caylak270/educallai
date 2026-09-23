@@ -1,0 +1,51 @@
+KVKK AYDINLATMA METNİ
+6698 Sayılı Kişisel Verilerin Korunması Kanunu Kapsamında Aydınlatma Yükümlülüğü
+(Limit Eğitim Kurumları A.Ş. — AI Sesli Asistan ve Veli İletişim Sistemleri)
+
+Son güncelleme: Eylül 2026
+
+1. VERİ SORUMLUSU
+Kişisel verileriniz, 6698 sayılı Kişisel Verilerin Korunması Kanunu ("KVKK") uyarınca,
+veri sorumlusu olarak Limit Eğitim Kurumları A.Ş. (adres ve iletişim bilgileri:
+mersis kaydımız ve kurumsal internet sitemizde yayımlanmıştır) tarafından aşağıda
+açıklanan kapsamda işlenmektedir.
+
+2. İŞLENEN KİŞİSEL VERİLER
+AI sesli arama ve veli iletişim sistemlerimiz kapsamında şu veriler işlenir:
+- Kimlik ve iletişim verileri: veli ad-soyad, telefon numarası,
+- Öğrenci verileri: ad-soyad, sınıf/seviye bilgisi, deneme sınavı sonuç özetleri (yalnızca doğrulama ile paylaşılır),
+- Çağrı verileri: arama tarihi/saati, görüşme süresi, arama sonucu (ulasıldı/ulasılamadı), randevu kaydı,
+- Ses kayıtları: görüşme başında ayrıca duyurulan kayıt altına alma bildirimine istinaden sesli görüşme kaydı,
+- Taksit ve ödeme hatırlatma kayıtları (tutar ve vade bilgisi; kart/banka verisi ASLA işlenmez veya saklanmaz).
+
+3. İŞLEME AMACLARI VE HUKUKİ SEBEPLER
+Verileriniz şu amaçlarla işlenir:
+a) Kayıt, randevu ve deneme sınavı süreçlerinin yürütülmesi — Sözleşmenin kurulması/ifası (m.5/2-c),
+b) Taksit ve ödeme hatırlatmalarının iletilmesi — Meşru menfaat (m.5/2-f) ve sözleşmesel ilişki,
+c) Görüşme kalite ve eğitim takibi için ses kayıtları — Açık rızanız (m.5/1); rıza vermezseniz bu kayıt yapılmadan da hizmet alabilirsiniz,
+ç) İYS (İleti Yönetim Sistemi) kontrolleri — Ticari elektronik ileti onayınız ve mevzuat yükümlülüğü (6502 sayılı TKHK m.6),
+d) Hukuki yükümlülüklerin yerine getirilmesi ve uyuşmazlık savunması — Mevzuat yükümlülüğü (m.5/2-ç) ve hukuki taleplerin korunması.
+
+4. AKTARIM
+Verileriniz; yurt içinde barındırılan veri tabanı, sesli arama altyapısı (SIP/telefon operatörü) ve
+ileti gönderim sağlayıcılarına, yalnızca bu amaçlar için ve gerekli güvenlik tedbirleri alınarak aktarılır.
+Yapay zeka model sağlayıcılarına görüşme metinleri, kimlik verisi içeremeyecek şekilde ayrık/soyutlanmış
+formda aktarılabilir; ses kayıtları 90 gün sonunda otomatik olarak anonimleştirilir.
+
+5. VERİ GÜVENLİĞİ
+Verileriniz şifreli aktarım, erişim yetki matrisi ve günlük kayıt (log) denetimi ile korunur.
+Veliniz "Bir daha aramayın" beyanında bulunursa numaranız kara listeye alınır ve otomatik aramalar derhal durdurulur.
+
+6. İLGİLİ KİŞİNİN HAKLARI (KVKK m.11)
+KVKK'nın 11. maddesi uyarınca; verilerinizin işlenip işlenmediğini öğrenme, bilgi talep etme,
+düzeltilmesini veya silinmesini isteme, işlemeye itiraz etme ve zararın giderilmesini talep etme
+haklarına sahipsiniz. Taleplerinizi kvkk@limitdershane.example adresine veya kuruma yazılı olarak iletebilirsiniz.
+
+7. İYS VE RET HAKKI
+Ticari elektronik ileti onayınızı İYS üzerinden dilediğiniz zaman geri alabilirsiniz;
+ret hakkı kullanan numaralar arama kuyruğundan otomatik olarak düşürülür.
+
+---
+Not: Bu metin bilgilendirme amaçlı bir taslaktır; yürürlükteki mevzuata ve kurumun
+resmî aydınlatma metnine düzenli olarak uyarlanır. Hukuki bağlayıcılığı için
+veri sorumlusunun onaylı nihai metni esastır.

@@ -1,6 +1,3 @@
-"use client";
-
-import { useState } from "react";
 import { clsx } from "@/lib/clsx";
 import type { AudioPlayerData } from "@/lib/mock/calls";
 
@@ -20,37 +17,28 @@ const barHeight: Record<number, string> = {
   14: "h-14",
 };
 
+/**
+ * Ses oynatıcı — kayıt saklama (audio_url) henüz entegre değil; sahte oynatma/
+ * indirme kontrolleri yerine dürüst bilgilendirme + statik dalga görseli sunar.
+ * Gerçek kayıt URL'i veri yoluna eklendiğinde buraya gerçek <audio> bağlanacak.
+ */
 export function AudioPlayer({ audio }: { audio: AudioPlayerData }) {
-  const [isPlaying, setIsPlaying] = useState(true);
-  const [speed, setSpeed] = useState(audio.defaultSpeed);
-
   return (
     <div className="flex flex-col gap-4 rounded-xl border border-outline-variant/60 bg-surface-container-lowest p-5">
-      {/* Kanal bilgisi & indirme */}
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex min-w-0 items-center gap-2">
-          <span className="h-2 w-2 shrink-0 rounded-full bg-secondary" />
-          <div className="flex min-w-0 flex-col">
-            <span className="truncate font-label-md text-label-md font-semibold text-on-surface">
-              {audio.channelTitle}
-            </span>
-            <span className="truncate font-label-sm text-label-sm text-on-surface-variant">
-              {audio.channelSubtitle}
-            </span>
-          </div>
-        </div>
-        <button
-          type="button"
-          aria-label="Ses Kaydını İndir"
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-surface-container-low text-on-surface-variant transition-colors hover:bg-surface-container-high hover:text-on-surface"
-        >
-          <span className="material-symbols-outlined text-[20px]">
-            download
+      {/* Kanal bilgisi */}
+      <div className="flex items-center gap-2">
+        <span className="h-2 w-2 shrink-0 rounded-full bg-secondary" />
+        <div className="flex min-w-0 flex-col">
+          <span className="truncate font-label-md text-label-md font-semibold text-on-surface">
+            {audio.channelTitle}
           </span>
-        </button>
+          <span className="truncate font-label-sm text-label-sm text-on-surface-variant">
+            {audio.channelSubtitle}
+          </span>
+        </div>
       </div>
 
-      {/* Waveform görselleştirici */}
+      {/* Dalga görselleştirici (statik görsel) */}
       <div className="w-full rounded-xl bg-surface-container-low px-3 py-2">
         <div className="flex h-14 items-center justify-between gap-1">
           {audio.playedBars.map((height, index) => (
@@ -59,7 +47,7 @@ export function AudioPlayer({ audio }: { audio: AudioPlayerData }) {
               className={clsx("anim-bar w-1 rounded-full bg-primary", barHeight[height])}
             />
           ))}
-          {/* Oynatma konumu işaretçisi */}
+          {/* Konum işaretçisi */}
           <div className="relative flex items-center justify-center">
             <span
               className={clsx(
@@ -79,68 +67,22 @@ export function AudioPlayer({ audio }: { audio: AudioPlayerData }) {
             />
           ))}
         </div>
-        {/* Scrubber & sayaç */}
+        {/* Sayaç */}
         <div className="mt-1 flex items-center justify-between font-mono-data text-mono-data text-on-surface-variant">
           <span className="font-semibold text-primary">{audio.elapsed}</span>
           <span>{audio.total}</span>
         </div>
       </div>
 
-      {/* Oynatıcı kontrolleri */}
-      <div className="flex items-center justify-between pt-1">
-        {/* Hız seçici */}
-        <div className="flex items-center rounded-lg bg-surface-container p-0.5">
-          {audio.speeds.map((option) => {
-            const isActive = option === speed;
-            return (
-              <button
-                key={option}
-                type="button"
-                onClick={() => setSpeed(option)}
-                className={clsx(
-                  "rounded-md px-2.5 py-1 font-label-sm text-label-sm transition-colors",
-                  isActive
-                    ? "bg-surface-container-lowest font-semibold text-primary"
-                    : "text-on-surface-variant hover:text-on-surface"
-                )}
-              >
-                {option}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Medya aksiyonları */}
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            aria-label="10 saniye geriye sar"
-            className="flex h-10 w-10 items-center justify-center rounded-full text-on-surface-variant transition-colors hover:bg-surface-container-low hover:text-on-surface"
-          >
-            <span className="material-symbols-outlined text-[24px]">
-              replay_10
-            </span>
-          </button>
-          <button
-            type="button"
-            aria-label="Oynat / Duraklat"
-            onClick={() => setIsPlaying((playing) => !playing)}
-            className="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-on-primary transition-all hover:opacity-90 active:scale-95"
-          >
-            <span className="material-symbols-outlined text-[28px]">
-              {isPlaying ? "pause" : "play_arrow"}
-            </span>
-          </button>
-          <button
-            type="button"
-            aria-label="10 saniye ileri sar"
-            className="flex h-10 w-10 items-center justify-center rounded-full text-on-surface-variant transition-colors hover:bg-surface-container-low hover:text-on-surface"
-          >
-            <span className="material-symbols-outlined text-[24px]">
-              forward_10
-            </span>
-          </button>
-        </div>
+      {/* Dürüst durum: kayıt saklama entegrasyonu bekleniyor */}
+      <div className="flex items-center gap-2 rounded-lg bg-surface-container px-3 py-2.5 text-on-surface-variant">
+        <span className="material-symbols-outlined shrink-0 text-[18px] text-outline">
+          volume_off
+        </span>
+        <span className="font-label-sm text-label-sm leading-snug">
+          Kayıt henüz saklanmıyor — oynatma ve indirme, kayıt saklama entegrasyonu
+          sonrası açılacak.
+        </span>
       </div>
     </div>
   );

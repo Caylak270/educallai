@@ -15,7 +15,11 @@ educallai/
 │   ├── app/(site)/         Pazarlama web sitesi: /web (16 bölüm, canlı CRM demosu)
 │   ├── app/demo/           /web içindeki canlı vitrine gömülü CRM demo ekranı
 │   ├── app/(app)/          Dashboard: /, /veliler, /gorusmeler/[id], /tahsilat,
-│   │                       /deneme-analizi, /kampanyalar, /randevular, /raporlar, /ayarlar
+│   │                       /deneme-analizi, /kampanyalar, /randevular, /raporlar,
+│   │                       /risk-paneli, /yoklama, /odevler, /ders-programi,
+│   │                       /ogretmen-bordro, /beceri-karnesi, /ogrenci-360,
+│   │                       /veli-bulteni, /etkinlikler, /referanslar,
+│   │                       /sinav-takvimi, /ayarlar
 │   ├── app/robots.ts       SEO: robots.txt + sitemap.xml
 │   ├── components/site/    Web sitesi bileşenleri (hero chat, kanban, reveal…)
 │   ├── components/shell/   Dashboard kabuğu: sidebar, mobil header, logo
@@ -53,9 +57,32 @@ npm install
 npm run dev        # http://localhost:3000
 npm run build      # üretim derlemesi
 
-# Voice agent testleri (harici anahtar gerekmez)
-agent/.venv/Scripts/python -m pytest agent/tests -q
+# Uçtan uca E2E (dev server ayakta iken; sistem Chrome kullanır)
+node scripts/e2e-test.mjs
 ```
+
+### Ortam değişkenleri (`.env.local` — repoya girmez)
+
+| Anahtar | Ne için |
+|---|---|
+| `SUPABASE_URL` + `SUPABASE_SERVICE_KEY` | Gerçek veri (veliler, ödevler, program, bordro…) |
+| `SUPABASE_DB_PASSWORD` + `SUPABASE_REF` | Migration push (`scripts/push-migration.mjs`) |
+| `LIVEKIT_URL` + `LIVEKIT_API_KEY` + `LIVEKIT_API_SECRET` | Sesli arama köprüsü |
+| `DEEPGRAM_API_KEY` | Konuşma tanıma (STT) |
+| `CARTESIA_API_KEY` | Ses sentezi (TTS) |
+| `OPENAI_API_KEY` / `ANTHROPIC_API_KEY` | Konuşma beyni (LLM) |
+| `NETGSM_USERCODE` + `NETGSM_PASSWORD` | Telefon hattı (SIP) + SMS |
+
+Anahtarlar tanımlı değilken uygulama **demo modda** çalışır: mock veriyle tüm
+ekranlar gezenbilir, yazmalar "demo modda kaydedildi" olarak dürüstçe bildirilir.
+
+### Supabase şeması
+
+```bash
+set -a && source .env.local && set +a
+node scripts/push-migration.mjs supabase/migrations/0001_core.sql   # … 0011'e kadar sırayla
+```
+
 
 ## Teknoloji Yığını
 

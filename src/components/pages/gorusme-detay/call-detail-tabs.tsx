@@ -21,6 +21,10 @@ interface CallDetailTabsProps {
   signals: AiSignals;
   automation: AutomationPanel;
   noteBox: NoteBox;
+  /** Canlı görüşmenin kontak kaydı (not/devir API'leri için); demo kayıtta null */
+  contactId: string | null;
+  /** Görüşme sinyal kaydının id'si (devir API'si için); demo kayıtta mock id */
+  callId: string;
 }
 
 export function CallDetailTabs({
@@ -29,6 +33,8 @@ export function CallDetailTabs({
   signals,
   automation,
   noteBox,
+  contactId,
+  callId,
 }: CallDetailTabsProps) {
   const [activeTab, setActiveTab] = useState<CallTabId>("transcript");
 
@@ -73,9 +79,11 @@ export function CallDetailTabs({
         {activeTab === "transcript" && (
           <TranscriptPanel segments={transcript} meta={transcriptMeta} />
         )}
-        {activeTab === "ai-signals" && <AiSignalsPanel signals={signals} />}
+        {activeTab === "ai-signals" && (
+          <AiSignalsPanel signals={signals} callId={callId} contactId={contactId} />
+        )}
         {activeTab === "actions" && (
-          <ActionsPanel automation={automation} noteBox={noteBox} />
+          <ActionsPanel automation={automation} noteBox={noteBox} contactId={contactId} />
         )}
       </div>
     </div>

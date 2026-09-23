@@ -1,10 +1,12 @@
-import { tahsilatAiNote, tahsilatSegments } from "@/lib/mock/kpis";
+import Link from "next/link";
+import { type TahsilatSegment,  tahsilatAiNote, tahsilatSegments } from "@/lib/mock/kpis";
 
 const DONUT_PATH =
   "M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831";
 
 /** Tahsilat özeti (v2) — donut + bölücülü gösterge satırları + tek AI notu. */
-export function TahsilatCard() {
+export function TahsilatCard({ segments }: { segments?: TahsilatSegment[] }) {
+  const items = segments ?? tahsilatSegments;
   return (
     <section className="anim-rise rounded-xl border border-outline-variant/60 bg-surface-container-lowest p-5 lg:col-span-5">
       <header className="mb-5 flex items-start justify-between gap-3">
@@ -14,12 +16,12 @@ export function TahsilatCard() {
             Ekim 2024 veli taksitleri
           </p>
         </div>
-        <button
+        <Link
           className="shrink-0 font-label-sm text-label-sm font-medium text-primary transition-colors hover:text-primary-container"
-          type="button"
+          href="/tahsilat"
         >
           Rapor
-        </button>
+        </Link>
       </header>
 
       <div className="flex flex-col items-center gap-6 sm:flex-row">
@@ -71,7 +73,7 @@ export function TahsilatCard() {
         </div>
 
         <div className="w-full flex-1">
-          {tahsilatSegments.map((segment) => (
+          {items.map((segment) => (
             <div
               key={segment.id}
               className="flex items-center justify-between border-b border-outline-variant/40 py-2.5 last:border-b-0"

@@ -47,14 +47,18 @@ export async function GET() {
 
 /**
  * POST /api/dershane-config — Ayarlar "Değişiklikleri Kaydet".
- * Gövde: { capabilities?, schedule?, retryHours?, dailyCallLimit? }
+ * Gövde: { capabilities?, humanHandoff?, schedule?, retryHours?, dailyCallLimit? }
  * - capabilities → dershaneler.capabilities (mevcut anahtarlar korunarak)
+ * - humanHandoff → dershaneler.capabilities.human_handoff ("advisor" | "manager" | "off")
  * - schedule/retryHours/dailyCallLimit → dershaneler.working_hours.ui
  *   (agent'ın working_hours.py beklediği diğer anahtarlar korunur)
  */
+const HANDOFF_TARGETS = new Set(["advisor", "manager", "off"]);
+
 export async function POST(request: Request) {
   let body: {
     capabilities?: Record<string, boolean>;
+    humanHandoff?: string;
     schedule?: Array<{ id: string; enabled: boolean; start: string; end: string }>;
     retryHours?: number;
     dailyCallLimit?: number;
@@ -63,6 +67,12 @@ export async function POST(request: Request) {
     body = await request.json();
   } catch {
     return NextResponse.json({ error: "Geçersiz JSON gövdesi" }, { status: 400 });
+  }
+  if (body.humanHandoff !== undefined && !HANDOFF_TARGETS.has(body.humanHandoff)) {
+    return NextResponse.json(
+      { error: "humanHandoff şunlardan biri olmalı: advisor, manager, off" },
+      { status: 422 }
+    );
   }
 
   const { supabase: supabaseLive } = getIntegrations();
@@ -98,6 +108,13 @@ export async function POST(request: Request) {
   const patch: Record<string, unknown> = { updated_at: new Date().toISOString() };
   if (body.capabilities) {
     patch.capabilities = { ...existingCaps, ...body.capabilities };
+  }
+  // İnsana yönlendirme hedefi ayrı alan olarak capabilities altına yazılır.
+  if (body.humanHandoff !== undefined) {
+    patch.capabilities = {
+      ...((patch.capabilities as Record<string, unknown> | undefined) ?? existingCaps),
+      human_handoff: body.humanHandoff,
+    };
   }
   if (body.schedule || body.retryHours !== undefined || body.dailyCallLimit !== undefined) {
     patch.working_hours = {

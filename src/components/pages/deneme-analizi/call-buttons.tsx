@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import type { ReactNode } from "react";
 import { useState } from "react";
 import { clsx } from "@/lib/clsx";
@@ -9,6 +10,8 @@ import { triggerAiCall, type AiCallMessage } from "./call-toast";
  * Tıklandığında AI görüşme toast'unu tetikleyen buton.
  * phone verilirse önce POST /api/calls çağrılır — canlı modda gerçek arama,
  * demo modda simülasyon kaydı; sonuç toast'a yazılır.
+ * phone yoksa ve fallbackHref verilirse buton yerine bağlantı render edilir
+ * (sahte toast yerine veli CRM araması gibi gerçek bir aksiyona yönlendirir).
  */
 export function AiCallToastButton({
   message,
@@ -18,6 +21,7 @@ export function AiCallToastButton({
   phone,
   name,
   leadId,
+  fallbackHref,
 }: {
   message: AiCallMessage;
   className?: string;
@@ -26,8 +30,19 @@ export function AiCallToastButton({
   phone?: string;
   name?: string;
   leadId?: string;
+  /** phone yoksa kullanılacak yedek bağlantı (örn. /veliler?q=<öğrenci adı>) */
+  fallbackHref?: string;
 }) {
   const [busy, setBusy] = useState(false);
+
+  // Telefon yoksa arama sahte toast'la simüle edilmez; yedek bağlantıya düş.
+  if (!phone && fallbackHref) {
+    return (
+      <Link aria-label={ariaLabel} className={clsx(className)} href={fallbackHref}>
+        {children}
+      </Link>
+    );
+  }
 
   async function handleClick() {
     if (!phone) {

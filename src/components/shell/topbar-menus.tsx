@@ -20,6 +20,17 @@ const RANGE_OPTIONS = [
 
 export const RANGE_STORAGE_KEY = "educallai-range";
 const RANGE_EVENT = "educallai:range";
+/** Sunucu tarafının (dashboard vb.) seçimi okuyabilmesi için çerez kopyası. */
+export const RANGE_DAYS_COOKIE = "educallai-range-days";
+
+/** Aktif aralığı çereze yaz — sunucu bileşenleri okuyabilsin. */
+function syncRangeCookie(days: number) {
+  try {
+    document.cookie = `${RANGE_DAYS_COOKIE}=${days}; path=/; max-age=31536000; samesite=lax`;
+  } catch {
+    // çerez yazılamadıysa yalnız bu oturum
+  }
+}
 
 export type RangeSelection = { days: number; label: string };
 
@@ -52,7 +63,11 @@ export function DateRangeMenu() {
     // Hydration sonrası kayıtlı seçimi uygula (SSR güvenli)
     let alive = true;
     void Promise.resolve().then(() => {
-      if (alive) setSelection(readRange());
+      if (alive) {
+        const stored = readRange();
+        setSelection(stored);
+        syncRangeCookie(stored.days);
+      }
     });
     const close = (event: MouseEvent) => {
       if (!rootRef.current?.contains(event.target as Node)) setOpen(false);
@@ -71,6 +86,7 @@ export function DateRangeMenu() {
     } catch {
       // yalnız bu oturum
     }
+    syncRangeCookie(option.days);
     window.dispatchEvent(new CustomEvent<RangeSelection>(RANGE_EVENT, { detail: option }));
     setOpen(false);
   };
@@ -118,7 +134,13 @@ export function DateRangeMenu() {
 }
 
 /** Topbar bildirim çanı — /api/notifications akışını dropdown'da gösterir. */
-export function NotificationsMenu() {
+export function NotificationsMenu({
+  className = "h-10 w-10",
+  iconClassName = "text-[20px]",
+}: {
+  className?: string;
+  iconClassName?: string;
+} = {}) {
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState<NotificationItem[] | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -151,11 +173,14 @@ export function NotificationsMenu() {
     <div className="relative" ref={rootRef}>
       <button
         aria-label="Bildirimler"
-        className="relative flex h-10 w-10 items-center justify-center rounded-lg text-on-surface-variant transition-colors hover:bg-surface-container hover:text-on-surface"
+        className={clsx(
+          "relative flex items-center justify-center rounded-lg text-on-surface-variant transition-colors hover:bg-surface-container hover:text-on-surface",
+          className
+        )}
         type="button"
         onClick={() => setOpen((v) => !v)}
       >
-        <span className="material-symbols-outlined text-[20px]">notifications</span>
+        <span className={clsx("material-symbols-outlined", iconClassName)}>notifications</span>
         <span
           className={clsx(
             "absolute right-2 top-2 h-2 w-2 rounded-full bg-error ring-2 ring-surface-container-lowest",

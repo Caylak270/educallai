@@ -13,6 +13,13 @@ export interface AppointmentItem {
   createdBy: "ai_voice" | "ai_whatsapp" | "manuel";
   status: AppointmentStatusMock;
   counselor: string;
+  /** Canlı veri için ek detay (Detay açılır panelinde gösterilir). */
+  detail?: {
+    statusTr: string;
+    phone: string;
+    notes: string;
+    calendarSynced: boolean;
+  };
 }
 
 export interface AppointmentDay {

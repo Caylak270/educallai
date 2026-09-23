@@ -83,6 +83,8 @@ export default async function Page({
             signals={call.signals}
             automation={call.automation}
             noteBox={call.noteBox}
+            contactId={call.contactId ?? null}
+            callId={call.id}
           />
         </div>
       </div>

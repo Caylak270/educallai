@@ -232,6 +232,10 @@ export interface RosterStudent {
   badge: string;
   badgeClass: string;
   meta: string;
+  /** Öğrencinin segment kartı kimliği (SEGMENT_LABELS anahtarları) */
+  segmentKey?: string;
+  /** Veli telefonu — canlı kontaklardan gelir; yoksa aksiyon CRM aramasına düşer */
+  phone?: string;
   net: string;
   trend: {
     icon: string;
@@ -269,6 +273,7 @@ export const rosterStudents: RosterStudent[] = [
     badge: "Yükselen",
     badgeClass: "bg-secondary-container text-secondary",
     meta: "12-EA • No: 1089",
+    segmentKey: "yukselenler",
     net: "88.25",
     trend: { icon: "trending_up", label: "+6.50", className: "text-secondary" },
     sparkline: {
@@ -294,6 +299,7 @@ export const rosterStudents: RosterStudent[] = [
     badge: "Düşüşte",
     badgeClass: "bg-error-container text-error",
     meta: "Mezun-Sayısal • No: 2014",
+    segmentKey: "dusus-alarmi",
     net: "67.75",
     trend: { icon: "trending_down", label: "-9.00", className: "text-error" },
     sparkline: {
@@ -317,6 +323,7 @@ export const rosterStudents: RosterStudent[] = [
     badge: "Zirve (%1)",
     badgeClass: "bg-primary-fixed text-primary",
     meta: "12-Sayısal • No: 1002",
+    segmentKey: "zirve-ogrenciler",
     net: "106.25",
     trend: { icon: "trending_up", label: "+1.25", className: "text-secondary" },
     sparkline: {
@@ -340,6 +347,7 @@ export const rosterStudents: RosterStudent[] = [
     badge: "Plato",
     badgeClass: "bg-surface-container-high text-tertiary-container",
     meta: "11-Sayısal • No: 1218",
+    segmentKey: "plato-sikisanlar",
     net: "58.50",
     trend: { icon: "drag_handle", label: "±0.00", className: "text-outline" },
     sparkline: {
@@ -356,13 +364,52 @@ export const rosterStudents: RosterStudent[] = [
   },
 ];
 
+// Alt yazı ve toast kaldırıldı: öğrenci sayısı canlı roster'dan, arama sonucu
+// ise gerçek /api/calls yanıtlarından üretilir (bkz. batch-banner.tsx).
 export const batchBanner = {
   icon: "forward_to_inbox",
   title: "Toplu Veli Bilgilendirme",
-  subtitle: "14 Düşüş Öğrencisi İçin Toplu Kampanya",
   ctaLabel: "Aramaları Başlat",
-  toast: {
-    title: "Toplu AI Veli Araması Başlatıldı",
-    description: "14 düşüş segmenti velisi sıraya alındı (Limit Bot V2).",
-  },
 };
+
+/**
+ * Segment kimlikleri → Türkçe etiketler.
+ * Mock ve canlı (exams-map) segment kartları aynı kimlikleri paylaşır;
+ * roster öğelerinin segmentKey alanı da bu kimliklere eşlenir.
+ */
+export const SEGMENT_LABELS: Record<string, string> = {
+  "dusus-alarmi": "Düşüş Alarmı",
+  yukselenler: "Yükselenler",
+  "zirve-ogrenciler": "Zirve",
+  "plato-sikisanlar": "Plato",
+  "ilk-deneme": "İlk Deneme",
+};
+
+/** Deneme analizi ekran verisi: segment şeridi + öğrenci listesi. */
+export interface ExamsView {
+  segments: ExamSegment[];
+  roster: RosterStudent[];
+}
+
+/**
+ * Canlı "en büyük düşüş" öğrencisinin detay kartı görünümü.
+ * exams-map.pickHighlightView üretir; canlı veri yoksa kart mock'a düşer.
+ */
+export interface HighlightView {
+  name: string;
+  initials: string;
+  meta: string;
+  /** Son sınavın toplam neti (tr-TR biçimli) */
+  net: string;
+  /** Son sınav değişimi (tr-TR biçimli, işaretli) */
+  deltaLabel: string;
+  deltaDown: boolean;
+  /** Kronolojik net geçmişi (grafikte son 10 sınav) */
+  nets: number[];
+  /** nets ile eş uzunlukta kısa sınav etiketleri */
+  examNames: string[];
+  /** Son sınavın ders netleri — canlıda soru sayısı yok, questions boş gelir */
+  subjects: SubjectNet[];
+  parentName: string | null;
+  phone: string | null;
+}

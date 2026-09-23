@@ -5,6 +5,7 @@ import { AppLogo } from "./app-logo";
 import { GlobalSearch } from "./global-search";
 import { ThemeToggle } from "./theme-toggle";
 import { DateRangeMenu, NotificationsMenu } from "./topbar-menus";
+import { ProfileMenu } from "./profile-menu";
 import Link from "next/link";
 import { clsx } from "@/lib/clsx";
 
@@ -31,9 +32,7 @@ export function WebTopbar({ collapsed = false }: { collapsed?: boolean }) {
           <span>Yeni Kampanya</span>
         </Link>
         <div className="ml-1 flex items-center pl-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-fixed font-label-md text-label-md font-semibold text-on-primary-fixed">
-            AY
-          </div>
+          <ProfileMenu variant="topbar" />
         </div>
       </div>
     </header>
@@ -58,9 +57,6 @@ export function MobileHeader() {
             <span className="truncate font-label-sm text-label-sm text-on-surface-variant">
               Limit Dershane
             </span>
-            <span className="material-symbols-outlined flex-shrink-0 text-[14px] text-outline">
-              unfold_more
-            </span>
           </div>
         </div>
         <div className="flex flex-shrink-0 items-center gap-0.5">
@@ -72,19 +68,12 @@ export function MobileHeader() {
           >
             <span className="material-symbols-outlined text-[22px]">search</span>
           </button>
-          <button
-            aria-label="Bildirimler"
-            className="relative flex h-11 w-11 items-center justify-center rounded-full text-on-surface-variant transition-colors hover:text-on-surface"
-            type="button"
-            onClick={() => router.push("/veliler")}
-          >
-            <span className="material-symbols-outlined text-[22px]">notifications</span>
-            <span className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-error ring-2 ring-surface" />
-          </button>
+          <NotificationsMenu
+            className="h-11 w-11 rounded-full"
+            iconClassName="text-[22px]"
+          />
           <ThemeToggle className="h-11 w-11 rounded-full" iconClassName="text-[22px]" />
-          <div className="ml-1 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-primary shadow-[0_1px_4px_rgba(53,37,205,0.2)]">
-            <span className="material-symbols-outlined text-[18px] text-on-primary">person</span>
-          </div>
+          <ProfileMenu variant="mobile" />
         </div>
       </div>
     </header>

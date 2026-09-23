@@ -1,12 +1,19 @@
+"use client";
+
+import Link from "next/link";
+import type { ReactNode } from "react";
 import { clsx } from "@/lib/clsx";
 import {
   aiVoicePlan,
   highlightedStudent,
   subjectBreakdown,
+  type HighlightedStat,
+  type HighlightView,
+  type SubjectNet,
 } from "@/lib/mock/exams";
 import { AiCallToastButton } from "./call-buttons";
 
-/** Son 10 sınavlık SVG net trend grafiği — Stitch tasarımından birebir taşınmış. */
+/** Son 10 sınavlık SVG net trend grafiği — Stitch tasarımından birebir taşınmış (demo veri). */
 function NetTrendChart() {
   const { chart } = highlightedStudent;
   return (
@@ -50,10 +57,6 @@ function NetTrendChart() {
               <stop offset="0%" stopColor="#4f46e5" stopOpacity="0.3" />
               <stop offset="70%" stopColor="#4f46e5" stopOpacity="0.05" />
               <stop offset="100%" stopColor="#4f46e5" stopOpacity="0" />
-            </linearGradient>
-            <linearGradient id="dropHighlight" x1="0" x2="0" y1="0" y2="1">
-              <stop offset="0%" stopColor="#ba1a1a" stopOpacity="0.4" />
-              <stop offset="100%" stopColor="#ba1a1a" stopOpacity="0" />
             </linearGradient>
           </defs>
           {/* Sınıf ortalaması referansı (kesikli yatay eğri) */}
@@ -120,22 +123,165 @@ function NetTrendChart() {
   );
 }
 
-/** Ders dağılımı özeti — tam genişlik kart, 4 ders yan yana. */
-function SubjectBreakdown() {
+/**
+ * Canlı net geçmişinden üretilen SVG trend grafiği (son 10 sınav).
+ * Noktalar gerçek exam_results netlerinden hesaplanır — sabit mock yol yok.
+ */
+function LiveNetChart({ data }: { data: HighlightView }) {
+  const nets = data.nets;
+  const labels = data.examNames;
+  const width = 300;
+  const height = 100;
+  const x0 = 10;
+  const y0 = 15;
+  const min = Math.min(...nets);
+  const max = Math.max(...nets);
+  const span = max - min || 1;
+  const px = (i: number) => x0 + (width * i) / Math.max(nets.length - 1, 1);
+  const py = (n: number) => y0 + (height * (max - n)) / span;
+  const points = nets.map((n, i) => `${px(i).toFixed(1)},${py(n).toFixed(1)}`);
+  const linePath = `M ${points.join(" L ")}`;
+  const areaPath = `${linePath} L ${px(nets.length - 1).toFixed(1)},${y0 + height} L ${x0},${y0 + height} Z`;
+  const peakIndex = nets.indexOf(max);
+  const lastIndex = nets.length - 1;
+  const lastDeclined = data.deltaDown;
+  const fmt = (n: number) => n.toLocaleString("tr-TR", { maximumFractionDigits: 1 });
+  const ticks = [max, min + (span * 2) / 3, min + span / 3, min];
+
+  return (
+    <div className="flex flex-col space-y-2">
+      <div className="flex items-center justify-between font-label-xs text-label-xs">
+        <span className="flex items-center gap-1 font-semibold text-on-surface">
+          <span className="h-2.5 w-2.5 rounded-full bg-primary-container" /> {data.name} Net
+          İlerlemesi
+        </span>
+        <span className="flex items-center gap-1 text-on-surface-variant">
+          <span className="h-0.5 w-3 bg-outline" /> {nets.length} Sınav
+        </span>
+      </div>
+
+      <div className="relative flex h-44 w-full flex-col justify-end overflow-hidden rounded-xl bg-surface-container-low p-2">
+        {/* Y ekseni çizgileri (gerçek net aralığından) */}
+        <div className="pointer-events-none absolute inset-0 flex flex-col justify-between p-3 opacity-40">
+          {ticks.map((tick, index) => (
+            <div
+              key={`tick-${index}`}
+              className="flex items-center justify-between text-[10px] text-on-surface-variant"
+            >
+              <span>{fmt(tick)} Net</span>
+              <div className="ml-2 flex-1 border-b border-dashed border-outline-variant" />
+            </div>
+          ))}
+        </div>
+
+        {lastDeclined ? (
+          <div className="pointer-events-none absolute bottom-6 right-3 top-2 flex w-24 items-start justify-center rounded-lg bg-error-container/40 pt-1">
+            <span className="text-[9px] font-bold text-error">Kritik Düşüş Alanı</span>
+          </div>
+        ) : null}
+
+        <svg
+          className="relative z-10 h-28 w-full overflow-visible"
+          preserveAspectRatio="none"
+          viewBox="0 0 320 130"
+        >
+          <defs>
+            <linearGradient id="liveAreaGradient" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0%" stopColor="#4f46e5" stopOpacity="0.3" />
+              <stop offset="70%" stopColor="#4f46e5" stopOpacity="0.05" />
+              <stop offset="100%" stopColor="#4f46e5" stopOpacity="0" />
+            </linearGradient>
+          </defs>
+          {/* Öğrenci eğrisi altı alan */}
+          <path d={areaPath} fill="url(#liveAreaGradient)" />
+          {/* Öğrenci net eğrisi */}
+          <path
+            d={linePath}
+            fill="none"
+            stroke="#4f46e5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2.5"
+          />
+          {/* Ara noktalar */}
+          {nets.map((n, i) =>
+            i === peakIndex || i === lastIndex ? null : (
+              <circle
+                cx={px(i)}
+                cy={py(n)}
+                fill="#ffffff"
+                key={`dot-${i}`}
+                r="3"
+                stroke="#4f46e5"
+                strokeWidth="2"
+              />
+            )
+          )}
+          {/* Zirve noktası */}
+          <circle cx={px(peakIndex)} cy={py(max)} fill="#4f46e5" r="4.5" stroke="#ffffff" strokeWidth="2" />
+          <text
+            fill="#3525cd"
+            fontSize="9"
+            fontWeight="700"
+            textAnchor="middle"
+            x={px(peakIndex)}
+            y={Math.max(py(max) - 10, 10)}
+          >
+            {fmt(max)} Zirve
+          </text>
+          {/* Son sınav noktası — düşünce kırmızı */}
+          <circle
+            cx={px(lastIndex)}
+            cy={py(nets[lastIndex])}
+            fill={lastDeclined ? "#ba1a1a" : "#4f46e5"}
+            r="5"
+            stroke="#ffffff"
+            strokeWidth="2"
+          />
+          <text
+            fill={lastDeclined ? "#ba1a1a" : "#3525cd"}
+            fontSize="10"
+            fontWeight="800"
+            textAnchor="middle"
+            x={px(lastIndex) - 14}
+            y={Math.min(py(nets[lastIndex]) + 18, 124)}
+          >
+            {fmt(nets[lastIndex])} Net
+          </text>
+        </svg>
+
+        {/* X ekseni sınav etiketleri */}
+        <div className="flex items-center justify-between px-1 pt-1 text-[9px] font-medium text-on-surface-variant">
+          {labels.map((label, index) => (
+            <span className={index === lastIndex ? "font-bold text-error" : ""} key={`lbl-${index}`}>
+              {label}
+            </span>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** Ders dağılımı özeti — tam genişlik kart, dersler yan yana. */
+function SubjectBreakdown({ subjects }: { subjects: SubjectNet[] }) {
   return (
     <div className="rounded-xl border border-outline-variant/60 bg-surface-container-lowest p-5">
       <h3 className="font-headline-sm text-headline-sm font-bold text-on-surface">
         Son Sınav Ders Net Dağılımı
       </h3>
       <div className="mt-4 grid grid-cols-2 gap-x-6 gap-y-4 lg:grid-cols-4">
-        {subjectBreakdown.map((subject) => (
+        {subjects.map((subject) => (
           <div key={subject.name} className="flex items-center gap-3">
             <span className={clsx("h-9 w-1.5 shrink-0 rounded-full", subject.barClass)} />
             <div className="min-w-0 flex-1">
               <p className="truncate font-label-sm text-label-sm font-semibold leading-tight text-on-surface">
                 {subject.name}
               </p>
-              <span className="text-[11px] text-on-surface-variant">{subject.questions}</span>
+              {/* Canlı veride soru sayısı olmadığından alan boşken gizlenir */}
+              {subject.questions ? (
+                <span className="text-[11px] text-on-surface-variant">{subject.questions}</span>
+              ) : null}
             </div>
             <div className="shrink-0 text-right">
               <span className="block font-headline-sm text-headline-sm font-bold leading-tight text-on-surface">
@@ -151,7 +297,24 @@ function SubjectBreakdown() {
 }
 
 /** AI ses motoru öneri kutusu — tek bordered kutu, butonlar sağda. */
-function AiVoicePlanBox() {
+function AiVoicePlanBox({
+  description,
+  whatsappHref,
+  etutHref,
+  call,
+}: {
+  description: ReactNode;
+  whatsappHref: string;
+  etutHref: string;
+  call: {
+    label: string;
+    student: string;
+    parent: string;
+    phone?: string;
+    /** POST /api/calls gövdesindeki name (veli adı) */
+    name?: string;
+  };
+}) {
   return (
     <div className="flex flex-col gap-4 rounded-xl border border-outline-variant/60 bg-surface-container-lowest p-5 lg:flex-row lg:items-center lg:justify-between lg:gap-8">
       <div className="min-w-0">
@@ -162,10 +325,7 @@ function AiVoicePlanBox() {
           </h3>
         </div>
         <p className="mt-2 max-w-3xl font-body-sm text-body-sm leading-relaxed text-on-surface-variant">
-          &quot;Berk son 2 denemedir Matematik ve Fizik branşlarında %18 gerileme yaşadı.{" "}
-          <strong className="font-semibold text-on-surface">Serdar Bey (Veli)</strong> ile yapılacak
-          görüşmede sınav kaygısı ve geometri odaklı haftalık 3 saatlik telafi etüt paketi teklif
-          edilecek.&quot;
+          {description}
         </p>
       </div>
 
@@ -173,48 +333,157 @@ function AiVoicePlanBox() {
       <div className="flex shrink-0 flex-col gap-2 sm:flex-row sm:items-center">
         <AiCallToastButton
           className="flex h-11 items-center justify-center gap-2 rounded-xl bg-primary-container px-4 font-label-md text-label-md font-semibold text-on-primary transition-all hover:bg-primary active:scale-[0.99]"
-          name={aiVoicePlan.callButton.parent}
-          phone={aiVoicePlan.callButton.phone}
+          fallbackHref={`/veliler?q=${encodeURIComponent(call.student)}`}
           message={{
-            title: `${aiVoicePlan.callButton.student} • Veli Aranıyor`,
-            description: `${aiVoicePlan.callButton.parent} aranarak deneme analizi aktarılıyor...`,
+            title: `${call.student} • Veli Aranıyor`,
+            description: `${call.parent} aranarak deneme analizi aktarılıyor...`,
           }}
+          name={call.name}
+          phone={call.phone}
         >
           <span className="material-symbols-outlined animate-pulse text-[20px]">phone_in_talk</span>
-          <span>{aiVoicePlan.callButton.label}</span>
-          <span className="ml-1 hidden text-[11px] font-normal opacity-80 xl:inline">
-            {aiVoicePlan.callButton.phone}
-          </span>
+          <span>{call.label}</span>
+          {call.phone ? (
+            <span className="ml-1 hidden text-[11px] font-normal opacity-80 xl:inline">
+              {call.phone}
+            </span>
+          ) : null}
         </AiCallToastButton>
-        <button
+        {/* Telefon varsa wa.me raporu; yoksa veli CRM aramasına yönlendirir */}
+        <Link
           className="flex h-11 items-center justify-center gap-1.5 rounded-xl border border-outline-variant/60 px-3.5 font-label-sm text-label-sm font-semibold text-on-surface transition-colors hover:bg-surface-container-low"
-          type="button"
+          href={whatsappHref}
+          rel={whatsappHref.startsWith("https://") ? "noopener noreferrer" : undefined}
+          target={whatsappHref.startsWith("https://") ? "_blank" : undefined}
         >
           <span className="material-symbols-outlined text-[16px] text-secondary">chat</span>
           <span>WhatsApp Raporu</span>
-        </button>
-        <button
+        </Link>
+        {/* Randevular sayfası odak=yeni ile yeni randevu formunu açar */}
+        <Link
           className="flex h-11 items-center justify-center gap-1.5 rounded-xl border border-outline-variant/60 px-3.5 font-label-sm text-label-sm font-semibold text-on-surface transition-colors hover:bg-surface-container-low"
-          type="button"
+          href={etutHref}
         >
           <span className="material-symbols-outlined text-[16px]">edit_calendar</span>
           <span>Etüt Randevusu</span>
-        </button>
+        </Link>
       </div>
     </div>
   );
 }
 
-/** Vurgulanan öğrenci detay paneli (Berk Yılmaz): solda trend grafiği, sağda meta + hızlı istatistikler. */
-export function StudentDetailCard() {
-  const student = highlightedStudent;
+/** Telefonu wa.me E.164 biçimine çevirir; kullanılabilir numara yoksa null döner. */
+function whatsappHrefOf(phone: string | null | undefined, name: string): string {
+  const digits = (phone ?? "").replace(/\D/g, "");
+  if (digits.length < 10) {
+    // Numara yok (veya maskeli demo numarası): veli CRM'de öğrenci ara
+    return `/veliler?q=${encodeURIComponent(name)}`;
+  }
+  const e164 = digits.length === 10 ? `90${digits}` : digits;
+  const text = encodeURIComponent(`${name} için deneme analizi raporu`);
+  return `https://wa.me/${e164}?text=${text}`;
+}
+
+/** Canlı veriden hızlı istatistikler (Son Net / Sezon Zirvesi / Sezon Başlangıcı). */
+function liveStats(live: HighlightView): HighlightedStat[] {
+  const fmt = (n: number) => n.toLocaleString("tr-TR", { maximumFractionDigits: 2 });
+  const max = Math.max(...live.nets);
+  const maxIndex = live.nets.indexOf(max);
+  return [
+    {
+      label: "Son Net",
+      value: live.net,
+      valueClass: "text-error",
+      note: `${live.deltaLabel} Net`,
+      noteClass: "text-error",
+      noteIcon: "arrow_downward",
+    },
+    {
+      label: "Sezon Zirvesi",
+      value: fmt(max),
+      valueClass: "text-on-surface",
+      note: live.examNames[maxIndex] ?? "—",
+      noteClass: "text-on-surface-variant",
+    },
+    {
+      label: "Sezon Başlangıcı",
+      value: fmt(live.nets[0] ?? 0),
+      valueClass: "text-on-surface",
+      note: live.examNames[0] ?? "—",
+      noteClass: "text-on-surface-variant",
+    },
+  ];
+}
+
+/**
+ * Vurgulanan öğrenci detay paneli.
+ * highlight verilirse ad/net/değişim/ders dağılımı canlı exam_results'tan üretilir;
+ * verilmezse (canlı veri yok) demo verisine düşer.
+ */
+export function StudentDetailCard({ highlight }: { highlight?: HighlightView | null }) {
+  const live = highlight ?? null;
+  const student = live
+    ? {
+        anchorId: "studentDetailCard",
+        initials: live.initials,
+        avatarClass: highlightedStudent.avatarClass,
+        name: live.name,
+        badge: "Düşüş Alarmı",
+        meta: live.meta,
+        stats: liveStats(live),
+      }
+    : highlightedStudent;
+
+  const plan = live
+    ? {
+        description: (
+          <>
+            {`${live.name}, son denemesinde ${live.deltaLabel} net gerileme yaşadı. `}
+            <strong className="font-semibold text-on-surface">
+              {live.parentName ?? "Veli"}
+            </strong>
+            {" ile yapılacak görüşmede deneme analizi ve telafi etüt önerisi aktarılacak."}
+          </>
+        ),
+        call: {
+          label: live.parentName ? `AI ile Ara (${live.parentName} - Veli)` : "AI ile Ara",
+          student: live.name,
+          parent: live.parentName ?? "Veli",
+          phone: live.phone ?? undefined,
+          name: live.parentName ?? live.name,
+        },
+        whatsappHref: whatsappHrefOf(live.phone, live.name),
+        etutHref: `/randevular?odak=yeni&ogrenci=${encodeURIComponent(live.name)}`,
+      }
+    : {
+        description: (
+          <>
+            &quot;Berk son 2 denemedir Matematik ve Fizik branşlarında %18 gerileme yaşadı.{" "}
+            <strong className="font-semibold text-on-surface">Serdar Bey (Veli)</strong> ile yapılacak
+            görüşmede sınav kaygısı ve geometri odaklı haftalık 3 saatlik telafi etüt paketi teklif
+            edilecek.&quot;
+          </>
+        ),
+        call: {
+          label: aiVoicePlan.callButton.label,
+          student: aiVoicePlan.callButton.student,
+          parent: aiVoicePlan.callButton.parent,
+          phone: aiVoicePlan.callButton.phone,
+          name: aiVoicePlan.callButton.parent,
+        },
+        whatsappHref: whatsappHrefOf(aiVoicePlan.callButton.phone, highlightedStudent.name),
+        etutHref: `/randevular?odak=yeni&ogrenci=${encodeURIComponent(highlightedStudent.name)}`,
+      };
+
+  const subjects = live ? live.subjects : subjectBreakdown;
+
   return (
     <section className="flex flex-col gap-4" id={student.anchorId}>
       {/* Üst blok: grafik (7 kolon) + öğrenci meta & hızlı istatistikler (5 kolon) */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
         {/* Net trend grafiği */}
         <div className="rounded-xl border border-outline-variant/60 bg-surface-container-lowest p-5 lg:col-span-7">
-          <NetTrendChart />
+          {live ? <LiveNetChart data={live} /> : <NetTrendChart />}
         </div>
 
         {/* Öğrenci meta + hızlı istatistikler */}
@@ -248,13 +517,6 @@ export function StudentDetailCard() {
                 </p>
               </div>
             </div>
-            <button
-              aria-label="Diğer işlemler"
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-outline-variant/60 text-on-surface-variant transition-colors hover:bg-surface-container-low"
-              type="button"
-            >
-              <span className="material-symbols-outlined text-[18px]">more_vert</span>
-            </button>
           </div>
 
           {/* Hızlı istatistikler */}
@@ -273,7 +535,10 @@ export function StudentDetailCard() {
                   {stat.value}
                 </span>
                 <span
-                  className={clsx("flex items-center font-label-xs text-label-xs font-semibold", stat.noteClass)}
+                  className={clsx(
+                    "flex min-w-0 items-center truncate font-label-xs text-label-xs font-semibold",
+                    stat.noteClass
+                  )}
                 >
                   {stat.noteIcon ? (
                     <span className="material-symbols-outlined text-[12px]">{stat.noteIcon}</span>
@@ -286,11 +551,16 @@ export function StudentDetailCard() {
         </div>
       </div>
 
-      {/* Ders dağılımı — tam genişlik */}
-      <SubjectBreakdown />
+      {/* Ders dağılımı — canlı veride ders neti hiç yoksa bölüm gizlenir */}
+      {subjects.length > 0 ? <SubjectBreakdown subjects={subjects} /> : null}
 
       {/* AI ses motoru önerisi — tam genişlik */}
-      <AiVoicePlanBox />
+      <AiVoicePlanBox
+        call={plan.call}
+        description={plan.description}
+        etutHref={plan.etutHref}
+        whatsappHref={plan.whatsappHref}
+      />
     </section>
   );
 }

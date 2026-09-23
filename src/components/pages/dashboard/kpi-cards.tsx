@@ -1,5 +1,5 @@
 import { clsx } from "@/lib/clsx";
-import { kpis, type KpiBadgeTone } from "@/lib/mock/kpis";
+import { type Kpi,  kpis as mockKpis, type KpiBadgeTone } from "@/lib/mock/kpis";
 
 const DELTA_TONE: Record<KpiBadgeTone, "positive" | "negative" | "neutral"> = {
   positive: "positive",
@@ -11,10 +11,11 @@ const DELTA_TONE: Record<KpiBadgeTone, "positive" | "negative" | "neutral"> = {
  * KPI şeridi (v2) — altı metrik TEK yüzeyde, bölücü çizgilerle.
  * Rozet/progress kalabalığı yok: etiket + büyük değer + yönü gösteren delta.
  */
-export function KpiCards() {
+export function KpiCards({ kpis }: { kpis?: Kpi[] }) {
+  const items = kpis ?? mockKpis;
   return (
     <section className="grid grid-cols-2 divide-y divide-outline-variant/50 rounded-xl border border-outline-variant/60 bg-surface-container-lowest md:grid-cols-3 lg:grid-cols-6 lg:divide-y-0">
-      {kpis.map((kpi, i) => (
+      {items.map((kpi, i) => (
         <div
           key={kpi.id}
           className={clsx(

@@ -2,6 +2,7 @@ import { Stat } from "@/components/ui/page-shell";
 import {
   installmentStats,
   tahsilatHeader,
+  type InstallmentStat,
   type StatTone,
 } from "@/lib/mock/installments";
 
@@ -14,7 +15,8 @@ const statToneMap: Record<StatTone, "primary" | "secondary" | "error" | "default
 };
 
 /** Üst metrik şeridi — tek bordered kart, 4 hücre; PC'de yan yana, mobilde 2x2. */
-export function StatsSection() {
+export function StatsSection({ stats }: { stats?: InstallmentStat[] }) {
+  const items = stats ?? installmentStats;
   return (
     <section>
       <div className="mb-3 flex items-center justify-between gap-3">
@@ -30,7 +32,7 @@ export function StatsSection() {
       </div>
 
       <div className="grid grid-cols-2 divide-y divide-outline-variant/50 rounded-xl border border-outline-variant/60 bg-surface-container-lowest lg:grid-cols-4 lg:divide-x lg:divide-y-0">
-        {installmentStats.map((stat) => (
+        {items.map((stat) => (
           <div key={stat.id} className="p-5">
             <Stat
               label={stat.label}

@@ -53,3 +53,9 @@ scripts/tmp-*.mjs
 
 # MCP yapılandırması (API anahtarı içerir)
 .mcp.json
+
+# yerel test kanıtları + geliştirme günlükleri (repoya girmez)
+gui-test-screenshots/
+dev-server.log
+.zcode/
+.c.css

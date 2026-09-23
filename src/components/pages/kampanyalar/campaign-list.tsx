@@ -10,7 +10,15 @@ import {
   type CampaignStatus,
 } from "@/lib/mock/campaigns";
 
-function StatusBadge({ status, pulse }: { status: CampaignStatus; pulse?: boolean }) {
+function StatusBadge({
+  status,
+  pulse,
+  label,
+}: {
+  status: CampaignStatus;
+  pulse?: boolean;
+  label?: string;
+}) {
   if (status === "aktif") {
     return (
       <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-secondary-container px-2.5 py-1 font-label-xs text-label-xs font-semibold text-on-secondary-container">
@@ -23,7 +31,7 @@ function StatusBadge({ status, pulse }: { status: CampaignStatus; pulse?: boolea
     return (
       <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-tertiary-fixed px-2.5 py-1 font-label-xs text-label-xs font-semibold text-tertiary-container">
         <span className="h-1.5 w-1.5 rounded-full bg-tertiary-container" />
-        Duraklatıldı
+        {label ?? "Duraklatıldı"}
       </span>
     );
   }
@@ -52,16 +60,62 @@ function ProgressBar({ campaign, status }: { campaign: Campaign; status: Campaig
   );
 }
 
+/** Kart altında açılan satır içi künye paneli — kampanya nesnesinde ne varsa gösterir. */
+function DetailPanel({ campaign, status }: { campaign: Campaign; status: CampaignStatus }) {
+  const detail = campaign.detail ?? {};
+  const rows: Array<[string, string]> = [
+    ["Kampanya", campaign.title],
+    ["Durum", status === "aktif" ? "Aktif" : status === "duraklatildi" ? (campaign.badgeLabel ?? "Duraklatıldı") : "Tamamlandı"],
+    ["Kanal", detail.channel ?? "—"],
+    ["Hedef sayısı", detail.targetCount !== undefined ? `${detail.targetCount.toLocaleString("tr-TR")} veli` : "—"],
+    ["Başlangıç", detail.startDate ?? "—"],
+  ];
+  return (
+    <div className="mt-3 rounded-lg bg-surface-container-low p-4">
+      <p className="mb-2 font-label-xs text-label-xs font-semibold uppercase tracking-wide text-on-surface-variant">
+        Kampanya Detayı
+      </p>
+      <dl className="grid grid-cols-1 gap-x-6 gap-y-1.5 sm:grid-cols-2">
+        {rows.map(([label, value]) => (
+          <div key={label} className="flex min-w-0 justify-between gap-3">
+            <dt className="shrink-0 font-label-sm text-label-sm text-on-surface-variant">{label}</dt>
+            <dd className="truncate text-right font-label-sm text-label-sm font-semibold text-on-surface">
+              {value}
+            </dd>
+          </div>
+        ))}
+      </dl>
+      {detail.script ? (
+        <div className="mt-3 border-t border-outline-variant/50 pt-2">
+          <p className="font-label-xs text-label-xs text-on-surface-variant">Örnek script</p>
+          <p className="mt-1 font-body-sm text-body-sm text-on-surface-variant italic">
+            {detail.script}
+          </p>
+        </div>
+      ) : null}
+      <p className="mt-3 font-label-xs text-label-xs text-outline">
+        Not: Bu panel kampanya künyesini gösterir; ayrıntılı performans raporu henüz üretilmiyor.
+      </p>
+    </div>
+  );
+}
+
 function CampaignCard({
   campaign,
   status,
+  expanded,
+  notice,
   onPause,
   onResume,
+  onToggleDetail,
 }: {
   campaign: Campaign;
   status: CampaignStatus;
+  expanded: boolean;
+  notice: { kind: "error" | "demo"; text: string } | null;
   onPause: (id: string) => void;
   onResume: (id: string) => void;
+  onToggleDetail: (id: string) => void;
 }) {
   return (
     <article className="flex flex-col rounded-xl border border-outline-variant/60 bg-surface-container-lowest p-5 transition-colors hover:border-outline-variant">
@@ -72,7 +126,7 @@ function CampaignCard({
             {campaign.subtitle}
           </p>
         </div>
-        <StatusBadge pulse={campaign.highlight} status={status} />
+        <StatusBadge pulse={campaign.highlight} status={status} label={campaign.badgeLabel} />
       </div>
 
       {/* Canlı arama bilgisi */}
@@ -156,12 +210,17 @@ function CampaignCard({
               Duraklat
             </button>
           ) : null}
-          {status === "aktif" && campaign.controls?.includes("report") ? (
+          {campaign.controls?.includes("report") ? (
             <button
-              className="rounded-lg px-3 py-1.5 font-label-sm text-label-sm font-medium text-primary transition-colors hover:text-primary-container"
+              aria-expanded={expanded}
+              className={clsx(
+                "rounded-lg px-3 py-1.5 font-label-sm text-label-sm font-medium transition-colors",
+                expanded ? "font-semibold text-primary-container" : "text-primary hover:text-primary-container"
+              )}
               type="button"
+              onClick={() => onToggleDetail(campaign.id)}
             >
-              Rapor
+              Detay
             </button>
           ) : null}
           {status === "duraklatildi" && campaign.controls?.includes("resume") ? (
@@ -175,24 +234,108 @@ function CampaignCard({
           ) : null}
         </div>
       </div>
+
+      {/* Satır içi bildirim: hata veya demo-mod dürüst notu */}
+      {notice ? (
+        <p
+          className={clsx(
+            "mt-2 font-label-sm text-label-sm font-semibold",
+            notice.kind === "error" ? "text-error" : "text-on-surface-variant"
+          )}
+          role={notice.kind === "error" ? "alert" : "status"}
+        >
+          {notice.text}
+        </p>
+      ) : null}
+
+      {/* "Detay" ile açılan satır içi künye paneli */}
+      {expanded ? <DetailPanel campaign={campaign} status={status} /> : null}
     </article>
   );
 }
 
-/** Sekmeli filtre + kampanya kartları (Duraklat / Devam Ettir görsel state değişimi yapar). */
-export function CampaignList() {
+/** Sekmeli filtre + kampanya kartları (Duraklat / Devam Ettir / Detay işlevsel). */
+export function CampaignList({
+  campaigns: liveCampaigns,
+  sourceLabel,
+}: {
+  /** Canlı kampanyalar (Supabase). Verilmezse demo veri gösterilir. */
+  campaigns?: Campaign[];
+  sourceLabel?: string;
+}) {
   const [filter, setFilter] = useState<CampaignFilterId>("tumu");
   const [statusOverrides, setStatusOverrides] = useState<Record<string, CampaignStatus>>({});
+  // "Detay" paneli tek kartta açık durur; tekrar tıklanınca kapanır.
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  // Satır içi bildirimler: PATCH hatası veya demo-mod dürüst notu.
+  const [notices, setNotices] = useState<Record<string, { kind: "error" | "demo"; text: string } | null>>({});
+  const list = liveCampaigns ?? campaigns;
+
+  const clearOverride = (id: string) =>
+    setStatusOverrides((prev) => {
+      const next = { ...prev };
+      delete next[id];
+      return next;
+    });
+
+  /**
+   * Duraklat/devam → PATCH /api/campaigns/[id].
+   * Optimistik durum güncellemesi; hata olursa eski duruma dönüp satır içi uyarı,
+   * demo modda (persisted:false) kalıcı olmadığını bildiren dürüst not gösterilir.
+   */
+  const handleToggle = (id: string, status: CampaignStatus) => {
+    setStatusOverrides((prev) => ({ ...prev, [id]: status }));
+    setNotices((prev) => ({ ...prev, [id]: null }));
+    void (async () => {
+      try {
+        const res = await fetch(`/api/campaigns/${id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: status === "aktif" ? "running" : "paused" }),
+        });
+        const data = await res.json().catch(() => null);
+        if (!res.ok || !data?.ok) {
+          clearOverride(id);
+          setNotices((prev) => ({ ...prev, [id]: { kind: "error", text: "Durum güncellenemedi" } }));
+          return;
+        }
+        if (data.persisted === false) {
+          setNotices((prev) => ({
+            ...prev,
+            [id]: { kind: "demo", text: "Demo modda — kalıcı değil" },
+          }));
+        }
+      } catch {
+        clearOverride(id);
+        setNotices((prev) => ({ ...prev, [id]: { kind: "error", text: "Durum güncellenemedi" } }));
+      }
+    })();
+  };
 
   const currentStatus = (campaign: Campaign): CampaignStatus =>
     statusOverrides[campaign.id] ?? campaign.status;
 
-  const visibleCampaigns = campaigns.filter(
+  const liveCounts = liveCampaigns
+    ? {
+        tumu: list.length,
+        aktif: list.filter((c) => (statusOverrides[c.id] ?? c.status) === "aktif").length,
+        duraklatildi: list.filter((c) => (statusOverrides[c.id] ?? c.status) === "duraklatildi").length,
+        tamamlandi: list.filter((c) => (statusOverrides[c.id] ?? c.status) === "tamamlandi").length,
+      }
+    : null;
+
+  const visibleCampaigns = list.filter(
     (campaign) => filter === "tumu" || currentStatus(campaign) === filter
   );
 
   return (
     <div className="flex flex-col gap-4">
+      {sourceLabel ? (
+        <p className="flex items-center gap-2 font-label-sm text-label-sm text-on-surface-variant">
+          <span className="h-1.5 w-1.5 rounded-full bg-tertiary" />
+          {sourceLabel}
+        </p>
+      ) : null}
       <div className="no-scrollbar flex gap-2 overflow-x-auto">
         {campaignFilters.map((tab) => {
           const active = filter === tab.id;
@@ -220,7 +363,7 @@ export function CampaignList() {
                   active ? "bg-white/20" : "bg-surface-container"
                 )}
               >
-                {tab.count}
+                {liveCounts ? liveCounts[tab.id] : tab.count}
               </span>
             </button>
           );
@@ -233,8 +376,11 @@ export function CampaignList() {
             key={campaign.id}
             campaign={campaign}
             status={currentStatus(campaign)}
-            onPause={(id) => setStatusOverrides((prev) => ({ ...prev, [id]: "duraklatildi" }))}
-            onResume={(id) => setStatusOverrides((prev) => ({ ...prev, [id]: "aktif" }))}
+            expanded={expandedId === campaign.id}
+            notice={notices[campaign.id] ?? null}
+            onPause={(id) => handleToggle(id, "duraklatildi")}
+            onResume={(id) => handleToggle(id, "aktif")}
+            onToggleDetail={(id) => setExpandedId((prev) => (prev === id ? null : id))}
           />
         ))}
       </div>

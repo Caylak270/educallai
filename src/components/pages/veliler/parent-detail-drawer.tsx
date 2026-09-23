@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { clsx } from "@/lib/clsx";
 import { CallButton } from "@/components/ui/call-button";
 import type { Lead } from "@/lib/mock/leads";
@@ -30,9 +31,9 @@ const WAVEFORM: { h: string; c: string }[] = [
 
 /* Alt drawer — lead detayı. lead null iken aşağı kayarak kapanır. */
 export function ParentDetailDrawer({ lead, onClose }: { lead: Lead | null; onClose: () => void }) {
+  const router = useRouter();
   const [cachedLead, setCachedLead] = useState<Lead | null>(lead);
   const [lastLead, setLastLead] = useState<Lead | null>(lead);
-  const [playing, setPlaying] = useState(false);
 
   // Prop değişince render sırasında önbelleği güncelle (React'in önerilen deseni;
   // kapanış animasyonu sırasında içerik korunur).
@@ -163,40 +164,28 @@ export function ParentDetailDrawer({ lead, onClose }: { lead: Lead | null; onClo
             </p>
           </div>
 
-          {/* Ses çalma widget'ı */}
+          {/* Ses kaydı widget'ı — kayıt saklama henüz entegre değil; sahte oynatma
+              yerine dürüst bilgilendirme gösteriyoruz (dalga formu statik görseldir). */}
           <div className="flex flex-col gap-2.5 rounded-xl border border-outline-variant/60 bg-surface-container-lowest p-4">
-            <div className="flex items-center justify-between text-on-surface">
-              <div className="flex items-center gap-2">
-                <button
-                  aria-label={playing ? "Duraklat" : "Oynat"}
-                  className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-on-primary transition-colors hover:bg-primary-container"
-                  onClick={() => setPlaying((value) => !value)}
-                  type="button"
-                >
-                  <span className="material-symbols-outlined text-[20px]">
-                    {playing ? "pause" : "play_arrow"}
-                  </span>
-                </button>
-                <div>
-                  <p className="font-title-sm text-title-sm font-medium">AI Görüşme Ses Kaydı</p>
-                  <p className="font-mono-data text-label-sm text-outline">
-                    {data.drawer.audioMeta}
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-1">
-                <span className="rounded-md bg-surface-container px-2 py-1 font-mono-data text-label-sm text-on-surface">
-                  1.25x
-                </span>
-                <button
-                  className="flex h-8 w-8 items-center justify-center rounded-lg text-on-surface-variant hover:text-on-surface"
-                  type="button"
-                >
-                  <span className="material-symbols-outlined text-[18px]">description</span>
-                </button>
+            <div className="flex items-center gap-2 text-on-surface">
+              <span
+                aria-hidden
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-surface-container text-on-surface-variant"
+              >
+                <span className="material-symbols-outlined text-[20px]">volume_off</span>
+              </span>
+              <div>
+                <p className="font-title-sm text-title-sm font-medium">AI Görüşme Ses Kaydı</p>
+                <p className="font-mono-data text-label-sm text-outline">
+                  {data.drawer.audioMeta}
+                </p>
               </div>
             </div>
-            {/* Waveform barları */}
+            <p className="flex items-center gap-1.5 font-label-sm text-label-sm text-on-surface-variant">
+              <span className="material-symbols-outlined text-[14px]">hourglass_top</span>
+              Ses kaydı yakında — kayıt saklama entegrasyonu bekleniyor.
+            </p>
+            {/* Dalga formu (statik görsel) */}
             <div className="flex h-8 items-center rounded-xl bg-surface-container-low px-2">
               <div className="flex h-6 flex-1 items-center justify-between gap-1">
                 {WAVEFORM.map((bar, index) => (
@@ -259,7 +248,10 @@ export function ParentDetailDrawer({ lead, onClose }: { lead: Lead | null; onClo
         <div className="grid grid-cols-2 gap-2">
           <button
             className="flex h-11 items-center justify-center gap-1.5 rounded-xl bg-secondary-container font-label-md text-label-md font-semibold text-on-secondary-container transition-colors hover:bg-secondary"
-            onClick={() => console.log("Randevu Oluşturma takvimi açılıyor...")}
+            onClick={() => {
+              onClose();
+              router.push("/randevular?odak=yeni");
+            }}
             type="button"
           >
             <span className="material-symbols-outlined text-[18px]">calendar_add_on</span>
@@ -267,7 +259,16 @@ export function ParentDetailDrawer({ lead, onClose }: { lead: Lead | null; onClo
           </button>
           <button
             className="flex h-11 items-center justify-center gap-1.5 rounded-xl bg-surface-container font-label-md text-label-md text-on-surface transition-colors hover:bg-surface-container-high"
-            onClick={() => console.log("WhatsApp Web / App görüşmesi başlatılıyor...")}
+            onClick={() => {
+                if (!data) return;
+                // Numarayı wa.me E.164 biçimine normalize et (yoklama view ile aynı kural)
+                const phone = data.drawer.phone ?? "";
+                const digits = (phone.match(/\d/g) ?? []).join("");
+                const full = digits.startsWith("90") ? digits : `90${digits.replace(/^0/, "")}`;
+                if (digits.length >= 10) {
+                  window.open(`https://wa.me/${full}`, "_blank", "noopener");
+                }
+              }}
             type="button"
           >
             <span className="material-symbols-outlined text-[18px] text-secondary">forum</span>

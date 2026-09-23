@@ -86,6 +86,19 @@ export function CallListBrowser({
   const [channel, setChannel] = useState<"all" | CallChannel>("all");
   const [range, setRange] = useState<RangeSelection>({ days: 30, label: "Son 30 gün" });
 
+  // URL'deki ?q= ile açılışta arama doldur (dashboard canlı akışı vb. derin bağlantılar)
+  useEffect(() => {
+    let alive = true;
+    void Promise.resolve().then(() => {
+      if (!alive) return;
+      const initial = new URLSearchParams(window.location.search).get("q");
+      if (initial) setQuery(initial);
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
   // Topbardaki tarih aralığı seçimini izle (sortKey = dakika cinsinden "önce")
   useEffect(() => {
     let alive = true;
@@ -99,6 +112,8 @@ export function CallListBrowser({
     };
   }, []);
 
+  const PAGE = 12;
+  const [visibleCount, setVisibleCount] = useState(PAGE);
   const visible = useMemo(
     () =>
       list.filter((c) => {
@@ -114,6 +129,7 @@ export function CallListBrowser({
       }),
     [list, range, query, channel]
   );
+  const paged = visible.slice(0, visibleCount);
 
   return (
     <div className="flex flex-col gap-4">
@@ -168,7 +184,7 @@ export function CallListBrowser({
             </tr>
           </thead>
           <tbody className="divide-y divide-outline-variant/40">
-            {visible.map((c) => (
+            {paged.map((c) => (
               <tr key={c.id} className="group transition-colors hover:bg-surface-container-low/60">
                 <td className="max-w-xs px-5 py-3.5">
                   <p className="font-label-md text-label-md font-semibold text-on-surface">
@@ -209,7 +225,7 @@ export function CallListBrowser({
 
         {/* Mobil: kartlar */}
         <div className="divide-y divide-outline-variant/40 lg:hidden">
-          {visible.map((c) => (
+          {paged.map((c) => (
             <Link
               key={c.id}
               className="block p-4 transition-colors hover:bg-surface-container-low/60"
@@ -261,6 +277,15 @@ export function CallListBrowser({
             Toplam {visible.length} görüşme listeleniyor.
           </p>
         )}
+        {visibleCount < visible.length ? (
+          <button
+            className="flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-outline-variant/60 bg-surface-container-lowest font-label-md text-label-md font-semibold text-on-surface transition-colors hover:bg-surface-container-low"
+            type="button"
+            onClick={() => setVisibleCount((v) => v + PAGE)}
+          >
+            Daha Fazla Yükle ({visible.length - visibleCount} kayıt)
+          </button>
+        ) : null}
       </div>
     </div>
   );

@@ -312,3 +312,181 @@ export interface CollectionAction {
   result: string | null;
   occurred_at: string;
 }
+
+// ── 0003_product_modules.sql ─────────────────────────────────
+
+/** M1: Rehberlik görüşme notu */
+export interface CounselorNote {
+  id: string;
+  contact_id: string;
+  dershane_id: string;
+  author: string | null;
+  note: string;
+  follow_up_at: string | null;
+  outcome: string | null;
+  created_at: string;
+}
+
+/** M4: Sınav takvimi — dershane_id NULL → merkezî sınav */
+export interface ExamScheduleRow {
+  id: string;
+  dershane_id: string | null;
+  name: string;
+  exam_type: "TYT" | "AYT" | "LGS" | "OKUL" | "DENEME";
+  exam_date: string;
+  is_estimated: boolean;
+  notes: string | null;
+  created_at: string;
+}
+
+// ── 0004_attendance.sql ──────────────────────────────────────
+
+export interface Lesson {
+  id: string;
+  dershane_id: string;
+  name: string;
+  subject: string | null;
+  class_level: string | null;
+  scheduled_at: string;
+  duration_minutes: number;
+  /** M10 Ders Programı: ders öğretmeni (serbest metin; devirde staff'a bağlanır) */
+  teacher: string | null;
+  /** M10 Ders Programı: derslik */
+  room: string | null;
+  created_at: string;
+}
+
+// ── 0010_schedule_slots.sql ──────────────────────────────────
+
+/** M10.1: Sabit haftalık program şablonu — her hafta tekrarlanan ders slotu. */
+export interface ScheduleSlot {
+  id: string;
+  dershane_id: string;
+  name: string;
+  subject: string | null;
+  class_level: string | null;
+  teacher: string | null;
+  room: string | null;
+  /** 1=Pazartesi … 7=Pazar */
+  day_of_week: number;
+  /** "HH:MM" yerel saat */
+  start_time: string;
+  duration_minutes: number;
+  created_at: string;
+}
+
+/** M11: Öğretmen saat ücreti — schedule_slots.teacher ile eşleşir. */
+export interface TeacherRate {
+  id: string;
+  dershane_id: string;
+  teacher: string;
+  /** numeric → string olarak taşınır */
+  hourly_rate: string;
+  updated_at: string;
+}
+
+export type AttendanceStatus = "present" | "late" | "absent";
+
+export interface AttendanceRow {
+  id: string;
+  lesson_id: string;
+  contact_id: string;
+  dershane_id: string;
+  status: AttendanceStatus;
+  marked_by: string | null;
+  created_at: string;
+}
+
+// ── 0005_skill_observations.sql ──────────────────────────────
+
+export type SkillId =
+  | "critical_thinking"
+  | "communication"
+  | "collaboration"
+  | "self_management"
+  | "digital_literacy";
+
+export interface SkillObservation {
+  id: string;
+  contact_id: string;
+  dershane_id: string;
+  skill: SkillId;
+  score: number;
+  note: string | null;
+  period: string | null;
+  observed_by: string | null;
+  created_at: string;
+}
+
+// ── 0006_events_referrals.sql ────────────────────────────────
+
+export type EventType = "seminer" | "deneme_gunu" | "workshop" | "diger";
+
+export interface EventRow {
+  id: string;
+  dershane_id: string;
+  name: string;
+  event_type: EventType;
+  event_date: string;
+  capacity: number | null;
+  notes: string | null;
+  created_at: string;
+}
+
+export type InviteStatus = "davetli" | "katildi" | "iptal";
+
+export interface EventInvite {
+  id: string;
+  event_id: string;
+  contact_id: string;
+  dershane_id: string;
+  status: InviteStatus;
+  created_at: string;
+}
+
+export type ReferralStatus = "yeni" | "iletisim" | "kayit" | "iptal";
+
+export interface Referral {
+  id: string;
+  dershane_id: string;
+  referrer_contact_id: string;
+  new_lead_name: string;
+  new_lead_phone: string | null;
+  status: ReferralStatus;
+  reward_note: string | null;
+  created_at: string;
+}
+
+// ── 0007_homework.sql ────────────────────────────────────────
+
+/** M9: Ödev — teslim tarihi timestamptz (ISO string). */
+export interface AssignmentRow {
+  id: string;
+  dershane_id: string;
+  title: string;
+  subject: string | null;
+  class_level: string | null;
+  due_date: string;
+  description: string | null;
+  created_by: string | null;
+  created_at: string;
+}
+
+export type HomeworkStatus = "done" | "partial" | "missing";
+
+export interface HomeworkSubmission {
+  id: string;
+  assignment_id: string;
+  contact_id: string;
+  dershane_id: string;
+  status: HomeworkStatus;
+  marked_by: string | null;
+  /** Storage 'odev-fotograflari' bucket yolu — öğrenci teslim fotoğrafı */
+  photo_path: string | null;
+  student_note: string | null;
+  /** Öğrencinin fotoğrafı yüklediği an */
+  submitted_at: string | null;
+  /** Öğretmenin son işaretleme (kontrol) anı */
+  checked_at: string | null;
+  created_at: string;
+}

@@ -10,8 +10,9 @@ import { VoiceCard } from "./voice-card";
 import { VoiceTestCard } from "./voice-test-card";
 import {
   DEFAULT_SETTINGS,
-  RESET_TOAST_MESSAGE,
+  humanHandoffTargets,
   SAVE_TOAST_MESSAGE,
+  type HumanHandoffTarget,
   type ScheduleRowState,
   type SettingsState,
 } from "@/lib/mock/settings";
@@ -23,6 +24,9 @@ export function AyarlarView() {
   const [settings, setSettings] = useState<SettingsState>(DEFAULT_SETTINGS);
   const [toast, setToast] = useState<{ id: number; message: string } | null>(null);
   const [saving, setSaving] = useState(false);
+  const [resetting, setResetting] = useState(false);
+  // Bot mod rozeti: /api/config'den canlı/demo bilgisi
+  const [botMode, setBotMode] = useState<"live" | "demo" | null>(null);
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const showToast = useCallback((message: string) => {
@@ -57,9 +61,13 @@ export function AyarlarView() {
               typeof caps[key] === "boolean" ? (caps[key] as boolean) : value,
             ])
           );
+          const savedHandoff = caps["human_handoff"];
           return {
             ...prev,
             capabilities: savedCaps,
+            humanHandoff: humanHandoffTargets.some((t) => t.id === savedHandoff)
+              ? (savedHandoff as HumanHandoffTarget)
+              : prev.humanHandoff,
             schedule: Array.isArray(ui.schedule)
               ? prev.schedule.map((row) => {
                   const saved = ui.schedule?.find((s) => s.id === row.id);
@@ -73,6 +81,21 @@ export function AyarlarView() {
               typeof ui.dailyCallLimit === "number" ? ui.dailyCallLimit : prev.dailyCallLimit,
           };
         });
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Bot Senkronize / Demo Mod rozeti için entegrasyon modu
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/config")
+      .then((res) => res.json())
+      .then((data) => {
+        if (cancelled) return;
+        setBotMode(data?.mode === "live" ? "live" : "demo");
       })
       .catch(() => undefined);
     return () => {
@@ -94,6 +117,11 @@ export function AyarlarView() {
     []
   );
 
+  // İnsana yönlendirme hedefi — CapabilitiesCard "Değiştir" akışı buraya yazar
+  const handleRoutingTargetChange = useCallback((target: HumanHandoffTarget) => {
+    setSettings((prev) => ({ ...prev, humanHandoff: target }));
+  }, []);
+
   const handleRowChange = useCallback(
     (id: string, patch: Partial<ScheduleRowState>) => {
       setSettings((prev) => ({
@@ -104,10 +132,35 @@ export function AyarlarView() {
     []
   );
 
+  /** Tümünü sıfırla: lokal state + POST ile varsayılanların kalıcı yazımı. */
   const handleResetAll = useCallback(() => {
+    if (resetting) return;
+    setResetting(true);
     setSettings(DEFAULT_SETTINGS);
-    showToast(RESET_TOAST_MESSAGE);
-  }, [showToast]);
+    fetch("/api/dershane-config", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        capabilities: DEFAULT_SETTINGS.capabilities,
+        humanHandoff: DEFAULT_SETTINGS.humanHandoff,
+        schedule: DEFAULT_SETTINGS.schedule,
+        retryHours: DEFAULT_SETTINGS.retryHours,
+        dailyCallLimit: DEFAULT_SETTINGS.dailyCallLimit,
+      }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        showToast(
+          data?.persisted
+            ? "Varsayılanlara sıfırlandı ve kaydedildi"
+            : "Demo modda sıfırlandı — kalıcı kayıt için Supabase anahtarları gerekli."
+        );
+      })
+      .catch(() =>
+        showToast("Lokal sıfırlandı ancak kalıcı yazılamadı — sunucuya ulaşılamadı.")
+      )
+      .finally(() => setResetting(false));
+  }, [resetting, showToast]);
 
   const handleSaveConfiguration = useCallback(() => {
     if (saving) return;
@@ -117,6 +170,7 @@ export function AyarlarView() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         capabilities: settings.capabilities,
+        humanHandoff: settings.humanHandoff,
         schedule: settings.schedule,
         retryHours: settings.retryHours,
         dailyCallLimit: settings.dailyCallLimit,
@@ -144,10 +198,18 @@ export function AyarlarView() {
             <span className="material-symbols-outlined text-[14px]">chevron_right</span>
             <span className="font-semibold text-primary">AI Yetenekleri &amp; Operasyon Kuralları</span>
             <span className="mx-space-xs inline-block h-1 w-1 rounded-full bg-outline-variant" />
-            <span className="inline-flex items-center gap-1 font-medium text-secondary">
-              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-secondary-fixed-dim" />
-              Bot Senkronize
-            </span>
+            {/* Bot modu /api/config'den gelir: canlıysa senkron, değilse dürüst Demo Mod rozeti */}
+            {botMode === "live" ? (
+              <span className="inline-flex items-center gap-1 font-medium text-secondary">
+                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-secondary-fixed-dim" />
+                Bot Senkronize
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 font-medium text-on-surface-variant">
+                <span className="h-1.5 w-1.5 rounded-full bg-outline-variant" />
+                {botMode === null ? "Durum kontrol ediliyor..." : "Demo Mod"}
+              </span>
+            )}
           </div>
           <h1 className="font-headline-lg text-headline-lg tracking-tight text-on-surface">
             AI Asistan Yetenekleri ve Operasyon Kuralları
@@ -161,10 +223,15 @@ export function AyarlarView() {
           <button
             type="button"
             onClick={handleResetAll}
-            className="flex items-center gap-space-xs rounded-xl border border-outline-variant/60 bg-surface-container-lowest px-space-md py-space-sm font-title-sm text-title-sm text-on-surface-variant transition-all hover:bg-surface-container-low hover:text-on-surface"
+            disabled={resetting}
+            className="flex items-center gap-space-xs rounded-xl border border-outline-variant/60 bg-surface-container-lowest px-space-md py-space-sm font-title-sm text-title-sm text-on-surface-variant transition-all hover:bg-surface-container-low hover:text-on-surface disabled:opacity-60"
           >
-            <span className="material-symbols-outlined text-[18px]">restart_alt</span>
-            <span>Tümünü Sıfırla</span>
+            <span
+              className={clsx("material-symbols-outlined text-[18px]", resetting && "animate-spin")}
+            >
+              {resetting ? "refresh" : "restart_alt"}
+            </span>
+            <span>{resetting ? "Sıfırlanıyor..." : "Tümünü Sıfırla"}</span>
           </button>
           <button
             type="button"
@@ -189,7 +256,12 @@ export function AyarlarView() {
         <div className="flex min-w-0 flex-col gap-space-lg lg:col-span-8">
           {/* Canlı ajan promptu — agent-prompt.json'a yazar */}
           <AgentPromptCard showToast={showToast} />
-          <CapabilitiesCard values={settings.capabilities} onToggle={handleCapabilityToggle} />
+          <CapabilitiesCard
+            values={settings.capabilities}
+            onToggle={handleCapabilityToggle}
+            routingTarget={settings.humanHandoff}
+            onRoutingTargetChange={handleRoutingTargetChange}
+          />
           <ScheduleCard
             rows={settings.schedule}
             retryHours={settings.retryHours}

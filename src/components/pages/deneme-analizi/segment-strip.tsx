@@ -1,25 +1,47 @@
+"use client";
+
 import { clsx } from "@/lib/clsx";
-import { examSegments } from "@/lib/mock/exams";
+import { examSegments, type ExamSegment } from "@/lib/mock/exams";
 
 /**
  * Segment kartları: Düşüş Alarmı, Yükselenler, Zirve, Plato, İlk Deneme.
- * Mobilde yatay kaydırma; PC'de (xl+) tam genişlik 5 kolon grid.
+ * Her kart bir butondur: tıklanınca öğrenci listesini o segmente filtreler,
+ * tekrar tıklanınca filtre kalkar. Mobilde yatay kaydırma; PC'de (xl+) 5 kolon.
  */
-export function SegmentStrip() {
+export function SegmentStrip({
+  segments,
+  activeSegment = null,
+  onToggle,
+}: {
+  segments?: ExamSegment[];
+  activeSegment?: string | null;
+  onToggle?: (segmentId: string) => void;
+}) {
+  const items = segments ?? examSegments;
   return (
     <section className="flex flex-col gap-3">
       <div className="flex items-center justify-between">
         <h2 className="font-headline-md text-headline-md font-bold tracking-tight text-on-surface">
           Öğrenci Segmentleri
         </h2>
-        <span className="font-label-md text-label-md text-on-surface-variant">5 Dinamik Küme</span>
+        <span className="font-label-md text-label-md text-on-surface-variant">
+          {activeSegment ? "Filtre etkin — kartı tekrar tıklayın" : "Karta tıklayın, liste filtrelenir"}
+        </span>
       </div>
 
       <div className="no-scrollbar -mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-1 lg:-mx-gutter lg:px-gutter xl:mx-0 xl:grid xl:snap-none xl:grid-cols-5 xl:overflow-visible xl:px-0 xl:pb-0">
-        {examSegments.map((segment) => (
-          <article
+        {items.map((segment) => (
+          <button
+            aria-pressed={activeSegment === segment.id}
+            className={clsx(
+              "flex w-64 shrink-0 snap-start flex-col rounded-xl border bg-surface-container-lowest p-5 text-left transition-colors xl:w-auto",
+              activeSegment === segment.id
+                ? "border-primary ring-2 ring-primary/20"
+                : "border-outline-variant/60 hover:border-outline-variant"
+            )}
             key={segment.id}
-            className="flex w-64 shrink-0 snap-start flex-col rounded-xl border border-outline-variant/60 bg-surface-container-lowest p-5 transition-colors hover:border-outline-variant xl:w-auto"
+            type="button"
+            onClick={() => onToggle?.(segment.id)}
           >
             <div className="flex items-start justify-between">
               <div
@@ -67,11 +89,18 @@ export function SegmentStrip() {
                 ) : null}
                 {segment.footerLabel}
               </span>
-              <span className="material-symbols-outlined text-[16px] text-on-surface-variant">
+              <span
+                className={clsx(
+                  "material-symbols-outlined text-[16px] transition-transform",
+                  activeSegment === segment.id
+                    ? "rotate-90 text-primary"
+                    : "text-on-surface-variant"
+                )}
+              >
                 arrow_forward
               </span>
             </div>
-          </article>
+          </button>
         ))}
       </div>
     </section>

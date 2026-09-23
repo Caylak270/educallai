@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { PageHeader } from "@/components/ui/page-shell";
 
 /**
@@ -18,15 +19,15 @@ export function HeroStatus() {
             </span>
             3 görüşme sürüyor
           </span>
-          <button
+          <Link
             className="flex h-10 items-center gap-1.5 rounded-xl border border-outline-variant/60 bg-surface-container-lowest px-4 font-label-md text-label-md font-medium text-on-surface transition-colors hover:bg-surface-container-low"
-            type="button"
+            href="/gorusmeler"
           >
             <span className="material-symbols-outlined text-[18px] text-primary-container">
               play_circle
             </span>
             <span>Canlı İzle</span>
-          </button>
+          </Link>
         </div>
       }
     />

@@ -1,24 +1,46 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { clsx } from "@/lib/clsx";
 import { CallButton } from "@/components/ui/call-button";
-import { hotLeadClassFilters, hotLeads } from "@/lib/mock/kpis";
+import { type HotLead,  hotLeadClassFilters, hotLeads } from "@/lib/mock/kpis";
+
+/**
+ * "18 dk önce" / "2.5 saat önce" biçimli bekleme metnini dakikaya çevirir.
+ * Ayrıştırılamazsa Infinity döner (filtre dışına düşmez).
+ */
+function waitToMinutes(wait: string): number {
+  const match = wait.match(/(\d+(?:[.,]\d+)?)\s*(dk|saat|gün)/);
+  if (!match) return Number.POSITIVE_INFINITY;
+  const value = Number.parseFloat(match[1].replace(",", "."));
+  const unitMinutes = match[2] === "dk" ? 1 : match[2] === "saat" ? 60 : 1440;
+  return value * unitMinutes;
+}
+
+/** Lead detayından WhatsApp için numara çıkarır; maskeliyse null döner. */
+function extractPhone(detail: string): string | null {
+  const digits = (detail.match(/\d/g) ?? []).join("");
+  return digits.length >= 10 ? `${digits.slice(-12)}` : null;
+}
 
 /**
  * Sıcak lead tablosu (v2) — sessiz başlıklar, havadar satırlar,
  * tek tonal aksiyon + hayalet ikon butonlar. Satır boyama/rozet kalabalığı yok.
  */
-export function HotLeadsTable() {
+export function HotLeadsTable({ leads }: { leads?: HotLead[] }) {
+  const items = leads ?? hotLeads;
   const [classFilter, setClassFilter] = useState<string>("Tüm Sınıflar");
   const [hotOnly, setHotOnly] = useState(false);
   const [recentOnly, setRecentOnly] = useState(false);
 
-  const rows = hotLeads.filter(
+  const rows = items.filter(
     (lead) =>
       (classFilter === "Tüm Sınıflar" || lead.classFilterKey === classFilter) &&
-      (!hotOnly || lead.heat === "hot")
+      (!hotOnly || lead.heat === "hot") &&
+      (!recentOnly || waitToMinutes(lead.wait) <= 24 * 60)
   );
+  const phoneByLead = new Map(items.map((lead) => [lead.id, extractPhone(lead.detail)]));
 
   return (
     <section className="rounded-xl border border-outline-variant/60 bg-surface-container-lowest">
@@ -165,22 +187,37 @@ export function HotLeadsTable() {
                       leadId={lead.id}
                       context={lead.classTag}
                     />
-                    <button
+                    <a
                       aria-label={`${lead.parent} için WhatsApp mesajı aç`}
-                      className="flex h-8 w-8 items-center justify-center rounded-lg text-on-surface-variant transition-colors hover:bg-surface-container"
-                      onClick={() => console.log(`WhatsApp Mesajı Aç: ${lead.parent}`)}
-                      type="button"
+                      className={clsx(
+                        "flex h-8 w-8 items-center justify-center rounded-lg transition-colors",
+                        phoneByLead.get(lead.id)
+                          ? "text-on-surface-variant hover:bg-surface-container"
+                          : "cursor-not-allowed text-outline/50"
+                      )}
+                      href={
+                        phoneByLead.get(lead.id)
+                          ? `https://wa.me/${phoneByLead.get(lead.id)}`
+                          : undefined
+                      }
+                      target="_blank"
+                      rel="noreferrer"
+                      title={
+                        phoneByLead.get(lead.id)
+                          ? "WhatsApp mesajı aç"
+                          : "Numara maskeli — canlı veride etkinleşir"
+                      }
                     >
                       <span className="material-symbols-outlined text-[18px]">chat</span>
-                    </button>
-                    <button
-                      aria-label={`${lead.parent} için detaylı CRM kaydı`}
+                    </a>
+                    <Link
+                      aria-label={`${lead.parent} için veli CRM kaydını aç`}
                       className="flex h-8 w-8 items-center justify-center rounded-lg text-on-surface-variant transition-colors hover:bg-surface-container"
-                      onClick={() => console.log(`Detaylı CRM Kaydı: ${lead.parent}`)}
-                      type="button"
+                      href={`/veliler?q=${encodeURIComponent(lead.parent)}`}
+                      title="Veli CRM kaydını aç"
                     >
                       <span className="material-symbols-outlined text-[18px]">more_vert</span>
-                    </button>
+                    </Link>
                   </div>
                 </td>
               </tr>
@@ -193,12 +230,12 @@ export function HotLeadsTable() {
         <span className="font-body-sm text-body-sm text-on-surface-variant">
           Toplam 14 öncelikli arama talebi
         </span>
-        <button
+        <Link
           className="font-label-sm text-label-sm font-medium text-primary transition-colors hover:text-primary-container"
-          type="button"
+          href="/veliler"
         >
           Tümünü görüntüle
-        </button>
+        </Link>
       </div>
     </section>
   );

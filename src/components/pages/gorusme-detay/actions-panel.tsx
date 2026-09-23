@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { clsx } from "@/lib/clsx";
 import type { AutomationItem, AutomationPanel, NoteBox } from "@/lib/mock/calls";
 
@@ -68,16 +68,67 @@ function TimelineItem({ item }: { item: AutomationItem }) {
 export function ActionsPanel({
   automation,
   noteBox,
+  contactId,
 }: {
   automation: AutomationPanel;
   noteBox: NoteBox;
+  /** Notun bağlandığı kontak (canlı: conversation_signals.contact_id; demo kayıtta null) */
+  contactId: string | null;
 }) {
   const [note, setNote] = useState("");
+  const [loading, setLoading] = useState(Boolean(contactId));
+  const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  /* Mount'ta mevcut danışman notunu getir (en güncel kayıt textarea'ya doldurulur). */
+  useEffect(() => {
+    if (!contactId) return;
+    let cancelled = false;
+    fetch(`/api/counselor-notes?contactId=${encodeURIComponent(contactId)}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (cancelled) return;
+        const latest = Array.isArray(data.notes) ? data.notes[0] : null;
+        if (latest?.note) setNote(latest.note);
+      })
+      .catch(() => undefined)
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [contactId]);
 
   const handleNoteChange = (value: string) => {
     setNote(value);
     if (saved) setSaved(false);
+    if (error) setError(null);
+  };
+
+  /* POST /api/counselor-notes — canlı modda Supabase'e, demo modda simülasyona yazar. */
+  const handleSave = async () => {
+    if (!contactId || saving || loading || !note.trim()) return;
+    setSaving(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/counselor-notes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ contactId, note, author: "Danışman" }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        setError(data.error ?? "Not kaydedilemedi");
+      } else {
+        setSaved(true);
+      }
+    } catch {
+      setError("Sunucuya ulaşılamadı");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -104,7 +155,7 @@ export function ActionsPanel({
         ))}
       </div>
 
-      {/* Dahili not kutusu */}
+      {/* Dahili not kutusu — GET/POST /api/counselor-notes'a bağlı */}
       <div className="mt-5 flex flex-col gap-3 border-t border-outline-variant/50 pt-5">
         <div className="flex items-center justify-between gap-3">
           <label
@@ -120,27 +171,52 @@ export function ActionsPanel({
             {noteBox.hint}
           </span>
         </div>
-        <textarea
-          id="counselorNote"
-          rows={3}
-          value={note}
-          onChange={(event) => handleNoteChange(event.target.value)}
-          placeholder={noteBox.placeholder}
-          className="w-full resize-none rounded-xl border border-outline-variant/60 bg-surface-container-low p-3 font-body-md text-body-md text-on-surface transition-colors placeholder:text-on-surface-variant focus:border-primary focus:outline-none"
-        />
-        <div className="flex justify-end">
-          <button
-            type="button"
-            disabled={saved}
-            onClick={() => setSaved(true)}
-            className={clsx(
-              "rounded-xl bg-primary-container px-4 py-2 font-label-md text-label-md font-semibold text-on-primary transition-colors hover:bg-primary",
-              saved && "bg-secondary hover:bg-secondary"
-            )}
-          >
-            {saved ? noteBox.savedLabel : noteBox.saveLabel}
-          </button>
-        </div>
+        {contactId ? (
+          <>
+            <textarea
+              id="counselorNote"
+              rows={3}
+              value={note}
+              disabled={loading}
+              onChange={(event) => handleNoteChange(event.target.value)}
+              placeholder={loading ? "Not yükleniyor…" : noteBox.placeholder}
+              className="w-full resize-none rounded-xl border border-outline-variant/60 bg-surface-container-low p-3 font-body-md text-body-md text-on-surface transition-colors placeholder:text-on-surface-variant focus:border-primary focus:outline-none disabled:opacity-60"
+            />
+            {error ? (
+              <p className="font-label-sm text-label-sm font-semibold text-error" role="alert">
+                {error}
+              </p>
+            ) : null}
+            <div className="flex items-center justify-end gap-2">
+              {saved ? (
+                <span
+                  aria-live="polite"
+                  className="flex items-center gap-1 font-label-sm text-label-sm font-semibold text-secondary"
+                >
+                  <span className="material-symbols-outlined text-[14px]">check_circle</span>
+                  {noteBox.savedLabel}
+                </span>
+              ) : null}
+              <button
+                type="button"
+                disabled={loading || saving || !note.trim()}
+                onClick={handleSave}
+                className={clsx(
+                  "rounded-xl bg-primary-container px-4 py-2 font-label-md text-label-md font-semibold text-on-primary transition-colors hover:bg-primary disabled:opacity-60"
+                )}
+              >
+                {saving ? "Kaydediliyor…" : saved ? noteBox.savedLabel : noteBox.saveLabel}
+              </button>
+            </div>
+          </>
+        ) : (
+          <p className="flex items-center gap-1.5 rounded-xl bg-surface-container-low p-3 font-label-sm text-label-sm text-on-surface-variant">
+            <span className="material-symbols-outlined text-[16px] text-outline">
+              info
+            </span>
+            Bu kayıtta kontak bağlantısı yok — danışman notu yalnızca canlı görüşmelerde kaydedilir.
+          </p>
+        )}
       </div>
     </div>
   );

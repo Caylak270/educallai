@@ -50,10 +50,10 @@ export const channelBreakdown = [
   { label: "Instagram DM", value: 72, color: "bg-outline-variant", percent: 3 },
 ];
 
-/** Dönemsel rapor dosyaları. */
+/** Rapor şablonları (satır yazdırma: #rapor-<index> hedefi). Boyut gibi uydurma meta içermez. */
 export const reportFiles = [
-  { name: "Ekim — Veli İletişim ve Kayıt Dönüşüm Raporu", period: "1–14 Ekim 2026", size: "PDF · 1,8 MB" },
-  { name: "Eylül — Tahsilat Performans ve Eskalasyon Özeti", period: "Eylül 2026", size: "PDF · 2,1 MB" },
-  { name: "Deneme Sınavı Fırsat Motoru — Dönem Özeti", period: "Özdebir TYT-4 dönemi", size: "PDF · 940 KB" },
-  { name: "Outcome Telemetry — Danışman Takip Raporu", period: "Son 30 gün", size: "PDF · 1,2 MB" },
+  { name: "Ekim — Veli İletişim ve Kayıt Dönüşüm Raporu", period: "1–14 Ekim 2026" },
+  { name: "Eylül — Tahsilat Performans ve Eskalasyon Özeti", period: "Eylül 2026" },
+  { name: "Deneme Sınavı Fırsat Motoru — Dönem Özeti", period: "Özdebir TYT-4 dönemi" },
+  { name: "Outcome Telemetry — Danışman Takip Raporu", period: "Son 30 gün" },
 ];

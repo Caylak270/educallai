@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { clsx } from "@/lib/clsx";
-import { appointments } from "@/lib/mock/kpis";
+import { type Appointment,  appointments as mockAppointments } from "@/lib/mock/kpis";
 
 /* Bugünün Randevuları zaman çizelgesi */
-export function AppointmentsTimeline() {
+export function AppointmentsTimeline({ appointments }: { appointments?: Appointment[] }) {
+  const items = appointments ?? mockAppointments;
   return (
     <div className="flex flex-col justify-between rounded-2xl bg-surface-container-lowest p-space-lg shadow-sm">
       <div className="mb-space-md flex items-center justify-between">
@@ -18,18 +19,18 @@ export function AppointmentsTimeline() {
             14 Ekim 2024 Pazartesi • Kurum İçi Yüz Yüze Görüşmeler
           </p>
         </div>
-        <button
+        <Link
           className="flex h-8 items-center gap-1 rounded-lg bg-surface-container px-3 font-label-sm text-label-sm font-semibold text-on-surface transition-colors hover:bg-surface-container-high"
-          type="button"
+          href="/randevular?odak=yeni"
         >
           <span className="material-symbols-outlined text-[16px]">add</span>
           <span>Randevu Ekle</span>
-        </button>
+        </Link>
       </div>
 
       {/* Zaman çizelgesi öğeleri */}
       <div className="space-y-4">
-        {appointments.map((appointment) => (
+        {items.map((appointment) => (
           <div
             key={appointment.id}
             className="flex items-start gap-space-md rounded-xl bg-surface-container-low p-space-md transition-colors hover:bg-surface-container"

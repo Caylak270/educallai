@@ -1,10 +1,54 @@
+"use client";
+
+import { useState } from "react";
+import { clsx } from "@/lib/clsx";
 import type { AiSignals } from "@/lib/mock/calls";
+
+type HandoffState =
+  | { status: "idle" }
+  | { status: "busy" }
+  | { status: "done" }
+  | { status: "fail"; note: string };
 
 /**
  * AI sinyalleri — sekme kartının içinde düz içerik:
  * skor bloğu + ayırıcılarla ayrılmış sinyal satırları + devir aksiyonu.
+ * Devir: POST /api/handoffs → handoff_logs'a 'pending' kayıt düşer;
+ * /api/notifications bu kaydı okuduğu için topbar zilinde görünür.
  */
-export function AiSignalsPanel({ signals }: { signals: AiSignals }) {
+export function AiSignalsPanel({
+  signals,
+  callId,
+  contactId,
+}: {
+  signals: AiSignals;
+  /** Görüşme sinyal kaydının id'si */
+  callId: string;
+  /** Kontak kaydı (canlı veride mevcut; demo kayıtta null) */
+  contactId: string | null;
+}) {
+  const [handoff, setHandoff] = useState<HandoffState>({ status: "idle" });
+
+  const handleHandoff = async () => {
+    if (handoff.status === "busy" || handoff.status === "done") return;
+    setHandoff({ status: "busy" });
+    try {
+      const res = await fetch("/api/handoffs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ callId, contactId, reason: "manual-handoff" }),
+      });
+      const data = await res.json();
+      if (res.ok && data.ok) {
+        setHandoff({ status: "done" });
+      } else {
+        setHandoff({ status: "fail", note: data.error ?? "Devir kaydı oluşturulamadı" });
+      }
+    } catch {
+      setHandoff({ status: "fail", note: "Sunucuya ulaşılamadı" });
+    }
+  };
+
   return (
     <div className="flex flex-col">
       {/* Dönüşüm skoru */}
@@ -108,23 +152,62 @@ export function AiSignalsPanel({ signals }: { signals: AiSignals }) {
         </div>
       </div>
 
-      {/* Yetkiliye devir */}
+      {/* Yetkiliye devir — gerçek devir kaydı (POST /api/handoffs) */}
       <div className="mt-5">
         <button
           type="button"
-          className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-primary-container font-title-sm text-title-sm font-semibold text-on-primary transition-colors hover:bg-primary active:scale-[0.99]"
+          onClick={handleHandoff}
+          disabled={handoff.status === "busy" || handoff.status === "done"}
+          aria-busy={handoff.status === "busy"}
+          className={clsx(
+            "flex h-12 w-full items-center justify-center gap-2 rounded-xl font-title-sm text-title-sm font-semibold transition-colors active:scale-[0.99]",
+            handoff.status === "done"
+              ? "bg-secondary-container text-on-secondary-container"
+              : handoff.status === "fail"
+                ? "bg-error-container text-on-error-container"
+                : "bg-primary-container text-on-primary hover:bg-primary disabled:opacity-70"
+          )}
         >
-          <span className="material-symbols-outlined text-[20px]">
-            headset_mic
+          <span
+            className={clsx(
+              "material-symbols-outlined text-[20px]",
+              handoff.status === "busy" && "animate-spin"
+            )}
+          >
+            {handoff.status === "busy"
+              ? "progress_activity"
+              : handoff.status === "done"
+                ? "check_circle"
+                : handoff.status === "fail"
+                  ? "error"
+                  : "headset_mic"}
           </span>
-          <span>{signals.handoff.button}</span>
+          <span>
+            {handoff.status === "busy"
+              ? "Devrediliyor..."
+              : handoff.status === "done"
+                ? "Devredildi"
+                : handoff.status === "fail"
+                  ? "Tekrar Dene"
+                  : signals.handoff.button}
+          </span>
         </button>
-        <p className="mt-2 text-center font-label-sm text-label-sm text-on-surface-variant">
-          {signals.handoff.captionPrefix}{" "}
-          <strong className="font-semibold text-on-surface">
-            {signals.handoff.counselor}
-          </strong>
-        </p>
+        {handoff.status === "done" ? (
+          <p className="mt-2 text-center font-label-sm text-label-sm text-secondary">
+            Danışman bildirimi topbar zilinde görünür.
+          </p>
+        ) : handoff.status === "fail" ? (
+          <p className="mt-2 text-center font-label-sm text-label-sm font-semibold text-error" role="alert">
+            {handoff.note}
+          </p>
+        ) : (
+          <p className="mt-2 text-center font-label-sm text-label-sm text-on-surface-variant">
+            {signals.handoff.captionPrefix}{" "}
+            <strong className="font-semibold text-on-surface">
+              {signals.handoff.counselor}
+            </strong>
+          </p>
+        )}
       </div>
     </div>
   );

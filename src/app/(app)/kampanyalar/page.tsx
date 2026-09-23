@@ -1,12 +1,18 @@
 import { KpiSummary } from "@/components/pages/kampanyalar/kpi-summary";
 import { CampaignList } from "@/components/pages/kampanyalar/campaign-list";
 import { WizardCard } from "@/components/pages/kampanyalar/wizard-card";
+import { getLiveCampaigns } from "@/lib/server/queries";
+import { buildCampaignsView } from "@/lib/server/campaigns-map";
 import { PageHeader, PageShell } from "@/components/ui/page-shell";
 import { wizard } from "@/lib/mock/campaigns";
 
 export const metadata = { title: "Kampanyalar" };
 
-export default function Page() {
+export const dynamic = "force-dynamic";
+
+export default async function Page() {
+  const live = await getLiveCampaigns();
+  const view = live ? buildCampaignsView(live) : null;
   return (
     <PageShell>
       <PageHeader
@@ -19,7 +25,7 @@ export default function Page() {
         <KpiSummary />
 
         {/* Kampanya kartları (sekmeli filtre ile) */}
-        <CampaignList />
+        <CampaignList campaigns={view ?? undefined} sourceLabel={view ? `Supabase canlı veri (${view.length} kampanya)` : "Demo veri — Supabase bağlantısı bekleniyor"} />
 
         {/* Sihirbaz */}
         <div className="mt-2 flex items-end justify-between gap-3">

@@ -192,6 +192,46 @@ export interface InstallmentRecord {
   };
   action: { icon: string; label: string };
   filters: InstallmentFilterId[];
+  /** Veli telefonu (canlı veride contacts.phone'dan; demo mock'ta yoktur → /veliler?q= yönlendirmesi). */
+  phone?: string;
+  /** Filtre/sıralama için sayısal tutar (canlıda tahsilat-map doldurur). */
+  amountValue?: number;
+  /** Sıralama için vade tarihi (ISO). */
+  dueDate?: string;
+  /** Sahip kontak — borçlu özetinden tek öğrenciye inmek için (canlıda dolar). */
+  contactId?: string;
+  /** Plan bilgisi (canlıda dolar) — "taksit x/N" sayısal hâli. */
+  installmentNumber?: number;
+  installmentCount?: number;
+  /** Ödendi tarihi (ISO, canlıda dolar) — kartta gösterilir. */
+  paidAt?: string;
+}
+
+/** Öğrenci/veli bazlı toplam borç — "kimin ne kadar borcu var" özeti (canlıda dolar). */
+export interface DebtorRow {
+  contactId: string;
+  studentName: string;
+  parentName: string;
+  grade: string;
+  /** Planın toplam tutarı (ödinen + bekleyen). */
+  total: number;
+  paid: number;
+  remaining: number;
+  installmentCount: number;
+  paidCount: number;
+  /** Geciken taksit tutar/adet (varsa satır kırmızı vurgulanır). */
+  overdueAmount: number;
+  overdueCount: number;
+  /** İlk ödenmemiş taksitin vadesi (ISO). */
+  nextDueDate: string | null;
+}
+
+export interface DebtorContactOption {
+  id: string;
+  parentName: string;
+  studentName: string;
+  grade: string;
+  phone?: string;
 }
 
 export const installmentListHeader = {
@@ -226,6 +266,8 @@ export const installmentRecords: InstallmentRecord[] = [
     },
     action: { icon: "graphic_eq", label: "Hatırlat (AI Ses / WA)" },
     filters: ["overdue", "ai-call", "promised"],
+    amountValue: 14500,
+    dueDate: "2026-09-09",
   },
   {
     id: "inst-002",
@@ -252,6 +294,8 @@ export const installmentRecords: InstallmentRecord[] = [
     },
     action: { icon: "forward_to_inbox", label: "Tekrar Hatırlat" },
     filters: ["due-today"],
+    amountValue: 12000,
+    dueDate: "2026-09-23",
   },
   {
     id: "inst-003",
@@ -279,6 +323,8 @@ export const installmentRecords: InstallmentRecord[] = [
     },
     action: { icon: "call", label: "Hemen Ara (Müdürlük)" },
     filters: ["overdue"],
+    amountValue: 18000,
+    dueDate: "2026-08-24",
   },
   {
     id: "inst-004",
@@ -305,6 +351,8 @@ export const installmentRecords: InstallmentRecord[] = [
     },
     action: { icon: "send", label: "Şimdi Gönder" },
     filters: [],
+    amountValue: 9500,
+    dueDate: "2026-09-26",
   },
   {
     id: "inst-005",
@@ -331,6 +379,8 @@ export const installmentRecords: InstallmentRecord[] = [
     },
     action: { icon: "call", label: "Hatırlat" },
     filters: ["overdue"],
+    amountValue: 11000,
+    dueDate: "2026-09-18",
   },
 ];
 

@@ -37,13 +37,18 @@ export function ThemeToggle({
       type="button"
       onClick={toggle}
     >
-      <span className={clsx("material-symbols-outlined dark:hidden", iconClassName)}>
-        dark_mode
+      {/* Not: sarmalayıcı span'lar şart — material-symbols span'ının kendisi
+          Google CDN CSS'indeki katmansız `display:inline-block` yüzünden
+          hidden/dark:hidden utility'lerine yenik düşer. */}
+      <span className="dark:hidden">
+        <span className={clsx("material-symbols-outlined", iconClassName)}>
+          dark_mode
+        </span>
       </span>
-      <span
-        className={clsx("material-symbols-outlined hidden dark:block", iconClassName)}
-      >
-        light_mode
+      <span className="hidden dark:block">
+        <span className={clsx("material-symbols-outlined", iconClassName)}>
+          light_mode
+        </span>
       </span>
     </button>
   );

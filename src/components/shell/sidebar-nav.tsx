@@ -13,6 +13,17 @@ export const NAV_ITEMS = [
   { href: "/deneme-analizi", label: "Deneme Analizi", icon: "monitoring" },
   { href: "/randevular", label: "Randevular", icon: "event_available" },
   { href: "/raporlar", label: "Raporlar", icon: "analytics" },
+  { href: "/risk-paneli", label: "Risk Paneli", icon: "crisis_alert" },
+  { href: "/yoklama", label: "Yoklama", icon: "fact_check" },
+  { href: "/odevler", label: "Ödev Takibi", icon: "checklist" },
+  { href: "/ders-programi", label: "Ders Programı", icon: "calendar_view_week" },
+  { href: "/ogretmen-bordro", label: "Öğretmen Bordro", icon: "receipt_long" },
+  { href: "/beceri-karnesi", label: "Beceri Karnesi", icon: "psychology" },
+  { href: "/ogrenci-360", label: "Öğrenci 360", icon: "person_search" },
+  { href: "/veli-bulteni", label: "Veli Bülteni", icon: "mark_email_read" },
+  { href: "/etkinlikler", label: "Etkinlikler", icon: "local_activity" },
+  { href: "/referanslar", label: "Arkadaşını Getir", icon: "card_giftcard" },
+  { href: "/sinav-takvimi", label: "Sınav Takvimi", icon: "calendar_month" },
   { href: "/ayarlar", label: "Ayarlar", icon: "settings" },
 ] as const;
 

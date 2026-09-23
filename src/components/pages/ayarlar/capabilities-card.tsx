@@ -1,11 +1,14 @@
 "use client";
 
+import { useState } from "react";
 import { CardHeader } from "./card-header";
 import { ToggleSwitch } from "./toggle-switch";
 import {
   agentRouting,
   capabilityToggles,
+  humanHandoffTargets,
   type CapabilityBadgeTone,
+  type HumanHandoffTarget,
 } from "@/lib/mock/settings";
 import { clsx } from "@/lib/clsx";
 
@@ -19,10 +22,33 @@ const badgeToneClasses: Record<CapabilityBadgeTone, string> = {
 type CapabilitiesCardProps = {
   values: Record<string, boolean>;
   onToggle: (id: string, value: boolean) => void;
+  /** İnsana yönlendirme hedefi — ayarlar-view state'inden gelir. */
+  routingTarget: HumanHandoffTarget;
+  /** Kaydet → ayarlar-view state'ine yazılır; kalıcı kayıt "Değişiklikleri Kaydet" ile olur. */
+  onRoutingTargetChange: (target: HumanHandoffTarget) => void;
 };
 
-export function CapabilitiesCard({ values, onToggle }: CapabilitiesCardProps) {
+export function CapabilitiesCard({
+  values,
+  onToggle,
+  routingTarget,
+  onRoutingTargetChange,
+}: CapabilitiesCardProps) {
   const activeCount = capabilityToggles.filter((toggle) => values[toggle.id]).length;
+  // "Değiştir" ile açılan satır içi düzenleme taslağı (Kaydet ile uygulanır).
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState<HumanHandoffTarget>(routingTarget);
+  const current = humanHandoffTargets.find((t) => t.id === routingTarget) ?? humanHandoffTargets[0];
+
+  const startEdit = () => {
+    setDraft(routingTarget);
+    setEditing(true);
+  };
+
+  const saveEdit = () => {
+    onRoutingTargetChange(draft);
+    setEditing(false);
+  };
 
   return (
     <section className="flex flex-col gap-space-md rounded-xl border border-outline-variant/60 bg-surface-container-lowest p-space-lg">
@@ -81,26 +107,69 @@ export function CapabilitiesCard({ values, onToggle }: CapabilitiesCardProps) {
             </div>
 
             {item.hasRoutingBox && (
-              <div className="ml-11 flex items-center justify-between gap-space-md rounded-lg bg-surface-container p-space-sm">
-                <div className="flex items-center gap-space-sm">
-                  <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary font-label-sm text-label-sm font-semibold text-on-primary">
-                    {agentRouting.initials}
+              <div className="ml-11 rounded-lg bg-surface-container p-space-sm">
+                {!editing ? (
+                  <div className="flex items-center justify-between gap-space-md">
+                    <div className="flex items-center gap-space-sm">
+                      <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary font-label-sm text-label-sm font-semibold text-on-primary">
+                        {routingTarget === "off" ? "×" : current.id === "manager" ? "M" : agentRouting.initials}
+                      </div>
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:gap-space-sm">
+                        <span className="font-label-md text-label-md font-semibold text-on-surface">
+                          {current.boxLabel}
+                        </span>
+                        {current.boxContact ? (
+                          <span className="font-mono-data text-mono-data text-on-surface-variant">
+                            {current.boxContact}
+                          </span>
+                        ) : null}
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={startEdit}
+                      className="font-label-sm text-label-sm font-semibold text-primary transition-colors hover:text-primary-container"
+                    >
+                      Değiştir
+                    </button>
                   </div>
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:gap-space-sm">
-                    <span className="font-label-md text-label-md font-semibold text-on-surface">
-                      {agentRouting.desk}
-                    </span>
-                    <span className="font-mono-data text-mono-data text-on-surface-variant">
-                      {agentRouting.contact}
-                    </span>
+                ) : (
+                  <div className="flex flex-wrap items-end gap-space-sm">
+                    <label className="flex flex-col gap-1">
+                      <span className="font-label-xs text-label-xs text-on-surface-variant">
+                        Yönlendirme hedefi
+                      </span>
+                      <select
+                        className="h-9 rounded-lg border border-outline-variant/60 bg-surface-container-lowest px-2 font-label-sm text-label-sm text-on-surface focus:border-primary focus:outline-none"
+                        onChange={(event) => setDraft(event.target.value as HumanHandoffTarget)}
+                        value={draft}
+                      >
+                        {humanHandoffTargets.map((target) => (
+                          <option key={target.id} value={target.id}>
+                            {target.label}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <button
+                      type="button"
+                      onClick={saveEdit}
+                      className="flex h-9 items-center rounded-lg bg-primary-container px-3.5 font-label-sm text-label-sm font-semibold text-on-primary transition-colors hover:bg-primary"
+                    >
+                      Kaydet
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEditing(false)}
+                      className="flex h-9 items-center rounded-lg px-3 font-label-sm text-label-sm text-on-surface-variant transition-colors hover:bg-surface-container-high"
+                    >
+                      Vazgeç
+                    </button>
+                    <p className="w-full font-label-xs text-label-xs text-on-surface-variant">
+                      Seçim kaydetmek için sayfanın sağ üstündeki “Değişiklikleri Kaydet”i kullanın.
+                    </p>
                   </div>
-                </div>
-                <button
-                  type="button"
-                  className="font-label-sm text-label-sm font-semibold text-primary transition-colors hover:text-primary-container"
-                >
-                  Değiştir
-                </button>
+                )}
               </div>
             )}
           </div>

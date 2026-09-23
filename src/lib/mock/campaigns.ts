@@ -31,6 +31,8 @@ export interface Campaign {
   status: CampaignStatus;
   /** Aktif kart 1'deki ring + köşe vurgusu */
   highlight?: boolean;
+  /** "duraklatildi" grubundaki taslaklar için farklı rozet etiketi (örn. "Taslak") */
+  badgeLabel?: string;
   /** Canlı arama soundwave şeridi */
   liveCall?: { label: string; value: string };
   progress: {
@@ -45,6 +47,13 @@ export interface Campaign {
   controls?: Array<"pause" | "report" | "resume">;
   collectedNote?: { prefix: string; strong: string };
   resultNote?: { prefix: string; strong: string; suffix: string };
+  /** "Detay" panelinde gösterilen kampanya künyesi (canlıda campaigns-map doldurur). */
+  detail?: {
+    channel?: string;
+    targetCount?: number;
+    startDate?: string;
+    script?: string;
+  };
 }
 
 export const campaigns: Campaign[] = [
@@ -68,6 +77,13 @@ export const campaigns: Campaign[] = [
     ],
     scheduleLabel: "Hafta içi 09:30-18:00",
     controls: ["pause", "report"],
+    detail: {
+      channel: "Sesli Arama",
+      targetCount: 950,
+      startDate: "3 Şubat 2025",
+      script:
+        '"İyi günler {Veli_Adi} Hanım/Bey, ben Limit Dershanesi\'nden arıyorum. Erken kayıt avantajlı ücret baremini paylaşmak istedim..."',
+    },
   },
   {
     id: "lgs-bursluluk",
@@ -85,6 +101,13 @@ export const campaigns: Campaign[] = [
       { label: "Randevu", value: "54 Veli", tone: "secondary" },
       { label: "Ulaşılamayan", value: "32 Veli" },
     ],
+    detail: {
+      channel: "Sesli Arama",
+      targetCount: 600,
+      startDate: "10 Şubat 2025",
+      script:
+        '"Merhaba, LGS Bursluluk Sınavımıza davet etmek istiyorum. {Ogrenci_Adi} için ücretsiz katılım hakkı tanımlandı..."',
+    },
   },
   {
     id: "mart-taksit-hatirlatma",
@@ -99,6 +122,12 @@ export const campaigns: Campaign[] = [
     },
     collectedNote: { prefix: "Tahsil Edilen: ", strong: "₺142.500" },
     controls: ["resume"],
+    detail: {
+      channel: "WhatsApp",
+      targetCount: 280,
+      startDate: "1 Mart 2025",
+      script: "Geciken taksit hatırlatması: nazik uyarı → ödeme linki → AI sesli arama akışı.",
+    },
   },
   {
     id: "donem-deneme-daveti",
@@ -111,6 +140,13 @@ export const campaigns: Campaign[] = [
       width: 100,
     },
     resultNote: { prefix: "Sonuç: ", strong: "112 deneme katılımı", suffix: " sağlandı." },
+    controls: ["report"],
+    detail: {
+      channel: "Sesli Arama",
+      targetCount: 320,
+      startDate: "12 Şubat 2025",
+      script: '"Deneme sınavı davetiniz hazır, {Ogrenci_Adi} için yer ayırtmak ister misiniz?"',
+    },
   },
 ];
 

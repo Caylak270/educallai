@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { clsx } from "@/lib/clsx";
-import { feedItems } from "@/lib/mock/kpis";
+import { type FeedItem,  feedItems } from "@/lib/mock/kpis";
 import { RefreshButton } from "@/components/ui/refresh-button";
 
 /* Son AI Görüşmeleri & Canlı İletişim Akışı */
-export function LiveFeed() {
+export function LiveFeed({ feed }: { feed?: FeedItem[] }) {
+  const items = feed ?? feedItems;
   return (
     <div className="flex flex-col justify-between rounded-2xl bg-surface-container-lowest p-space-lg shadow-sm">
       <div className="mb-space-md flex items-center justify-between">
@@ -27,7 +28,7 @@ export function LiveFeed() {
 
       {/* Akış kartları */}
       <div className="space-y-3">
-        {feedItems.map((item) => (
+        {items.map((item) => (
           <div
             key={item.id}
             className="space-y-2 rounded-xl bg-surface p-space-md transition-colors hover:bg-surface-container-low"
@@ -77,12 +78,15 @@ export function LiveFeed() {
                   {item.links.map((link, index) => (
                     <span key={link.label} className="flex items-center gap-3">
                       {index > 0 && <span>•</span>}
-                      <button className="flex items-center gap-0.5 hover:underline" type="button">
+                      <Link
+                        className="flex items-center gap-0.5 hover:underline"
+                        href={`/gorusmeler?q=${encodeURIComponent(item.parent)}`}
+                      >
                         <span className="material-symbols-outlined text-[14px]">
                           {link.icon}
                         </span>{" "}
                         {link.label}
-                      </button>
+                      </Link>
                     </span>
                   ))}
                 </div>

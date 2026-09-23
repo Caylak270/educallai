@@ -2,6 +2,7 @@ import { clsx } from "@/lib/clsx";
 import {
   pipelineHeader,
   pipelineStages,
+  type PipelineStage,
   type StageVariant,
 } from "@/lib/mock/installments";
 
@@ -15,7 +16,8 @@ const stageAccent: Record<StageVariant, { border: string; amount: string }> = {
 };
 
 /** 5 aşamalı eskalasyon rayı — mobilde yatay kaydırma, PC'de tam genişlik 5 kolon. */
-export function PipelineStepper() {
+export function PipelineStepper({ stages: liveStages }: { stages?: PipelineStage[] }) {
+  const items = liveStages ?? pipelineStages;
   return (
     <section>
       <div className="mb-3 flex items-end justify-between gap-3">
@@ -33,7 +35,7 @@ export function PipelineStepper() {
       </div>
 
       <div className="no-scrollbar -mx-4 flex gap-3 overflow-x-auto px-4 pb-1 lg:mx-0 lg:grid lg:grid-cols-5 lg:overflow-visible lg:px-0">
-        {pipelineStages.map((stage) => {
+        {items.map((stage) => {
           const accent = stageAccent[stage.variant];
           const isAi = stage.variant === "ai";
           return (

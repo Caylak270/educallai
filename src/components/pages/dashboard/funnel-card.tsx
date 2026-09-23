@@ -1,10 +1,11 @@
-import { funnelSteps } from "@/lib/mock/kpis";
+import { type FunnelStep,  funnelSteps } from "@/lib/mock/kpis";
 
 /**
  * Dönüşüm hunisi (v2) — her aşama: sıra no + ad + sayı/sağda oran,
  * altında ince animasyonlu bar. Bar içine gömülü rozet YOK.
  */
-export function FunnelCard() {
+export function FunnelCard({ steps }: { steps?: FunnelStep[] }) {
+  const items = steps ?? funnelSteps;
   return (
     <section className="anim-rise rounded-xl border border-outline-variant/60 bg-surface-container-lowest p-5 lg:col-span-7">
       <header className="mb-5 flex items-start justify-between gap-3">
@@ -20,7 +21,7 @@ export function FunnelCard() {
       </header>
 
       <div className="space-y-5">
-        {funnelSteps.map((step, index) => (
+        {items.map((step, index) => (
           <div key={step.id}>
             <div className="mb-1.5 flex items-baseline justify-between gap-3">
               <div className="flex min-w-0 items-baseline gap-2.5">

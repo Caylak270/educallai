@@ -1,13 +1,18 @@
 import { PageHeader, PageShell, SectionCard, Stat } from "@/components/ui/page-shell";
+import { PrintButton } from "@/components/ui/print-button";
+import { PrintSectionButton } from "@/components/ui/print-section-button";
 import { channelBreakdown, reportFiles, reportKpis, weeklyCallVolume } from "@/lib/mock/reports";
+import { getLiveDashboard } from "@/lib/server/queries";
+import { buildReportsView } from "@/lib/server/reports-map";
 
 export const metadata = { title: "Raporlar" };
 
-function WeeklyCallChart() {
-  const max = Math.max(...weeklyCallVolume.map((d) => d.answered + d.missed));
+function WeeklyCallChart({ data }: { data?: Array<{ day: string; answered: number; missed: number }> }) {
+  const rows = data ?? weeklyCallVolume;
+  const max = Math.max(...rows.map((d) => d.answered + d.missed));
   return (
     <div className="flex h-56 gap-3 sm:gap-5">
-      {weeklyCallVolume.map((d) => {
+      {rows.map((d) => {
         const total = d.answered + d.missed;
         const answeredH = Math.round((d.answered / max) * 100);
         const missedH = Math.round((d.missed / max) * 100);
@@ -36,11 +41,12 @@ function WeeklyCallChart() {
   );
 }
 
-function ChannelBars() {
-  const total = channelBreakdown.reduce((sum, c) => sum + c.value, 0);
+function ChannelBars({ data }: { data?: typeof channelBreakdown }) {
+  const rows = data ?? channelBreakdown;
+  const total = rows.reduce((sum, c) => sum + c.value, 0);
   return (
     <div className="flex h-56 flex-col justify-center gap-4">
-      {channelBreakdown.map((c) => (
+      {rows.map((c) => (
         <div key={c.label}>
           <div className="mb-1.5 flex items-baseline justify-between font-label-sm text-label-sm">
             <span className="text-on-surface-variant">{c.label}</span>
@@ -61,27 +67,31 @@ function ChannelBars() {
   );
 }
 
-export default function Page() {
+export const dynamic = "force-dynamic";
+
+export default async function Page() {
+  const live = await getLiveDashboard();
+  const view = live ? buildReportsView(live.signals) : null;
   return (
     <PageShell>
       <PageHeader
         title="Raporlar"
         description="Outcome Telemetry özetleri ve dönemsel performans raporları."
         actions={
-          <button
+          <PrintButton
+            ariaLabel="Sayfayı yazdır veya PDF olarak kaydet"
             className="flex h-10 items-center gap-1.5 rounded-xl border border-outline-variant/60 px-4 font-label-md text-label-md font-medium text-on-surface-variant transition-colors hover:bg-surface-container-low"
-            type="button"
           >
-            <span className="material-symbols-outlined text-[18px]">download</span>
-            <span>PDF İndir</span>
-          </button>
+            <span className="material-symbols-outlined text-[18px]">print</span>
+            <span>PDF / Yazdır</span>
+          </PrintButton>
         }
       />
 
       <div className="flex flex-col gap-6">
         {/* Telemetri KPI'ları */}
         <section className="grid grid-cols-2 divide-y divide-outline-variant/50 rounded-xl border border-outline-variant/60 bg-surface-container-lowest sm:grid-cols-4 sm:divide-x sm:divide-y-0">
-          {reportKpis.map((kpi) => (
+          {(view?.kpis ?? reportKpis).map((kpi) => (
             <div key={kpi.label} className="p-5">
               <Stat
                 label={kpi.label}
@@ -118,7 +128,7 @@ export default function Page() {
               </span>
             }
           >
-            <WeeklyCallChart />
+            <WeeklyCallChart data={view?.weekly} />
           </SectionCard>
 
           <SectionCard
@@ -126,32 +136,36 @@ export default function Page() {
             title="Kanal dağılımı"
             subtitle="Bu ay toplam 2.072 temas"
           >
-            <ChannelBars />
+            <ChannelBars data={view?.channelBreakdown} />
           </SectionCard>
         </div>
 
-        {/* Rapor dosyaları */}
-        <SectionCard title="Son raporlar" bodyClassName="p-0">
-          {reportFiles.map((file) => (
+        {/* Rapor şablonları — satır başına gerçek hedefli yazdırma */}
+        <SectionCard
+          title="Rapor şablonları"
+          subtitle="İstediğiniz şablonu satırın üzerindeki Yazdır ile tek bölüm olarak çıktı alın"
+          bodyClassName="p-0"
+        >
+          {reportFiles.map((file, index) => (
             <div
               key={file.name}
+              id={`rapor-${index}`}
               className="flex items-center justify-between gap-3 border-b border-outline-variant/40 px-5 py-4 last:border-b-0"
             >
               <div className="min-w-0">
                 <p className="truncate font-label-md text-label-md font-semibold text-on-surface">
                   {file.name}
                 </p>
-                <p className="font-body-sm text-body-sm text-on-surface-variant">
-                  {file.period} · {file.size}
-                </p>
+                <p className="font-body-sm text-body-sm text-on-surface-variant">{file.period}</p>
               </div>
-              <button
-                aria-label={`${file.name} indir`}
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-on-surface-variant transition-colors hover:bg-surface-container"
-                type="button"
+              <PrintSectionButton
+                ariaLabel={`${file.name} şablonunu yazdır`}
+                className="flex h-9 shrink-0 items-center gap-1.5 rounded-lg border border-outline-variant/60 px-3 font-label-sm text-label-sm font-medium text-on-surface-variant transition-colors hover:bg-surface-container"
+                targetId={`rapor-${index}`}
               >
-                <span className="material-symbols-outlined text-[18px]">download</span>
-              </button>
+                <span className="material-symbols-outlined text-[18px]">print</span>
+                <span>Yazdır</span>
+              </PrintSectionButton>
             </div>
           ))}
         </SectionCard>

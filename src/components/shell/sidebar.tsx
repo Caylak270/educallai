@@ -2,6 +2,7 @@
 
 import { AppLogo } from "./app-logo";
 import { SidebarNav } from "./sidebar-nav";
+import { ProfileMenu } from "./profile-menu";
 import { clsx } from "@/lib/clsx";
 
 /**
@@ -18,14 +19,14 @@ export function Sidebar({
   return (
     <aside
       className={clsx(
-        "fixed left-0 top-0 z-50 hidden h-full flex-col justify-between bg-surface-container-lowest shadow-[0_1px_8px_rgba(0,0,0,0.04)] transition-[width] duration-200 lg:flex",
+        "fixed left-0 top-0 z-50 hidden h-full flex-col bg-surface-container-lowest shadow-[0_1px_8px_rgba(0,0,0,0.04)] transition-[width] duration-200 lg:flex",
         collapsed ? "w-[68px]" : "w-72"
       )}
     >
-      <div className="flex flex-col">
+      <div className="flex min-h-0 flex-1 flex-col">
         <div
           className={clsx(
-            "flex h-16 items-center",
+            "flex h-16 shrink-0 items-center",
             collapsed ? "flex-col justify-center gap-1 px-0" : "justify-between px-space-lg"
           )}
         >
@@ -57,13 +58,19 @@ export function Sidebar({
             </span>
           </button>
         </div>
-        <div className={clsx("py-space-sm", collapsed ? "px-2" : "px-space-md")}>
+        {/* Menü öğeleri arttığında taşmayı engeller — yalnız nav alanı kayar */}
+        <div
+          className={clsx(
+            "min-h-0 flex-1 overflow-y-auto py-space-sm",
+            collapsed ? "px-2" : "px-space-md"
+          )}
+        >
           <SidebarNav collapsed={collapsed} />
         </div>
       </div>
       <div
         className={clsx(
-          "flex flex-col gap-space-sm bg-surface-container-low",
+          "flex shrink-0 flex-col gap-space-sm bg-surface-container-low",
           collapsed ? "m-2 items-center rounded-xl p-2" : "m-space-md rounded-xl p-space-md"
         )}
       >
@@ -82,29 +89,7 @@ export function Sidebar({
             </span>
           </div>
         ) : null}
-        <div
-          className={clsx(
-            "flex items-center pt-space-xs",
-            collapsed ? "justify-center" : "gap-3"
-          )}
-        >
-          <div
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary-fixed font-label-md text-label-md font-semibold text-on-primary-fixed"
-            title={collapsed ? "Ahmet Yıldız · Müdür" : undefined}
-          >
-            AY
-          </div>
-          {!collapsed ? (
-            <div className="flex flex-col overflow-hidden">
-              <span className="truncate font-label-md text-label-md font-medium text-on-surface">
-                Ahmet Yıldız
-              </span>
-              <span className="truncate font-body-sm text-body-sm text-on-surface-variant">
-                Müdür
-              </span>
-            </div>
-          ) : null}
-        </div>
+        <ProfileMenu variant="sidebar" collapsed={collapsed} />
       </div>
     </aside>
   );

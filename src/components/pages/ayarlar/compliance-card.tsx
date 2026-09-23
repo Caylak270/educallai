@@ -1,4 +1,3 @@
-import { CardHeader } from "./card-header";
 import { complianceItems } from "@/lib/mock/settings";
 
 export function ComplianceCard() {
@@ -46,12 +45,14 @@ export function ComplianceCard() {
         ))}
       </div>
 
+      {/* Gerçek dosya: /public/legal/kvkk-aydinlatma-metni.txt */}
       <a
-        href="#"
         className="mt-space-xs inline-flex items-center gap-space-xs font-label-md text-label-md font-semibold text-primary transition-colors hover:text-primary-container"
+        download
+        href="/legal/kvkk-aydinlatma-metni.txt"
       >
         <span className="material-symbols-outlined text-[16px]">description</span>
-        <span>Yasal Danışman Raporunu İndir (PDF)</span>
+        <span>KVKK Aydınlatma Metnini İndir</span>
       </a>
     </section>
   );

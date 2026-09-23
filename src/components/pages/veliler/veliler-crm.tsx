@@ -50,6 +50,10 @@ export function VelilerCrm({
   const [moveError, setMoveError] = useState<string | null>(null);
   const moveErrorTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const [visibleCount, setVisibleCount] = useState(18);
+  const [advancedOpen, setAdvancedOpen] = useState(false);
+  const [stageFilter, setStageFilter] = useState("all");
+  const [sortBy, setSortBy] = useState<"score" | "name">("score");
 
   useEffect(() => {
     if (autoFocusSearch) searchInputRef.current?.focus();
@@ -73,14 +77,22 @@ export function VelilerCrm({
           ) {
             return false;
           }
+          if (stageFilter !== "all" && (stageOf[lead.id] ?? lead.stage) !== stageFilter) {
+            return false;
+          }
           if (!normalizedQuery) return true;
           return (
             lead.name.toLocaleLowerCase("tr").includes(normalizedQuery) ||
             lead.student.toLocaleLowerCase("tr").includes(normalizedQuery) ||
             (lead.drawer.phone ?? "").includes(normalizedQuery)
           );
-        }),
-    [allLeads, stageOf, normalizedQuery, activeChipId]
+        })
+        .sort((a, b) =>
+          sortBy === "name"
+            ? a.name.localeCompare(b.name, "tr")
+            : (b.score ?? 0) - (a.score ?? 0)
+        ),
+    [allLeads, stageOf, normalizedQuery, activeChipId, stageFilter, sortBy]
   );
 
   const selectedLead = visibleLeads.find((lead) => lead.id === selectedLeadId)
@@ -127,14 +139,63 @@ export function VelilerCrm({
           />
         </div>
         <button
+          aria-expanded={advancedOpen}
           aria-label="Gelişmiş Filtrele"
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-outline-variant/60 bg-surface-container-lowest text-on-surface-variant transition-colors hover:text-on-surface"
+          className={
+            "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border transition-colors " +
+            (advancedOpen
+              ? "border-primary bg-primary-fixed text-primary"
+              : "border-outline-variant/60 bg-surface-container-lowest text-on-surface-variant hover:text-on-surface")
+          }
           type="button"
+          onClick={() => setAdvancedOpen((v) => !v)}
         >
           <span className="material-symbols-outlined text-[20px]">filter_list</span>
         </button>
         <ViewToggle value={view} onChange={setView} />
       </div>
+
+      {/* Gelişmiş filtre paneli */}
+      {advancedOpen ? (
+        <div className="flex flex-wrap items-end gap-3 rounded-xl border border-outline-variant/60 bg-surface-container-lowest p-3">
+          <label className="flex flex-col gap-1">
+            <span className="font-label-xs text-label-xs text-on-surface-variant">Aşama</span>
+            <select
+              className="h-9 rounded-lg border border-outline-variant/60 bg-surface-container-lowest px-2 font-label-sm text-label-sm text-on-surface focus:outline-none"
+              onChange={(event) => setStageFilter(event.target.value)}
+              value={stageFilter}
+            >
+              <option value="all">Tüm aşamalar</option>
+              {kanbanStages.map((stage) => (
+                <option key={stage.id} value={stage.id}>
+                  {stage.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="flex flex-col gap-1">
+            <span className="font-label-xs text-label-xs text-on-surface-variant">Sıralama</span>
+            <select
+              className="h-9 rounded-lg border border-outline-variant/60 bg-surface-container-lowest px-2 font-label-sm text-label-sm text-on-surface focus:outline-none"
+              onChange={(event) => setSortBy(event.target.value as "score" | "name")}
+              value={sortBy}
+            >
+              <option value="score">Lead puanı (yüksekten düşüğe)</option>
+              <option value="name">Veli adı (A-Z)</option>
+            </select>
+          </label>
+          <button
+            className="h-9 rounded-lg border border-outline-variant/60 px-3 font-label-sm text-label-sm text-on-surface-variant transition-colors hover:bg-surface-container-low"
+            type="button"
+            onClick={() => {
+              setStageFilter("all");
+              setSortBy("score");
+            }}
+          >
+            Temizle
+          </button>
+        </div>
+      ) : null}
 
       {/* Filtre chip'leri */}
       <FilterChips activeId={activeChipId} onSelect={setActiveChipId} counts={chipCounts} />
@@ -170,9 +231,18 @@ export function VelilerCrm({
       ) : (
         /* LİSTE — tüm leadler, PC'de 2-3 kolon grid */
         <div className="grid grid-cols-1 items-stretch gap-3 lg:grid-cols-2 xl:grid-cols-3">
-          {visibleLeads.map((lead) => (
+          {visibleLeads.slice(0, visibleCount).map((lead) => (
             <LeadCard key={lead.id} lead={lead} onOpen={(opened: Lead) => setSelectedLeadId(opened.id)} />
           ))}
+          {visibleLeads.length > visibleCount ? (
+            <button
+              className="col-span-full flex h-11 items-center justify-center gap-2 rounded-xl border border-outline-variant/60 bg-surface-container-lowest font-label-md text-label-md font-semibold text-on-surface transition-colors hover:bg-surface-container-low"
+              type="button"
+              onClick={() => setVisibleCount((v) => v + 18)}
+            >
+              Daha Fazla Yükle ({visibleLeads.length - visibleCount} veli)
+            </button>
+          ) : null}
         </div>
       )}
 

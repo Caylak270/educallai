@@ -76,7 +76,7 @@ export function TranscriptPanel({
   segments: TranscriptSegment[];
   meta: TranscriptMeta;
 }) {
-  const [copied, setCopied] = useState(false);
+  const [copyState, setCopyState] = useState<"idle" | "ok" | "fail">("idle");
   const copyTimer = useRef<number | null>(null);
 
   useEffect(() => {
@@ -87,12 +87,24 @@ export function TranscriptPanel({
     };
   }, []);
 
+  /* Tüm segmentleri zaman + konuşmacı etiketiyle birleştirip gerçekten panoya yazar. */
   const handleCopy = () => {
-    setCopied(true);
+    const text = segments
+      .map(
+        (segment) =>
+          `[${segment.time}] ${
+            segment.speaker === "ai" ? meta.aiSpeaker : meta.parentSpeaker
+          }: ${segment.text}`
+      )
+      .join("\n");
+    navigator.clipboard
+      .writeText(text)
+      .then(() => setCopyState("ok"))
+      .catch(() => setCopyState("fail"));
     if (copyTimer.current !== null) {
       window.clearTimeout(copyTimer.current);
     }
-    copyTimer.current = window.setTimeout(() => setCopied(false), 2000);
+    copyTimer.current = window.setTimeout(() => setCopyState("idle"), 2500);
   };
 
   return (
@@ -108,9 +120,16 @@ export function TranscriptPanel({
         <button
           type="button"
           onClick={handleCopy}
-          className="shrink-0 font-label-sm text-label-sm font-semibold text-primary hover:underline"
+          className={clsx(
+            "shrink-0 font-label-sm text-label-sm font-semibold hover:underline",
+            copyState === "fail" ? "text-error" : "text-primary"
+          )}
         >
-          {copied ? meta.copiedLabel : meta.copyLabel}
+          {copyState === "ok"
+            ? meta.copiedLabel
+            : copyState === "fail"
+              ? "Kopyalanamadı"
+              : meta.copyLabel}
         </button>
       </div>
 

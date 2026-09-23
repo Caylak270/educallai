@@ -220,13 +220,13 @@ export function buildLeadsView(rows: LiveLeadRow[]): Lead[] {
           icon: "record_voice_over",
           label: "Şimdi Ara (AI Asistan)",
           style: "primary" as const,
-          message: "AI Voice Bot araması başlatılıyor...",
+          kind: "call" as const,
         },
         {
           icon: "chat",
           label: "WhatsApp",
           style: "neutral" as const,
-          message: "WhatsApp konuşması açılıyor...",
+          kind: "whatsapp" as const,
         },
       ],
       drawer: {

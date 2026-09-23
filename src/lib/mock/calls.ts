@@ -152,6 +152,8 @@ export const callTabs: CallTab[] = [
 
 export const sampleCall: {
   id: string;
+  /** Mock/demo kaydın gerçek kontak bağlantısı yoktur → not/devir API'leri dürüst mesaj gösterir. */
+  contactId: string | null;
   summary: CallSummary;
   audio: AudioPlayerData;
   transcriptMeta: TranscriptMeta;
@@ -161,6 +163,7 @@ export const sampleCall: {
   noteBox: NoteBox;
 } = {
   id: "call-001",
+  contactId: null,
   summary: {
     directionPill: "Gelen Çağrı (Inbound)",
     outcomePill: "Başarılı Görüşme",
