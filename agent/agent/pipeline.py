@@ -230,7 +230,18 @@ class CascadePipeline:
 
         models: list[Any] = []
 
-        # 2026-09-22: GEMINI_API_KEY verilirse Gemini BİRİNCİL (OpenAI kredi
+        # 2026-09-23 Claude önerisi: sesli konuşmada ANA MOTOR Claude Haiku
+        # (TR doğallık + güvenilirlik); Gemini/OpenAI yedeğe düşer. Anahtar
+        # gelmediğinde bu hat kurulmaz ve davranış değişmez.
+        if self.config.anthropic_api_key:
+            from livekit.plugins import anthropic
+
+            models.append(
+                anthropic.LLM(model=self.config.llm_fallback_model)
+            )
+            self._note("LLM birincil: Claude Haiku — Gemini/OpenAI yedek")
+
+        # 2026-09-22: GEMINI_API_KEY verilirse Gemini sıraya girer (OpenAI kredi
         # 429'da çalışmıyor); anahtar yoksa OpenAI başa döner.
         if self.config.gemini_api_key:
             from livekit.plugins import google
