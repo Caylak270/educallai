@@ -231,23 +231,35 @@ class CascadePipeline:
         models: list[Any] = []
 
         # 2026-09-23: GROQ_API_KEY varsa Groq gpt-oss-120b BİRİNCİL (LPU,
-        # ~1sn toplam, ücretsiz kota cömert). OpenAI-uyumlu uç.
+        # ~1sn toplam). Günlük kota dolarsa: OpenRouter 31B (akıllı) →
+        # en son küçük 20b (ayrı günlük kota).
         if self.config.groq_api_key:
-            # İki hat: 120b'nin GÜNLÜK kotası dolarsa 20b (ayrı kota) devreye girer
-            for groq_model in (
-                self.config.llm_groq_model,
-                "openai/gpt-oss-20b",
-            ):
-                models.append(
-                    openai.LLM(
-                        model=groq_model,
-                        api_key=self.config.groq_api_key,
-                        base_url="https://api.groq.com/openai/v1",
-                    )
+            models.append(
+                openai.LLM(
+                    model=self.config.llm_groq_model,
+                    api_key=self.config.groq_api_key,
+                    base_url="https://api.groq.com/openai/v1",
                 )
-            self._note(
-                "LLM: Groq gpt-oss-120b → gpt-oss-20b → OpenRouter(gemma-4) → Gemini → (OpenAI pasif)"
             )
+        if self.config.openrouter_api_key:
+            models.append(
+                openai.LLM(
+                    model=self.config.llm_openrouter_model,
+                    api_key=self.config.openrouter_api_key,
+                    base_url="https://openrouter.ai/api/v1",
+                )
+            )
+        if self.config.groq_api_key:
+            models.append(
+                openai.LLM(
+                    model="openai/gpt-oss-20b",
+                    api_key=self.config.groq_api_key,
+                    base_url="https://api.groq.com/openai/v1",
+                )
+            )
+        self._note(
+            "LLM: Groq gpt-oss-120b → OpenRouter(gemma-4) → Groq gpt-oss-20b → Gemini → (OpenAI pasif)"
+        )
 
         # 2026-09-23: OPENROUTER_API_KEY varsa Gemma 4 31B 3. hat (Claude önerisi:
         # saf hız). Groq günlük kotaları dolunca devreye girer.
