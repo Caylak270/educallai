@@ -1,108 +1,38 @@
-# educallai — VeliPilot AI (kod adı: DershaneAI)
+# educallai — Pazarlama Web Sitesi
 
-Dershaneler için **7/24 çok kanallı AI sesli + yazılı asistan platformu**: veli arama
-(outbound/inbound), tahsilat takibi, deneme sınavı analizi ve WhatsApp otomasyonu — tek panelden.
+Dershaneler için **7/24 çok kanallı AI sesli + yazılı asistan platformu**
+educallai'nin pazarlama web sitesi: 16 bölümlük tek sayfa vitrin (`/web`),
+kayıp gelir hesaplayıcı, canlı sohbet demosu, SSS ve iletişim akışları.
 
-- **Hedef pazar:** Türkiye (önce Esenyurt / Beylikdüzü dershaneleri)
-- **Dil / para birimi:** Türkçe / TRY
-- **Kaynak şartname:** `educallai.docx` (Master DNA Brief & Teknik Şartname v1.0) — özet `PLAN.md`'de
+> **Yönetim paneli uygulaması** (dashboard: veliler CRM, tahsilat, ödev takibi,
+> ders programı, öğretmen bordro vb.) ayrı depodadır:
+> [`Caylak270/dershane-ai-hub`](https://github.com/Caylak270/dershane-ai-hub)
 
-## Depo Yapısı
+## Sayfa bölümleri (`/web`)
 
-```
-educallai/
-├── src/                    Next.js 16 (App Router, TS, Tailwind v4)
-│   ├── app/(site)/         Pazarlama web sitesi: /web (16 bölüm, canlı CRM demosu)
-│   ├── app/demo/           /web içindeki canlı vitrine gömülü CRM demo ekranı
-│   ├── app/(app)/          Dashboard: /, /veliler, /gorusmeler/[id], /tahsilat,
-│   │                       /deneme-analizi, /kampanyalar, /randevular, /raporlar,
-│   │                       /risk-paneli, /yoklama, /odevler, /ders-programi,
-│   │                       /ogretmen-bordro, /beceri-karnesi, /ogrenci-360,
-│   │                       /veli-bulteni, /etkinlikler, /referanslar,
-│   │                       /sinav-takvimi, /ayarlar
-│   ├── app/robots.ts       SEO: robots.txt + sitemap.xml
-│   ├── components/site/    Web sitesi bileşenleri (hero chat, kanban, reveal…)
-│   ├── components/shell/   Dashboard kabuğu: sidebar, mobil header, logo
-│   ├── components/pages/   Dashboard sayfa bileşenleri
-│   └── lib/
-│       ├── mock/           Demo veri (Supabase bağlanana dek)
-│       └── types/db.ts     Veritabanı satır tipleri (migration'larla birebir)
-├── public/brand/           Logo, ikon, OG görseli
-├── agent/                  Python voice agent (LiveKit Cascade Pipeline)
-│   ├── agent/              Pattern 1-8 + Batch Dialer + Tahsilat SM + Deneme motoru
-│   └── tests/              134 test (harici servis gerektirmez)
-├── supabase/               SQL migration'lar (12 tablo + RLS) + demo seed
-├── design/screens/         Stitch tasarım referansları (7 ekran HTML)
-├── docs/raporlar/          İlerleme raporları
-└── scripts/site-smoke.mjs  Web sitesi smoke test paketi (26 kontrol)
-```
+Hero (canlı sohbet) · Kokpit vitrini (canlı panel iframe'i) · Özellikler ·
+Nasıl Çalışır · Segmentler · Yol Haritası · Kayıp Gelir Hesaplayıcı ·
+Kurum Yorumları · Teklif · SSS · Final CTA · İletişim
 
-## Web Sitesi (/web)
+## Teknoloji
 
-Pazarlama sitesi `/web` rotasında, dashboard'dan tamamen ayrı `(site)` route
-grubunda ve kendi Tailwind temasıyla çalışır. Canlı vitrindeki CRM ekranı,
-`/demo` rotasının iframe'e gömülü halidir — içindeki sidebar menüyle gezilebilir.
-Geliştirme sonrası doğrulama:
-
-```bash
-node scripts/site-smoke.mjs   # 26 kontrol (rota, link, etkileşim, taşma)
-```
-
-Blog planı: `/blog` route'u + sitemap entegrasyonu (Article schema) eklenecek.
+Next.js 16 (App Router) · React 19 · TypeScript · Tailwind v4 (Material 3
+token'ları) · Playwright (smoke testleri)
 
 ## Çalıştırma
 
 ```bash
 npm install
-npm run dev        # http://localhost:3000
-npm run build      # üretim derlemesi
-
-# Uçtan uca E2E (dev server ayakta iken; sistem Chrome kullanır)
-node scripts/e2e-test.mjs
+npm run dev                  # http://localhost:3000/web
+node scripts/site-smoke.mjs  # smoke test paketi (dev server ayakta iken)
 ```
 
-### Ortam değişkenleri (`.env.local` — repoya girmez)
+- Kök adres (`/`) otomatik `/web`'e yönlendirir.
+- "Canlı vitrin" bölümü, yönetim paneli uygulamasının deploy'unu iframe ile
+  gömer; hedef adres `NEXT_PUBLIC_APP_DEMO_URL` ortam değişkeniyle
+  ayarlanır (varsayılan: `https://app.educallai.com/demo`).
 
-| Anahtar | Ne için |
-|---|---|
-| `SUPABASE_URL` + `SUPABASE_SERVICE_KEY` | Gerçek veri (veliler, ödevler, program, bordro…) |
-| `SUPABASE_DB_PASSWORD` + `SUPABASE_REF` | Migration push (`scripts/push-migration.mjs`) |
-| `LIVEKIT_URL` + `LIVEKIT_API_KEY` + `LIVEKIT_API_SECRET` | Sesli arama köprüsü |
-| `DEEPGRAM_API_KEY` | Konuşma tanıma (STT) |
-| `CARTESIA_API_KEY` | Ses sentezi (TTS) |
-| `OPENAI_API_KEY` / `ANTHROPIC_API_KEY` | Konuşma beyni (LLM) |
-| `NETGSM_USERCODE` + `NETGSM_PASSWORD` | Telefon hattı (SIP) + SMS |
+## Deploy
 
-Anahtarlar tanımlı değilken uygulama **demo modda** çalışır: mock veriyle tüm
-ekranlar gezenbilir, yazmalar "demo modda kaydedildi" olarak dürüstçe bildirilir.
-
-### Supabase şeması
-
-```bash
-set -a && source .env.local && set +a
-node scripts/push-migration.mjs supabase/migrations/0001_core.sql   # … 0011'e kadar sırayla
-```
-
-
-## Teknoloji Yığını
-
-| Katman | Teknoloji |
-|---|---|
-| Sunum | Next.js 16 + React 19 + Tailwind v4 (M3 token seti) + Vercel |
-| Veri | Supabase (PostgreSQL 15+, pgvector, RLS) |
-| Ses | LiveKit Cloud + Netgsm SIP · Deepgram Nova-3 (tr) · OpenAI GPT-4o mini (LLM, yedek: Claude Haiku) · Cartesia Sonic 3.6 |
-| Mesajlaşma | Meta WhatsApp Business API, Netgsm SMS, Zernio |
-| Kuyruk | Redis / BullMQ (Outbound Batch Dialer) |
-
-## Tasarım Sistemi
-
-`src/app/globals.css` içinde Tailwind v4 `@theme` ile Stitch'in Material Design 3 tokenları
-birebir tanımlı (renkler `bg-primary-container` gibi, tipografi `text-headline-md` +
-`font-headline-md`, spacing `p-space-md`, `px-gutter`). Yeni ekranlar bu tokenlarla yazılır;
-referans HTML'ler `design/screens/` altındadır.
-
-## Durum ve Yol Haritası
-
-Faz 0-2 tamamlandı (UI + veri şeması + agent iskeleti). Sıradaki adımlar `PLAN.md` Faz 4'te:
-canlı sağlayıcı anahtarları, eksik ekranlar (randevular/raporlar/görüşme listesi — Stitch'te
-bekliyor), Batch Dialer worker'ı, Outcome Telemetry cron'u.
+Ortam değişkeni zorunlu değildir; statik içerik + tek iframe'den oluşur.
+Panel uygulaması `app.educallai.com` altında yayınlanır.

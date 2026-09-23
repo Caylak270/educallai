@@ -1,8 +1,9 @@
 import type { MetadataRoute } from "next";
 
 /*
-  Pazarlama sitesi yayına hazır: arama motoru kuralları.
-  İç panel (/) ve CRM demo (/demo) dizinlenmez.
+  Pazarlama sitesi arama motoru kuralları.
+  Yönetim paneli uygulaması ayrı repoda/deploy'dadır (dershane-ai-hub)
+  ve bu siteden dizinlenmez.
 */
 export default function robots(): MetadataRoute.Robots {
   return {
@@ -10,18 +11,6 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: "/web",
-        disallow: [
-          "/demo",
-          "/api",
-          "/ayarlar",
-          "/gorusmeler",
-          "/kampanyalar",
-          "/randevular",
-          "/raporlar",
-          "/tahsilat",
-          "/veliler",
-          "/deneme-analizi",
-        ],
       },
     ],
     sitemap: "https://educallai.com/sitemap.xml",

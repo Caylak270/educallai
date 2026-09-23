@@ -20,8 +20,8 @@ const browser = await chromium.launch({
   args: ["--disable-gpu", "--hide-scrollbars"],
 });
 
-/* 1 · Rotalar */
-for (const path of ["/web", "/demo", "/", "/robots.txt", "/sitemap.xml"]) {
+/* 1 · Rotalar (panel uygulaması ayrı depoda — /demo bu sitede yoktur) */
+for (const path of ["/web", "/", "/robots.txt", "/sitemap.xml"]) {
   const res = await fetch(BASE + path);
   check(`GET ${path} → 200`, res.status === 200, `durum ${res.status}`);
 }
@@ -100,6 +100,12 @@ for (const path of ["/web", "/demo", "/", "/robots.txt", "/sitemap.xml"]) {
 
   // Konsol hataları
   check("konsol hatası yok", consoleErrors.length === 0, consoleErrors.slice(0, 2).join(" | "));
+
+  // Canlı vitrin iframe'i (panel uygulamasına dış bağlantı — ayrı depo/deploy)
+  check(
+    "canlı vitrin iframe'i var",
+    (await page.locator("iframe").count()) >= 1
+  );
   await ctx.close();
 }
 
@@ -111,24 +117,6 @@ for (const path of ["/web", "/demo", "/", "/robots.txt", "/sitemap.xml"]) {
   await page.waitForTimeout(1500);
   const sw = await page.evaluate(() => document.documentElement.scrollWidth);
   check("mobilde yatay taşma yok (390)", sw <= 390, `scrollW=${sw}`);
-  await ctx.close();
-}
-
-/* 4 · /demo iframe içi testler */
-{
-  const ctx = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
-  const page = await ctx.newPage();
-  await page.goto(BASE + "/web", { waitUntil: "networkidle" });
-  await page.waitForTimeout(1500);
-  await page.locator("#kokpit iframe").scrollIntoViewIfNeeded();
-  await page.waitForTimeout(1200);
-  const frame = page.frameLocator("#kokpit iframe").first();
-  const navCount = await frame.locator("aside a").count();
-  check("demo sidebar 4 menü", navCount === 4, `${navCount} menü`);
-  await frame.locator('a[href="#veliler"]').click({ timeout: 6000 });
-  await page.waitForTimeout(600);
-  const kanbanVisible = (await frame.locator("text=Yeni Lead").count()) > 0;
-  check("demo sidebar → kanban gezinmesi", kanbanVisible);
   await ctx.close();
 }
 

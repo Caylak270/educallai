@@ -4,7 +4,14 @@
   Canlı vitrin — statik resim yerine gerçek bir demo ekranı iframe ile
   gömülür (porsyon.com.tr "Ürün vitrini" mantığı). Demo ekranının KENDİ
   sidebar menüsü bölümler arasında gezinmeyi sağlar; dış sekme yok.
+
+  Panel uygulaması bu depoda DEĞİLDİR: ayrı depoda (dershane-ai-hub)
+  ve kendi deploy'unda (app.educallai.com) yaşar. Hedef adres
+  NEXT_PUBLIC_APP_DEMO_URL ile değiştirilebilir.
 */
+
+const APP_DEMO_URL =
+  process.env.NEXT_PUBLIC_APP_DEMO_URL ?? "https://app.educallai.com/demo";
 
 export function LivePanel() {
   return (
@@ -30,7 +37,7 @@ export function LivePanel() {
           </span>
         </div>
         <iframe
-          src="/demo"
+          src={APP_DEMO_URL}
           title="educallai canlı panel demosu"
           loading="lazy"
           className="block h-[560px] w-full border-0 bg-white sm:h-[840px]"

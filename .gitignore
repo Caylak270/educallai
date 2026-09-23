@@ -59,3 +59,10 @@ gui-test-screenshots/
 dev-server.log
 .zcode/
 .c.css
+
+# python sanal ortami (repoya girmez)
+.venv/
+
+# python bytecode
+__pycache__/
+*.pyc
