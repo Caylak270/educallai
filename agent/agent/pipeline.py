@@ -230,6 +230,25 @@ class CascadePipeline:
 
         models: list[Any] = []
 
+        # 2026-09-23: GROQ_API_KEY varsa Groq gpt-oss-120b BİRİNCİL (LPU,
+        # ~1sn toplam, ücretsiz kota cömert). OpenAI-uyumlu uç.
+        if self.config.groq_api_key:
+            # İki hat: 120b'nin GÜNLÜK kotası dolarsa 20b (ayrı kota) devreye girer
+            for groq_model in (
+                self.config.llm_groq_model,
+                "openai/gpt-oss-20b",
+            ):
+                models.append(
+                    openai.LLM(
+                        model=groq_model,
+                        api_key=self.config.groq_api_key,
+                        base_url="https://api.groq.com/openai/v1",
+                    )
+                )
+            self._note(
+                "LLM: Groq gpt-oss-120b → gpt-oss-20b → Gemini → (OpenAI pasif)"
+            )
+
         # 2026-09-23 Claude önerisi: sesli konuşmada ANA MOTOR Claude Haiku
         # (TR doğallık + güvenilirlik); Gemini/OpenAI yedeğe düşer. Anahtar
         # gelmediğinde bu hat kurulmaz ve davranış değişmez.
