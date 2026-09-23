@@ -259,9 +259,12 @@ class CascadePipeline:
                     thinking_config=types.ThinkingConfig(thinking_budget=0),
                 )
             )
-            self._note("LLM birincil: Gemini (test) — OpenAI ikinci sıraya alındı")
-
-        models.append(openai.LLM(model=self.config.llm_primary_model))
+            self._note(
+                "LLM birincil: Gemini — OpenAI ZİNCİR DIŞI (hesap pasif 429; "
+                "kredi gelince tekrar eklenir)"
+            )
+        else:
+            models.append(openai.LLM(model=self.config.llm_primary_model))
 
         anthropic_key = getattr(self.config, "anthropic_api_key", "")
         if anthropic_key:
