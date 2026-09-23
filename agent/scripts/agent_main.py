@@ -433,7 +433,8 @@ def main() -> None:  # pragma: no cover - canlı ortam bloğu
             bed -= np.linspace(bed[0], bed[-1], n)
             bed /= (np.max(np.abs(bed)) + 1e-9)
             audio = bed * 0.35
-            # Klavye tık patlamaları: 3-8 hızlı tık + 1-4 sn sessizlik
+            # Klavye yazışmaları: 3-8 hızlı tık + sessizlik; ara sıra fare
+            # çift tık — ofis/dershane ortam hissi.
             t = 0.0
             while t < loop_sec - 0.05:
                 burst = rng.integers(3, 9)
@@ -443,11 +444,19 @@ def main() -> None:  # pragma: no cover - canlı ortam bloğu
                     if pos + dur >= n:
                         break
                     click = rng.standard_normal(dur) * np.exp(-np.linspace(0, 6, dur))
-                    audio[pos : pos + dur] += click * rng.uniform(0.05, 0.16)
+                    audio[pos : pos + dur] += click * rng.uniform(0.05, 0.18)
                     t += rng.uniform(0.05, 0.18)
                 t += rng.uniform(1.0, 4.0)
+                if rng.random() < 0.35:  # ara sıra fare çift tık
+                    for off in (0.0, rng.uniform(0.12, 0.2)):
+                        pos = int((t + off) * sr)
+                        dur = int(0.008 * sr)
+                        if pos + dur >= n:
+                            break
+                        click = rng.standard_normal(dur) * np.exp(-np.linspace(0, 5, dur))
+                        audio[pos : pos + dur] += click * rng.uniform(0.12, 0.22)
             audio = np.tanh(audio * 1.4)  # yumuşak doyurma
-            loop = (audio * 32767 * 0.5).astype(np.int16)  # master ~%50
+            loop = (audio * 32767 * 0.65).astype(np.int16)  # master ~%65
             loop_frames = [
                 rtc.AudioFrame(loop[i : i + sr].tobytes(), sr, 1, sr)
                 for i in range(0, len(loop), sr)
